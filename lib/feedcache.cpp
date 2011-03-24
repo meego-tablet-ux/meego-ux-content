@@ -12,15 +12,16 @@
 #include "feedadapter.h"
 #include "feedmodel.h"
 #include "actions.h"
+#include "actionsproxy.h"
 
 static void connectToSource(McaFeedCache *cache, QAbstractListModel *model)
 {
     QObject::connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
-            cache, SLOT(sourceRowsInserted(QModelIndex,int,int)));
+            cache, SLOT(sourceRowsInserted(QModelIndex,int,int)), Qt::DirectConnection);
     QObject::connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
-            cache, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
+            cache, SLOT(sourceRowsRemoved(QModelIndex,int,int)), Qt::DirectConnection);
     QObject::connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-            cache, SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
+            cache, SLOT(sourceDataChanged(QModelIndex,QModelIndex)), Qt::DirectConnection);
 }
 
 static void disconnectFromSource(McaFeedCache *cache, QAbstractListModel *model)
@@ -85,6 +86,12 @@ McaFeedCache::~McaFeedCache()
 {
     if (m_source)
         disconnectFromSource(this, m_source);
+
+    qDebug() << "Removing proxies: " << m_safeActions.count();
+
+    foreach(McaActionsProxy *proxy, m_safeActions) {
+        delete proxy;
+    }
 }
 
 void McaFeedCache::setSourceModel(QAbstractListModel *model)
@@ -118,19 +125,18 @@ QVariant McaFeedCache::data(const QModelIndex &index, int role) const
 {
     int row = index.row();
     if (m_source) {
-        if (m_state == StateThawed)
-            return m_source->data(m_source->index(row), role);
-        else {
-            QVariant variant = m_cache.at(row)->value(role);
-            if (role == McaFeedModel::CommonActionsRole) {
-                qDebug() << m_safeActions << variant.value<McaActions*>();
-                if (!m_safeActions.contains(variant.value<McaActions*>())) {
-                    qWarning() << "warning: ignoring action (target destroyed)";
-                    return QVariant();
-                }
+        QVariant variant = m_cache.at(row)->value(role);
+        if (role == McaFeedModel::CommonActionsRole) {
+            qDebug() << m_safeActions << variant.value<McaActions*>();
+            if (!m_safeActions.contains(variant.value<McaActions*>())) {
+                qWarning() << "warning: ignoring action (target destroyed)";
+                return QVariant();
             }
-            return variant;
+            // Return the McaActionProxy instead
+            McaActionsProxy *proxy = m_safeActions.value(variant.value<McaActions*>());
+            return QVariant::fromValue(qobject_cast<McaActions*>(proxy));
         }
+        return variant;
     }
     return QVariant();
 }
@@ -302,6 +308,8 @@ void McaFeedCache::sourceDataChanged(const QModelIndex& topLeft,
 
 void McaFeedCache::actionsDestroyed(QObject *object)
 {
+    McaActionsProxy *proxy = m_safeActions.value(object);
+    delete proxy;
     m_safeActions.remove(object);
 }
 
@@ -353,7 +361,10 @@ void McaFeedCache::updateRow(QMap<int,QVariant> *map, int row)
         map->insert(role, m_source->data(m_source->index(row), role));
 
     McaActions *actions = map->value(McaFeedModel::CommonActionsRole).value<McaActions*>();
-    m_safeActions.insert(actions);
-    connect(actions, SIGNAL(destroyed(QObject*)),
-            this, SLOT(actionsDestroyed(QObject*)));
+    if( !m_safeActions.contains(actions) ) {
+        McaActionsProxy *proxy = new McaActionsProxy(actions);
+        m_safeActions.insert(actions, proxy);
+       connect(actions, SIGNAL(destroyed(QObject*)),
+                this, SLOT(actionsDestroyed(QObject*)));
+    }
 }

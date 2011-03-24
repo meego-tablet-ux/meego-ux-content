@@ -9,6 +9,7 @@
 #include <QDebug>
 
 #include "aggregatedmodel.h"
+#include "feedadapter.h"
 #include "defines.h"
 
 //
@@ -37,6 +38,22 @@ void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)
             this, SLOT(sourceRowsRemoved(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
     connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
             this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)), Qt::BlockingQueuedConnection);
+
+    
+    McaFeedAdapter *adapter_model = qobject_cast<McaFeedAdapter*>(model);
+    if (adapter_model) {
+        connect(adapter_model, SIGNAL(initialUpdate(QModelIndex,int,int)),
+                this, SLOT(sourceRowsInserted(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
+
+
+        // TODO: Make sure this doesn't cause issues if it gets between begin/end updates
+        // as the handling is split in McaFeedAdapter.
+        qDebug() << "Recieved McaFeedAdapter";
+        QMetaObject::invokeMethod(adapter_model, "triggerInitialUpdate", Qt::QueuedConnection);
+    } else {
+        qWarning() << "McaAggregatedModel: Recieved an unknown model, threading might break.";
+        rowsInserted(model, 0, model->rowCount() - 1);
+    }
 #else
     connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
             this, SLOT(sourceRowsInserted(QModelIndex,int,int)));
@@ -44,10 +61,11 @@ void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)
             this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
     connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
             this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
-#endif
-    // TODO: handle model reset
 
     rowsInserted(model, 0, model->rowCount() - 1);
+#endif
+
+    // TODO: handle model reset
 }
 
 void McaAggregatedModel::removeSourceModel(QAbstractItemModel *model)

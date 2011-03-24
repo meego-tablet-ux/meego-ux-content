@@ -6,13 +6,15 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#ifndef __mcaactions_h
-#define __mcaactions_h
+#ifndef __mcaactionsproxy_h
+#define __mcaactionsproxy_h
+
+#include "actions.h"
 
 #include <QStringList>
 #include <QMetaType>
 
-class McaActions: public QObject
+class McaActionsProxy: public McaActions
 {
     Q_OBJECT
     // identifiers for custom actions (FUTURE)
@@ -21,15 +23,19 @@ class McaActions: public QObject
     Q_PROPERTY(QStringList customDisplayActions READ customDisplayActions)
 
 public:
-    McaActions(QObject *parent = NULL);
-    virtual ~McaActions();
+    McaActionsProxy(McaActions *action, QObject *parent = 0);
+    virtual ~McaActionsProxy();
 
-    Q_INVOKABLE virtual QStringList customActions();
-    Q_INVOKABLE virtual QStringList customDisplayActions();
+    QStringList customActions();
+    QStringList customDisplayActions();
+
+    void addCustomAction(QString id, QString displayName);
+
 signals:
     // standard actions are defined by the model
     void standardAction(QString action, QString uniqueid);
     void customAction(QString action, QString uniqueid);
+    void proxyAddCustomAction(QString id, QString displayName);
 
 public slots:
     // if you use the same actions object for more than one object, you should
@@ -38,16 +44,12 @@ public slots:
     //   still act on the removed content or gracefully throw away the action
 
     // standard actions are defined by the model
-    virtual void addCustomAction(QString id, QString displayName);
-
-    virtual void performStandardAction(QString action, QString uniqueid);
-    virtual void performCustomAction(QString action, QString uniqueid);
-
+    void performStandardAction(QString action, QString uniqueid);
+    void performCustomAction(QString action, QString uniqueid);
 private:
-    QStringList m_ids;
-    QStringList m_names;
+    McaActions *m_action;
 };
 
-Q_DECLARE_METATYPE(McaActions*)
+Q_DECLARE_METATYPE(McaActionsProxy*)
 
 #endif  // __mcaactions_h

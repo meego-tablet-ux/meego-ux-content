@@ -31,6 +31,8 @@ AbstractManager::AbstractManager(QObject *parent) :
 
 AbstractManager::~AbstractManager()
 {
+    delete m_cache;
+
     McaFeedManager::releaseManager();
 }
 

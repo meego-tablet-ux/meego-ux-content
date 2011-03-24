@@ -46,8 +46,10 @@ public:
 
     QAbstractItemModel *getSource();
 
+    Q_INVOKABLE void triggerInitialUpdate();
 signals:
     void limitChanged();
+    void initialUpdate(const QModelIndex &model, int start, int end);
 
     // source model updates have changed the number of rows provided
     void rowCountChanged();

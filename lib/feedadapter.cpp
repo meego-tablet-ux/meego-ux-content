@@ -113,10 +113,11 @@ int McaFeedAdapter::rowCount(const QModelIndex &parent) const
 
 QVariant McaFeedAdapter::data(const QModelIndex &index, int role) const
 {
-//    if(m_thread_locked)
-//    {
-//        qDebug() << "McaFeedAdapter::data locked " << m_thread_locked;
-//    }
+    if(!m_thread_locked)
+    {
+        qDebug() << "McaFeedAdapter::data locked " << m_thread_locked;
+    }
+   
     if (index.row() > m_rowCount) {
         if (m_limit == 0)
             qWarning() << "WARNING: limit zero in feed adapter data call";
@@ -176,8 +177,19 @@ void McaFeedAdapter::fetchMore(const QModelIndex& parent)
     if (count > m_rowCount) {
         beginInsertRows(QModelIndex(), m_rowCount, count - 1);
         m_rowCount = count;
+        m_thread_locked = true;
         endInsertRows();
+        m_thread_locked = false;
     }
+}
+
+void McaFeedAdapter::triggerInitialUpdate()
+{
+    // This is here inorder to block the plugin event system
+    // while the initial rows are inserted
+    m_thread_locked = true;
+    emit initialUpdate(QModelIndex(), 0, m_rowCount - 1);
+    m_thread_locked = false;
 }
 
 //
@@ -221,7 +233,9 @@ void McaFeedAdapter::sourceRowsInserted(const QModelIndex &parent, int start, in
     if (start >= m_limit)
         return;
 
+    m_thread_locked = true;
     endInsertRows();
+    m_thread_locked = false;
 
     if (m_rowCount != m_lastRowCount)
         emit rowCountChanged();
@@ -313,7 +327,9 @@ void McaFeedAdapter::sourceDataChanged(const QModelIndex &topLeft, const QModelI
 
     QModelIndex myTopLeft = index(top);
     QModelIndex myBottomRight = index(bottom);
+    m_thread_locked = true;
     emit dataChanged(myTopLeft, myBottomRight);
+    m_thread_locked = false;
 }
 
 void McaFeedAdapter::sourceModelAboutToBeReset()

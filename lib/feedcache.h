@@ -11,8 +11,10 @@
 
 #include <QAbstractListModel>
 #include <QSet>
+#include <QMap>
 
 class McaActions;
+class McaActionsProxy;
 
 class McaFeedCache: public QAbstractListModel
 {
@@ -65,7 +67,7 @@ private:
     int m_updateEnd;
     QList<QMap<int,QVariant> *> m_cache;
     QList<int> m_cachedRoles;
-    QSet<QObject*> m_safeActions;
+    QMap<QObject*,McaActionsProxy*> m_safeActions;
 };
 
 #endif  // __mcafeedcache_h
