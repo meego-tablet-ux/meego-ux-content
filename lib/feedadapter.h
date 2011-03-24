@@ -36,13 +36,16 @@ public:
     };
 
     virtual int limit();
-    virtual void setLimit(int limit);
+    Q_INVOKABLE virtual void setLimit(int limit);
 
     virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
     virtual QVariant data(const QModelIndex &index, int role) const;
 
     virtual bool canFetchMore(const QModelIndex &parent = QModelIndex()) const;
     virtual void fetchMore(const QModelIndex &parent = QModelIndex());
+
+
+    QAbstractItemModel *m_source;
 
 signals:
     void limitChanged();
@@ -68,7 +71,7 @@ protected:
     void rowsRemoved(const QAbstractListModel *model, int start, int end);
 
 private:
-    QAbstractItemModel *m_source;
+//    QAbstractItemModel *m_source;
     QString m_serviceId;
     QString m_serviceName;
     QString m_serviceIcon;

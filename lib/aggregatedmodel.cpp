@@ -9,6 +9,7 @@
 #include <QDebug>
 
 #include "aggregatedmodel.h"
+#include "defines.h"
 
 //
 // instance methods
@@ -28,20 +29,28 @@ McaAggregatedModel::~McaAggregatedModel()
 
 void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)
 {
+#if defined(THREADING)
+    connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
+            this, SLOT(sourceRowsInserted(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
+    connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
+            this, SLOT(sourceRowsRemoved(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
+    connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+            this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)), Qt::BlockingQueuedConnection);
+#else
     connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
             this, SLOT(sourceRowsInserted(QModelIndex,int,int)));
     connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
             this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
     connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
             this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
-
+#endif
     // TODO: handle model reset
 
     rowsInserted(model, 0, model->rowCount() - 1);
 }
 
 void McaAggregatedModel::removeSourceModel(QAbstractItemModel *model)
-{
+{    
     disconnect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
                this, SLOT(sourceRowsInserted(QModelIndex,int,int)));
     disconnect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
@@ -59,6 +68,7 @@ int McaAggregatedModel::rowCount(const QModelIndex &parent) const
 
 QVariant McaAggregatedModel::data(const QModelIndex &index, int role) const
 {
+//    qDebug() << "McaAggregatedModel::data " << index << role;
     // TODO: fix the const_cast hack here
     int row = index.row();
     if (row < m_indexList.count()) {
@@ -135,6 +145,7 @@ void McaAggregatedModel::sourceRowsInserted(const QModelIndex& parent,
                                             int start, int end)
 {
     Q_UNUSED(parent)
+//    qDebug() << "McaAggregatedModel::sourceRowsInserted " << start << end;
     QAbstractListModel *model = qobject_cast<QAbstractListModel *>(sender());
     if (model)
         rowsInserted(model, start, end);
@@ -144,6 +155,7 @@ void McaAggregatedModel::sourceRowsRemoved(const QModelIndex& parent,
                                            int start, int end)
 {
     Q_UNUSED(parent)
+//    qDebug() << "McaAggregatedModel::sourceRowsRemoved " << start << end;
     QAbstractListModel *model = qobject_cast<QAbstractListModel *>(sender());
     if (model)
         rowsRemoved(model, start, end);
@@ -152,6 +164,7 @@ void McaAggregatedModel::sourceRowsRemoved(const QModelIndex& parent,
 void McaAggregatedModel::sourceDataChanged(const QModelIndex& topLeft,
                                            const QModelIndex& bottomRight)
 {
+    qDebug() << "McaAggregatedModel::sourceDataChanged " << topLeft << bottomRight;
     QList< QPair<int,int> > affectedRows;
     affectedRows = findAffectedRows(m_indexList, topLeft.model(),
                                     topLeft.row(), bottomRight.row());
@@ -172,6 +185,7 @@ void McaAggregatedModel::sourceDataChanged(const QModelIndex& topLeft,
 void McaAggregatedModel::rowsInserted(const QAbstractItemModel *sourceModel,
                                       int start, int end)
 {
+//    qDebug() << "McaAggregatedModel::rowsInserted " << start << end;
     if (end < start)
         return;
 
@@ -190,11 +204,14 @@ void McaAggregatedModel::rowsInserted(const QAbstractItemModel *sourceModel,
 void McaAggregatedModel::rowsRemoved(const QAbstractItemModel *sourceModel,
                                      int start, int end)
 {
+//    qDebug() << "McaAggregatedModel::rowsRemoved " << start << end;
+
     if (end < start)
         return;
 
     QList< QPair<int,int> > affectedRows;
     affectedRows = findAffectedRows(m_indexList, sourceModel, start, end);
+//    qDebug() << affectedRows.count();
 
     // walk through rows in reverse order so removing won't affect indices
     for (int i = affectedRows.count() - 1; i >= 0; i--) {

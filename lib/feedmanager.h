@@ -19,6 +19,7 @@ class McaFeedPluginContainer;
 class McaAggregatedServiceModel;
 class McaSearchableContainer;
 class McaSearchableFeed;
+class McaFeedAdapter;
 
 class McaFeedManager: public QObject
 {
@@ -47,8 +48,8 @@ public:
                       const QString& name);
 
 signals:
-    void searchFeedCreated(McaSearchableContainer *container, int uniqueRequestId);
-    void feedCreated(QAbstractItemModel *model, int uniqueRequestId);
+//    void searchFeedCreated(McaSearchableContainer *container, int uniqueRequestId);
+    void feedCreated(QObject *model, McaFeedAdapter *feedAdapter, int uniqueRequestId);
 
 protected slots:
     void loadPlugins();

@@ -12,60 +12,40 @@
 #include <QModelIndex>
 #include <QStringList>
 
-class QSortFilterProxyModel;
-class McaFeedManager;
-class McaFeedCache;
-class McaAggregatedModel;
-class FeedInfo;
-class McaSearchableContainer;
+#include "abstractmanager.h"
 
-class McaSearchManager: public QObject
+class McaSearchManager: public AbstractManager
 {
     Q_OBJECT
-    Q_PROPERTY(QSortFilterProxyModel *feedModel READ feedModel)
     Q_PROPERTY(QString searchText READ searchText WRITE setSearchText NOTIFY searchTextChanged)
-    Q_PROPERTY(bool frozen READ frozen WRITE setFrozen NOTIFY frozenChanged)
 
 public:
     McaSearchManager(QObject *parent = NULL);
     virtual ~McaSearchManager();
 
-    Q_INVOKABLE void initialize(const QString& searchText);
+    Q_INVOKABLE void initialize(const QString& managerData);
 
     virtual QString searchText();
-    virtual bool frozen();
-    virtual QSortFilterProxyModel *feedModel();
 
 signals:
     void searchTextChanged(const QString& searchText);
-    void frozenChanged(bool frozen);
 
 public slots:
     void setSearchText(const QString& searchText);
-    void setFrozen(bool frozen);
 
 protected slots:
-    void rowsInserted(const QModelIndex &index, int start, int end);
-    void rowsAboutToBeRemoved(const QModelIndex &index, int start, int end);
-    void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
-
-    void createFeedDone(McaSearchableContainer *container, int uniqueRequestId);
-
-protected:
-    void addFeed(const QModelIndex &index);
-    void removeFeed(const QModelIndex &index);
-    QString fullEnabledKey();
+    void createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
 
 private:
-    McaFeedManager *m_feedmgr;
-    McaFeedCache *m_cache;
-    QSortFilterProxyModel *m_feedProxy;
-    McaAggregatedModel *m_aggregator;
-    QAbstractItemModel *m_serviceModel;
+    virtual QModelIndex serviceModelIndex(int row);
+    virtual QVariant serviceModelData(const QModelIndex& index, int role);
+    virtual bool dataChangedCondition(const QModelIndex& index);
 
+    virtual int createFeed(const QAbstractItemModel *serviceModel, const QString& name);
+
+private:
+    QAbstractItemModel *m_serviceModel;
     QString m_searchText;
-    QHash<QString, FeedInfo*> m_upidToFeedInfo;
-    QMap<int, int> m_requestIds;
 };
 
 #endif  // __mcasearchmanager_h

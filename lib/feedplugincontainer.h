@@ -10,6 +10,7 @@ class QAbstractItemModel;
 class McaFeedPlugin;
 class McaSearchableFeed;
 class McaSearchableContainer;
+class McaFeedAdapter;
 
 class McaFeedPluginContainer : public QObject {
     Q_OBJECT;
@@ -26,8 +27,8 @@ signals:
     void loadCompleted( McaFeedPluginContainer *plugin, const QString &abspath );
     void loadError(const QString &errorString);
 
-    void feedModelCreated(QAbstractItemModel *model, int uniqueRequestId);
-    void searchModelCreated(McaSearchableContainer *container, int uniqueRequestId);
+    void feedModelCreated(QObject *model, McaFeedAdapter *feedAdapter, int uniqueRequestId);
+//    void searchModelCreated(McaSearchableContainer *container, int uniqueRequestId);
 
 public slots:
     void load();

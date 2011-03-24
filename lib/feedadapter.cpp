@@ -234,6 +234,7 @@ void McaFeedAdapter::sourceRowsAboutToBeRemoved(const QModelIndex &parent, int s
     if (end >= m_limit)
         end = m_limit - 1;
 
+//    qDebug() << "McaFeedAdapter::sourceRowsAboutToBeRemoved";
     beginRemoveRows(QModelIndex(), start, end);
 }
 
@@ -250,6 +251,7 @@ void McaFeedAdapter::sourceRowsRemoved(const QModelIndex &parent, int start, int
         end = m_limit - 1;
 
     m_rowCount -= end - start + 1;
+//    qDebug() << "McaFeedAdapter::sourceRowsRemoved ";
     endRemoveRows();
     fetchMore();
 

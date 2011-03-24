@@ -115,7 +115,8 @@ int McaAllocator::allocateRemaining()
         FeedDescriptor& fd = m_feeds[feed];
         if (add > 0) {
             fd.request += add;
-            fd.adapter->setLimit(fd.request);
+            //fd.adapter->setLimit(fd.request);
+            QMetaObject::invokeMethod(fd.adapter, "setLimit", Q_ARG(int, fd.request));
         }
     }
 
@@ -158,8 +159,9 @@ void McaAllocator::reallocateDynamic()
 
     for (int i = 0; i < count; i++) {
         FeedDescriptor& fd = m_feeds[i];
-        fd.request = fd.target;
-        fd.adapter->setLimit(fd.request);
+        fd.request = fd.target;        
+        //fd.adapter->setLimit(fd.request);
+        QMetaObject::invokeMethod(fd.adapter, "setLimit", Q_ARG(int, fd.request));
     }
 
     int remaining = m_total;

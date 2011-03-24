@@ -22,6 +22,7 @@
 #include "serviceadapter.h"
 #include "searchablecontainer.h"
 #include "pluginloaderthread.h"
+#include "defines.h"
 
 //
 // Overview of McaFeedManager
@@ -112,7 +113,7 @@ int McaFeedManager::createFeed(const QAbstractItemModel *serviceModel,
     McaFeedPluginContainer *plugin = m_modelToPlugin.value(serviceModel);
     if (plugin) {
         QMetaObject::invokeMethod(plugin, "createFeedModel", Qt::QueuedConnection, Q_ARG(QString, name), Q_ARG(int, m_requestIdCounter));
-        return ++m_requestIdCounter;
+        return m_requestIdCounter++;
     }
 
     return -1;
@@ -127,7 +128,7 @@ int McaFeedManager::createSearchFeed(const QAbstractItemModel *serviceModel,
     if (plugin) {
         QMetaObject::invokeMethod(plugin, "createSearchModel", Qt::QueuedConnection, Q_ARG(QString, name), Q_ARG(QString, searchText), Q_ARG(int, m_requestIdCounter));
 //        m_requestIdCounter++;
-        return ++m_requestIdCounter;
+        return m_requestIdCounter++;
     }
     return -1;
 }
@@ -207,12 +208,16 @@ void McaFeedManager::loadPlugins()
 
             connect(pluginContainer, SIGNAL(loadCompleted(McaFeedPluginContainer*,QString)), this, SLOT(onLoadCompleted(McaFeedPluginContainer*,QString)));
             connect(pluginContainer, SIGNAL(loadError(QString)), this, SLOT(onLoadError(QString)));
-            connect(pluginContainer, SIGNAL(searchModelCreated(McaSearchableContainer*,int)), this, SIGNAL(searchFeedCreated(McaSearchableContainer*,int)));
-            connect(pluginContainer, SIGNAL(feedModelCreated(QAbstractItemModel*,int)), this, SIGNAL(feedCreated(QAbstractItemModel*,int)));
+//            connect(pluginContainer, SIGNAL(searchModelCreated(McaSearchableContainer*,int)), this, SIGNAL(searchFeedCreated(McaSearchableContainer*,int)));
+//            connect(pluginContainer, SIGNAL(feedModelCreated(QAbstractItemModel*,int)), this, SIGNAL(feedCreated(QAbstractItemModel*,int)));
+            connect(pluginContainer, SIGNAL(feedModelCreated(QObject*,McaFeedAdapter*,int)), this, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)));
 
             QThread *pluginThread = new QThread(this);
             connect(pluginThread, SIGNAL(started()), pluginContainer, SLOT(load()));
+
+#if defined(THREADING)
             pluginContainer->moveToThread(pluginThread);
+#endif
             pluginThread->start();
         }
 //    }

@@ -21,7 +21,8 @@ SOURCES += \
     serviceadapter.cpp \
     serviceproxy.cpp \
     settings.cpp \
-    feedplugincontainer.cpp
+    feedplugincontainer.cpp \
+    abstractmanager.cpp
 
 INSTALL_HEADERS += \
     actions.h \
@@ -45,7 +46,9 @@ HEADERS += \
     serviceproxy.h \
     settings.h \
     $$INSTALL_HEADERS \
-    feedplugincontainer.h
+    feedplugincontainer.h \
+    abstractmanager.h \
+    defines.h
 
 target.path = $$[QT_INSTALL_LIBS]
 INSTALLS += target

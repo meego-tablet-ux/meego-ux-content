@@ -13,21 +13,16 @@
 #include <QStringList>
 #include <QDateTime>
 
-class QSortFilterProxyModel;
-class McaAllocator;
-class McaFeedManager;
-class McaFeedCache;
-class McaAggregatedModel;
-class McaServiceProxy;
-class FeedInfo;
+#include "abstractmanager.h"
 
-class McaPanelManager: public QObject
+class McaAllocator;
+class McaServiceProxy;
+
+class McaPanelManager: public AbstractManager
 {
     Q_OBJECT
     Q_PROPERTY(QSortFilterProxyModel *serviceModel READ serviceModel)
-    Q_PROPERTY(QSortFilterProxyModel *feedModel READ feedModel)
     Q_PROPERTY(QStringList categories READ categories WRITE setCategories NOTIFY categoriesChanged)
-    Q_PROPERTY(bool frozen READ frozen WRITE setFrozen NOTIFY frozenChanged)
     Q_PROPERTY(bool servicesConfigured READ servicesConfigured NOTIFY servicesConfiguredChanged)
     Q_PROPERTY(bool isEmpty READ isEmpty NOTIFY isEmptyChanged)
     Q_PROPERTY(bool servicesEnabledByDefault READ servicesEnabledByDefault WRITE setServicesEnabledByDefault)
@@ -36,17 +31,15 @@ public:
     McaPanelManager(QObject *parent = NULL);
     virtual ~McaPanelManager();
 
-    Q_INVOKABLE void initialize(const QString& panelName = QString());
+    Q_INVOKABLE void initialize(const QString& managerData);
 
     // property functions - already accessible to QML
     virtual QStringList categories();
-    virtual bool frozen();
     virtual bool servicesConfigured();
     virtual bool isEmpty();
     bool servicesEnabledByDefault();
     void setServicesEnabledByDefault(bool enabled);
     virtual QSortFilterProxyModel *serviceModel();
-    virtual QSortFilterProxyModel *feedModel();
 
     Q_INVOKABLE bool isServiceEnabled(const QString& upid);
     Q_INVOKABLE void setServiceEnabled(const QString& upid, bool enabled);
@@ -60,42 +53,37 @@ public:
 
 signals:
     void categoriesChanged(const QStringList& categories);
-    void frozenChanged(bool frozen);
     void servicesConfiguredChanged(bool servicesConfigured);
     void serviceEnabledChanged(const QString& upid, bool enabled);
     void isEmptyChanged(bool isEmpty);
 
 public slots:
     void setCategories(const QStringList& categories);
-    void setFrozen(bool frozen);
 
 protected slots:
-    void rowsInserted(const QModelIndex &index, int start, int end);
-    void rowsAboutToBeRemoved(const QModelIndex &index, int start, int end);
-    void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
     void feedRowsChanged();
-    void createFeedDone(QAbstractItemModel *feed, int uniqueRequestId);
+    void createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
 
 protected:
-    void addFeed(const QModelIndex &index);
-    void removeFeed(const QModelIndex &index);
     QString fullEnabledKey();
 
 private:
+    virtual QModelIndex serviceModelIndex(int row);
+    virtual QVariant serviceModelData(const QModelIndex& index, int role);
+    virtual bool dataChangedCondition(const QModelIndex& index);
+
+    virtual int createFeed(const QAbstractItemModel *serviceModel, const QString& name);
+    virtual void removeFeedCleanup(const QString& upid);
+
+private:
     McaAllocator *m_allocator;
-    McaFeedManager *m_feedmgr;
     McaServiceProxy *m_serviceProxy;
-    QSortFilterProxyModel *m_feedProxy;
-    McaAggregatedModel *m_aggregator;
-    McaFeedCache *m_cache;
     bool m_isEmpty;
 
     QString m_panelName;
     bool m_servicesEnabledByDefault;
 
-    QHash<QString, FeedInfo *> m_upidToFeedInfo;
     QHash<QString, bool> m_upidToEnabled;  // map from upid to enabled status
-    QMap<int, int> m_requestIds;
 };
 
 #endif  // __mcapanelmanager_h

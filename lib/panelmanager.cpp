@@ -32,52 +32,34 @@
 //    - responds to changes in the service model by adding or removing feeds
 //
 
-struct FeedInfo
-{
-    QString upid;
-    QAbstractListModel *feed;
-    McaFeedFilter *filter;
-};
+//struct FeedInfo
+//{
+//    QString upid;
+//    QAbstractListModel *feed;
+//    McaFeedFilter *filter;
+//};
 
 //
 // public methods
 //
 
 McaPanelManager::McaPanelManager(QObject *parent):
-        QObject(parent)
+        AbstractManager(parent)
 {
     m_allocator = new McaAllocator;
-    m_feedmgr = McaFeedManager::takeManager();
-    m_cache = new McaFeedCache(this);
-    connect(m_cache, SIGNAL(frozenChanged(bool)),
-            this, SIGNAL(frozenChanged(bool)));
-    m_aggregator = new McaAggregatedModel(m_cache);
-    m_cache->setSourceModel(m_aggregator);
     m_isEmpty = false;
-
-    // sort the aggregated feed by timestamp
-    m_feedProxy = new QSortFilterProxyModel(this);
-    m_feedProxy->setSourceModel(m_cache);
-    m_feedProxy->setSortRole(McaFeedModel::RequiredTimestampRole);
-    m_feedProxy->sort(0, Qt::DescendingOrder);
-    m_feedProxy->setDynamicSortFilter(true);
-
     m_serviceProxy = new McaServiceProxy(this, m_feedmgr->serviceModel(), this);
-
     m_servicesEnabledByDefault = true;
-
-    connect(m_feedmgr, SIGNAL(feedCreated(QAbstractItemModel*,int)), this, SLOT(createFeedDone(QAbstractItemModel*,int)));
 }
 
 McaPanelManager::~McaPanelManager()
 {
     rowsAboutToBeRemoved(QModelIndex(), 0, m_serviceProxy->rowCount() - 1);
-    McaFeedManager::releaseManager();
 }
 
-void McaPanelManager::initialize(const QString& panelName)
+void McaPanelManager::initialize(const QString& managerData)
 {
-    m_panelName = panelName;
+    m_panelName = managerData;
 
     // proxy model should be empty, but seem to need to call rowCount to wake it up
     rowsInserted(QModelIndex(), 0, m_serviceProxy->rowCount() - 1);
@@ -100,11 +82,6 @@ void McaPanelManager::initialize(const QString& panelName)
 QStringList McaPanelManager::categories()
 {
     return m_serviceProxy->categories();
-}
-
-bool McaPanelManager::frozen()
-{
-    return m_cache->frozen();
 }
 
 bool McaPanelManager::servicesConfigured()
@@ -131,11 +108,6 @@ void McaPanelManager::setServicesEnabledByDefault(bool enabled)
 QSortFilterProxyModel *McaPanelManager::serviceModel()
 {
     return m_serviceProxy;
-}
-
-QSortFilterProxyModel *McaPanelManager::feedModel()
-{
-    return m_feedProxy;
 }
 
 bool McaPanelManager::isServiceEnabled(const QString& upid)
@@ -199,61 +171,21 @@ void McaPanelManager::setCategories(const QStringList &categories)
     m_serviceProxy->setCategories(categories);
 }
 
-void McaPanelManager::setFrozen(bool frozen)
+QModelIndex McaPanelManager::serviceModelIndex(int row)
 {
-    m_cache->setFrozen(frozen);
+    return m_serviceProxy->index(row, 0);
 }
 
-//
-// protected slots
-//
-
-void McaPanelManager::rowsInserted(const QModelIndex &index, int start, int end)
+QVariant McaPanelManager::serviceModelData(const QModelIndex& index, int role)
 {
-    Q_UNUSED(index)
-
-    for (int i=start; i<=end; i++) {
-        QModelIndex qmi = m_serviceProxy->index(i, 0);
-        if (m_serviceProxy->data(qmi, McaServiceModel::CommonConfigErrorRole).toBool() ||
-            !m_serviceProxy->data(qmi, McaServiceProxy::SystemEnabledRole).toBool())
-            continue;
-
-        addFeed(qmi);
-    }
+    return m_serviceProxy->data(index, role);
 }
 
-void McaPanelManager::rowsAboutToBeRemoved(const QModelIndex &index, int start, int end)
+bool McaPanelManager::dataChangedCondition(const QModelIndex& index)
 {
-    Q_UNUSED(index)
-
-    for (int i=start; i<=end; i++) {
-        QModelIndex qmi = m_serviceProxy->index(i, 0);
-        removeFeed(qmi);
-    }
+    return m_serviceProxy->data(index, McaServiceProxy::SystemEnabledRole).toBool();
 }
 
-void McaPanelManager::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight)
-{
-    for (int i=topLeft.row(); i<=bottomRight.row(); i++) {
-        QModelIndex qmi = m_serviceProxy->index(i, 0);
-        QAbstractListModel *model = qobject_cast<QAbstractListModel*>(m_serviceProxy->data(qmi, McaAggregatedModel::SourceModelRole).value<QObject*>());
-        QString name = m_serviceProxy->data(qmi, McaServiceModel::RequiredNameRole).toString();
-        QString id = m_feedmgr->serviceId(model, name);
-
-        if (m_upidToFeedInfo.contains(id)) {
-            // if the feed now has a configuration error, remove it
-            if (m_serviceProxy->data(qmi, McaServiceModel::CommonConfigErrorRole).toBool() ||
-                !m_serviceProxy->data(qmi, McaServiceProxy::SystemEnabledRole).toBool())
-                removeFeed(qmi);
-        }
-        else {
-            // if the feed is now configured correctly, add it
-            if (!m_serviceProxy->data(qmi, McaServiceModel::CommonConfigErrorRole).toBool() &&
-                m_serviceProxy->data(qmi, McaServiceProxy::SystemEnabledRole).toBool())
-                addFeed(qmi);
-        }
-    }
-}
 
 void McaPanelManager::feedRowsChanged()
 {
@@ -265,62 +197,19 @@ void McaPanelManager::feedRowsChanged()
     }
 }
 
+int McaPanelManager::createFeed(const QAbstractItemModel *serviceModel, const QString& name)
+{
+    return m_feedmgr->createFeed(serviceModel, name);
+}
+
 //
 // protected methods
 //
 
-void McaPanelManager::addFeed(const QModelIndex &index)
-{
-    QAbstractListModel *model = qobject_cast<QAbstractListModel*>(m_serviceProxy->data(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
-
-    QString name = m_serviceProxy->data(index, McaServiceModel::RequiredNameRole).toString();
-/*
-    QString displayName = m_serviceProxy->data(index, McaServiceModel::CommonDisplayNameRole).toString();
-    QString iconUrl = m_serviceProxy->data(index, McaServiceModel::CommonIconUrlRole).toString();
-    QString category = m_serviceProxy->data(index, McaServiceModel::RequiredCategoryRole).toString();
-*/
-    QString upid = m_feedmgr->serviceId(model, name);
-    if (m_upidToFeedInfo.contains(upid)) {
-        qWarning() << "warning: panel manager: unexpected duplicate add feed request";
-        return;
-    }
-
-    m_requestIds[m_feedmgr->createFeed(model, name)] = index.row();
-
-/*
-    QAbstractItemModel *feed = m_feedmgr->createFeed(model, name);
-    if (feed) {
-        McaFeedFilter *filter = new McaFeedFilter(feed, upid);
-        McaFeedAdapter *adapter = new McaFeedAdapter(filter, name, displayName, iconUrl, category);
-        FeedInfo *info = new FeedInfo;
-        info->upid = upid;
-        info->feed = adapter;
-        info->filter = filter;
-        m_upidToFeedInfo.insert(upid, info);
-        if (m_upidToFeedInfo.count() == 1)
-            emit servicesConfiguredChanged(true);
-        m_allocator->addFeed(upid, adapter);
-        m_aggregator->addSourceModel(adapter);
-    }
-*/
-}
-
-void McaPanelManager::removeFeed(const QModelIndex &index)
-{
-    QAbstractListModel *model = qobject_cast<QAbstractListModel*>(m_serviceProxy->data(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
-    QString name = m_serviceProxy->data(index, McaServiceModel::RequiredNameRole).toString();
-    QString upid = m_feedmgr->serviceId(model, name);
-
-    FeedInfo *info = m_upidToFeedInfo.value(upid, NULL);
-    if (info) {
-        m_aggregator->removeSourceModel(info->feed);
-        m_upidToFeedInfo.remove(upid);
-        if (m_upidToFeedInfo.count() == 0)
-            emit servicesConfiguredChanged(false);
-        m_allocator->removeFeed(upid);
-        delete info->feed;
-        delete info;
-    }
+void McaPanelManager::removeFeedCleanup(const QString& upid) {
+    if (m_upidToFeedInfo.count() == 0)
+        emit servicesConfiguredChanged(false);
+    m_allocator->removeFeed(upid);
 }
 
 QString McaPanelManager::fullEnabledKey()
@@ -332,30 +221,30 @@ QString McaPanelManager::fullEnabledKey()
     return key;
 }
 
-void McaPanelManager::createFeedDone(QAbstractItemModel *feed, int uniqueRequestId) {
-    qDebug() << "McaSearchManager::createFeedDone " << uniqueRequestId << m_requestIds.keys();
+void McaPanelManager::createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId) {
+    QAbstractItemModel *feed = qobject_cast<QAbstractItemModel*>(containerObj);
+    qDebug() << m_requestIds << feed << uniqueRequestId;
     if (m_requestIds.keys().contains(uniqueRequestId) && 0 != feed) {
-        qDebug() << "Key matched";
         QModelIndex index = m_serviceProxy->index(m_requestIds[uniqueRequestId], 0);
         QAbstractListModel *model = qobject_cast<QAbstractListModel*>(m_serviceProxy->data(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
 
         QString name = m_serviceProxy->data(index, McaServiceModel::RequiredNameRole).toString();
-        QString displayName = m_serviceProxy->data(index, McaServiceModel::CommonDisplayNameRole).toString();
-        QString iconUrl = m_serviceProxy->data(index, McaServiceModel::CommonIconUrlRole).toString();
-        QString category = m_serviceProxy->data(index, McaServiceModel::RequiredCategoryRole).toString();
+//        QString displayName = m_serviceProxy->data(index, McaServiceModel::CommonDisplayNameRole).toString();
+//        QString iconUrl = m_serviceProxy->data(index, McaServiceModel::CommonIconUrlRole).toString();
+//        QString category = m_serviceProxy->data(index, McaServiceModel::RequiredCategoryRole).toString();
         QString upid = m_feedmgr->serviceId(model, name);
 
-        McaFeedFilter *filter = new McaFeedFilter(feed, upid);
-        McaFeedAdapter *adapter = new McaFeedAdapter(filter, name, displayName, iconUrl, category);
+//        McaFeedFilter *filter = new McaFeedFilter(feed, upid);
+//        McaFeedAdapter *adapter = new McaFeedAdapter(filter, name, displayName, iconUrl, category);
+        m_requestIds.remove(uniqueRequestId);
         FeedInfo *info = new FeedInfo;
         info->upid = upid;
-        info->feed = adapter;
-        info->filter = filter;
+        info->feed = feedAdapter;
+        info->filter = qobject_cast<McaFeedFilter*>(feedAdapter->m_source);
         m_upidToFeedInfo.insert(upid, info);
         if (m_upidToFeedInfo.count() == 1)
             emit servicesConfiguredChanged(true);
-        m_allocator->addFeed(upid, adapter);
-        m_aggregator->addSourceModel(adapter);
+        m_allocator->addFeed(upid, feedAdapter);
+        m_aggregator->addSourceModel(feedAdapter);
     }
 }
-
