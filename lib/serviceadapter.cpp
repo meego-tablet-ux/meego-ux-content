@@ -24,6 +24,11 @@
 #define new __DEBUG_NEW__
 #endif
 
+#ifdef MEMORY_LEAK_DETECTOR
+#define __DEBUG_NEW__ new(__FILE__, __LINE__)
+#define new __DEBUG_NEW__
+#endif
+
 //
 // Overview of McaServiceAdapter
 //    - adds unique persistent service id (upid) role to underlying model

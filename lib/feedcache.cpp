@@ -378,7 +378,7 @@ void McaFeedCache::updateRow(QMap<int,QVariant> *map, int row)
         map->insert(role, m_source->data(m_source->index(row), role));
 
     McaActions *actions = map->value(McaFeedModel::CommonActionsRole).value<McaActions*>();
-    if( !m_safeActions.contains(actions) ) {
+    if( actions && !m_safeActions.contains(actions) ) {
        McaActionsProxy *proxy = new McaActionsProxy(actions);
        m_safeActions.insert(qobject_cast<QObject*>(actions), proxy);
        connect(actions, SIGNAL(destroyed(QObject*)),

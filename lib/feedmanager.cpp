@@ -32,7 +32,6 @@
 #define __DEBUG_NEW__ new(__FILE__, __LINE__)
 #define new __DEBUG_NEW__
 #endif
-#include "defines.h"
 
 //
 // Overview of McaFeedManager
@@ -85,10 +84,9 @@ McaFeedManager::McaFeedManager()
     loadPlugins();
 
     // watch for new plugins getting installed and load them
-    QStringList paths;
-    paths << "/home/radu/work/meego/gits/content-build-meego/sampleplugin";
-//    foreach (QString path, QCoreApplication::libraryPaths())
-//        paths << path + PLUGIN_RELPATH;
+    QStringList paths;    
+    foreach (QString path, QCoreApplication::libraryPaths())
+        paths << path + PLUGIN_RELPATH;
     m_watcher->addPaths(paths);
     connect(m_watcher, SIGNAL(directoryChanged(QString)),
             this, SLOT(loadPlugins()));
@@ -242,9 +240,14 @@ void McaFeedManager::loadPlugins()
 {
     qDebug() << "McaFeedManager::loadPlugins()";
     // effects: checks plugin paths for any new plugins to load
+<<<<<<< HEAD
 //    foreach (QString path, QCoreApplication::libraryPaths()) {
 //        QDir dir = QDir(path + PLUGIN_RELPATH);
         QDir dir = QDir("/home/radu/work/meego/gits/content-build-meego/sampleplugin");
+=======
+    foreach (QString path, QCoreApplication::libraryPaths()) {
+        QDir dir = QDir(path + PLUGIN_RELPATH);
+>>>>>>> 616b36e... FeedManager: Removed debug plugin path.
         foreach (QString filename, dir.entryList(QStringList() << QString("*.so"))) {
             QString abspath = dir.absoluteFilePath(filename);
             if (m_pluginToPaths.values().contains(abspath))
@@ -274,7 +277,7 @@ void McaFeedManager::loadPlugins()
 #endif
             pluginThread->start();
         }
-//    }
+    }
 }
 
 void McaFeedManager::onLoadCompleted(McaFeedPluginContainer *plugin, const QString &absPath)
