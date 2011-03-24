@@ -62,7 +62,7 @@ public slots:
 
 protected slots:
     void feedRowsChanged();
-    void createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
+    //void createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
 
 protected:
     QString fullEnabledKey();
@@ -74,6 +74,7 @@ private:
 
     virtual int createFeed(const QAbstractItemModel *serviceModel, const QString& name);
     virtual void removeFeedCleanup(const QString& upid);
+    virtual void createFeedFinalise(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo);
 
 private:
     McaAllocator *m_allocator;

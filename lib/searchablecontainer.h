@@ -33,7 +33,7 @@ public:
     QAbstractItemModel *feedModel();
 
 public slots:
-    void setSearchText(const QString& text);
+    Q_INVOKABLE void setSearchText(const QString& text);
 
 private:
     McaSearchableFeed *m_searchable;

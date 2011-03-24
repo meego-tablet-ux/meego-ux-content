@@ -44,8 +44,7 @@ public:
     virtual bool canFetchMore(const QModelIndex &parent = QModelIndex()) const;
     virtual void fetchMore(const QModelIndex &parent = QModelIndex());
 
-
-    QAbstractItemModel *m_source;
+    QAbstractItemModel *getSource();
 
 signals:
     void limitChanged();
@@ -71,7 +70,7 @@ protected:
     void rowsRemoved(const QAbstractListModel *model, int start, int end);
 
 private:
-//    QAbstractItemModel *m_source;
+    QAbstractItemModel *m_source;
     QString m_serviceId;
     QString m_serviceName;
     QString m_serviceIcon;
@@ -80,7 +79,9 @@ private:
     int m_queuedLimit;
     int m_rowCount;
     int m_lastRowCount;
-    bool m_updating;
+    bool m_updating;    
+
+    bool m_thread_locked;
 };
 
 #endif  // __mcafeedadapter_h

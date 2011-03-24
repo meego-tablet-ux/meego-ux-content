@@ -27,6 +27,7 @@ McaAllocator::~McaAllocator()
 
 void McaAllocator::addFeed(const QString& serviceId, McaFeedAdapter *adapter)
 {
+    qDebug() << "McaAllocator::addFeed() " << serviceId;
     FeedDescriptor fd;
     fd.adapter = adapter;
     fd.serviceId = serviceId;
@@ -39,7 +40,7 @@ void McaAllocator::addFeed(const QString& serviceId, McaFeedAdapter *adapter)
 }
 
 void McaAllocator::removeFeed(const QString& serviceId)
-{
+{    
     int count = m_feeds.count();
     for (int i = 0; i < count; i++) {
         if (m_feeds[i].serviceId == serviceId) {
@@ -49,7 +50,7 @@ void McaAllocator::removeFeed(const QString& serviceId)
             break;
         }
     }
-
+    qDebug() << "McaAllocator::removeFeed() " << serviceId << " left " << m_feeds.count();
     m_idToFeed.remove(serviceId);
     reallocate();
 }

@@ -112,7 +112,8 @@ void AbstractManager::removeFeed(const QModelIndex &index)
         m_aggregator->removeSourceModel(info->feed);
         m_upidToFeedInfo.remove(upid);
         removeFeedCleanup(upid);
-        delete info->feed;
+        //delete info->feed;
+        info->feed->deleteLater();
         delete info;
     }
 }
@@ -127,5 +128,23 @@ void AbstractManager::rowsInserted(const QModelIndex &index, int start, int end)
             continue;
         }
         addFeed(qmi);
+    }
+}
+
+void AbstractManager::createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId) {
+    if (m_requestIds.keys().contains(uniqueRequestId) && 0 != containerObj) {
+        QModelIndex index = serviceModelIndex(m_requestIds[uniqueRequestId]);
+        QString name = serviceModelData(index, McaServiceModel::RequiredNameRole).toString();
+        QAbstractListModel *model = qobject_cast<QAbstractListModel*>(serviceModelData(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
+        QString upid = m_feedmgr->serviceId(model, name);
+
+        m_requestIds.remove(uniqueRequestId);
+
+        FeedInfo *info = new FeedInfo;
+        info->upid = upid;
+        info->feed = feedAdapter;
+        m_upidToFeedInfo.insert(upid, info);
+        createFeedFinalise(containerObj, feedAdapter, info);
+        m_aggregator->addSourceModel(feedAdapter);
     }
 }

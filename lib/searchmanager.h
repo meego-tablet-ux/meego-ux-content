@@ -33,8 +33,8 @@ signals:
 public slots:
     void setSearchText(const QString& searchText);
 
-protected slots:
-    void createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
+//protected slots:
+//    void createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
 
 private:
     virtual QModelIndex serviceModelIndex(int row);
@@ -42,6 +42,7 @@ private:
     virtual bool dataChangedCondition(const QModelIndex& index);
 
     virtual int createFeed(const QAbstractItemModel *serviceModel, const QString& name);
+    virtual void createFeedFinalise(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo);
 
 private:
     QAbstractItemModel *m_serviceModel;

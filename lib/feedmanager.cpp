@@ -89,14 +89,20 @@ McaFeedManager::~McaFeedManager()
 {
     delete m_watcher;
     delete m_services;
+    
     foreach (McaFeedPluginContainer *plugin, m_pluginToPaths.keys()) {
         // Terminate the threads associated with the plugins
-        plugin->thread()->terminate();
+        qDebug() << "Terminating plugin " << m_pluginToPaths[plugin];
+        QThread *plugin_thread = plugin->thread();
+        plugin_thread->quit();
         // Block main thread for 10 seconds (or when thread finishes)
-        if( !plugin->thread()->wait(10000) ) {
+            if( !plugin_thread->wait(10000) ) {
             qWarning() << "Plugin thread is not responding";
-        }
-        delete plugin;
+        }            
+        plugin->deleteLater();
+        qDebug() << "Done terminating plugin " << m_pluginToPaths[plugin];
+        // TODO: Should we be doing this?
+//        delete plugin_thread;
     }
 }
 
@@ -208,8 +214,6 @@ void McaFeedManager::loadPlugins()
 
             connect(pluginContainer, SIGNAL(loadCompleted(McaFeedPluginContainer*,QString)), this, SLOT(onLoadCompleted(McaFeedPluginContainer*,QString)));
             connect(pluginContainer, SIGNAL(loadError(QString)), this, SLOT(onLoadError(QString)));
-//            connect(pluginContainer, SIGNAL(searchModelCreated(McaSearchableContainer*,int)), this, SIGNAL(searchFeedCreated(McaSearchableContainer*,int)));
-//            connect(pluginContainer, SIGNAL(feedModelCreated(QAbstractItemModel*,int)), this, SIGNAL(feedCreated(QAbstractItemModel*,int)));
             connect(pluginContainer, SIGNAL(feedModelCreated(QObject*,McaFeedAdapter*,int)), this, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)));
 
             QThread *pluginThread = new QThread(this);

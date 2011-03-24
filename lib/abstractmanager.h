@@ -51,7 +51,7 @@ protected slots:
     virtual void rowsAboutToBeRemoved(const QModelIndex &index, int start, int end);
     virtual void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 
-    virtual void createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId) = 0;
+    virtual void createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
     virtual void removeFeedCleanup(const QString& upid);
 
 private:
@@ -60,6 +60,7 @@ private:
     virtual bool dataChangedCondition(const QModelIndex& index) = 0;
 
     virtual int createFeed(const QAbstractItemModel *serviceModel, const QString& name) = 0;
+    virtual void createFeedFinalise(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo) = 0;
 
 protected:
     McaFeedManager *m_feedmgr;
