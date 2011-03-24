@@ -2,7 +2,7 @@
 #define DEFINES_H
 
 #define THREADING
-#define THREADING_DEBUG
+//#define THREADING_DEBUG
 
 //#define MEMORY_LEAK_DETECTOR
 

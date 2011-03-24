@@ -46,7 +46,6 @@ void McaAdapter::triggerSyncUpdate()
 
 void McaAdapter::triggerSyncRemoval()
 {
-#if defined(THREADING_DEBUG)
     THREAD_SET_TEST(this);
     emit syncRemoval(this, 0, rowCount() - 1);
     THREAD_UNSET_TEST(this);
