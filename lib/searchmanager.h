@@ -17,6 +17,7 @@ class McaFeedManager;
 class McaFeedCache;
 class McaAggregatedModel;
 class FeedInfo;
+class McaSearchableContainer;
 
 class McaSearchManager: public QObject
 {
@@ -48,6 +49,8 @@ protected slots:
     void rowsAboutToBeRemoved(const QModelIndex &index, int start, int end);
     void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 
+    void createFeedDone(McaSearchableContainer *container, int uniqueRequestId);
+
 protected:
     void addFeed(const QModelIndex &index);
     void removeFeed(const QModelIndex &index);
@@ -62,6 +65,7 @@ private:
 
     QString m_searchText;
     QHash<QString, FeedInfo*> m_upidToFeedInfo;
+    QMap<int, int> m_requestIds;
 };
 
 #endif  // __mcasearchmanager_h

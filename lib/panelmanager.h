@@ -74,6 +74,7 @@ protected slots:
     void rowsAboutToBeRemoved(const QModelIndex &index, int start, int end);
     void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
     void feedRowsChanged();
+    void createFeedDone(QAbstractItemModel *feed, int uniqueRequestId);
 
 protected:
     void addFeed(const QModelIndex &index);
@@ -94,6 +95,7 @@ private:
 
     QHash<QString, FeedInfo *> m_upidToFeedInfo;
     QHash<QString, bool> m_upidToEnabled;  // map from upid to enabled status
+    QMap<int, int> m_requestIds;
 };
 
 #endif  // __mcapanelmanager_h

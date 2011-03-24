@@ -30,7 +30,7 @@ struct FeedInfo
 };
 
 // TODO: remove this temporary solution to not really wanting limits on search
-const int TemporaryFeedLimit = 100;
+const int TemporaryFeedLimit = 1000;
 
 //
 // public methods
@@ -54,6 +54,8 @@ McaSearchManager::McaSearchManager(QObject *parent):
     m_feedProxy->setDynamicSortFilter(true);
 
     m_serviceModel = m_feedmgr->serviceModel();
+
+    connect(m_feedmgr, SIGNAL(searchFeedCreated(McaSearchableContainer*,int)), this, SLOT(createFeedDone(McaSearchableContainer*,int)));
 }
 
 McaSearchManager::~McaSearchManager()
@@ -164,9 +166,9 @@ void McaSearchManager::addFeed(const QModelIndex &index)
 {
     QAbstractListModel *model = qobject_cast<QAbstractListModel*>(m_serviceModel->data(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
     QString name = m_serviceModel->data(index, McaServiceModel::RequiredNameRole).toString();
-    QString displayName = m_serviceModel->data(index, McaServiceModel::CommonDisplayNameRole).toString();
-    QString iconUrl = m_serviceModel->data(index, McaServiceModel::CommonIconUrlRole).toString();
-    QString category = m_serviceModel->data(index, McaServiceModel::RequiredCategoryRole).toString();
+//    QString displayName = m_serviceModel->data(index, McaServiceModel::CommonDisplayNameRole).toString();
+//    QString iconUrl = m_serviceModel->data(index, McaServiceModel::CommonIconUrlRole).toString();
+//    QString category = m_serviceModel->data(index, McaServiceModel::RequiredCategoryRole).toString();
     QString upid = m_feedmgr->serviceId(model, name);
 
     if (m_upidToFeedInfo.contains(upid)) {
@@ -174,19 +176,20 @@ void McaSearchManager::addFeed(const QModelIndex &index)
         return;
     }
 
-    McaSearchableContainer *container = m_feedmgr->createSearchFeed(model, name, m_searchText);
-    if (container) {
-        connect(this, SIGNAL(searchTextChanged(QString)),
-                container, SLOT(setSearchText(QString)));
+    m_requestIds[m_feedmgr->createSearchFeed(model, name, m_searchText)] = index.row();
+    //McaSearchableContainer *container = m_feedmgr->createSearchFeed(model, name, m_searchText);
+//    if (container) {
+//        connect(this, SIGNAL(searchTextChanged(QString)),
+//                container, SLOT(setSearchText(QString)));
 
-        McaFeedAdapter *adapter = new McaFeedAdapter(container->feedModel(), name, displayName, iconUrl, category);
-        adapter->setLimit(TemporaryFeedLimit);
-        FeedInfo *info = new FeedInfo;
-        info->upid = upid;
-        info->feed = adapter;
-        m_upidToFeedInfo.insert(upid, info);
-        m_aggregator->addSourceModel(adapter);
-    }
+//        McaFeedAdapter *adapter = new McaFeedAdapter(container->feedModel(), name, displayName, iconUrl, category);
+//        adapter->setLimit(TemporaryFeedLimit);
+//        FeedInfo *info = new FeedInfo;
+//        info->upid = upid;
+//        info->feed = adapter;
+//        m_upidToFeedInfo.insert(upid, info);
+//        m_aggregator->addSourceModel(adapter);
+//    }
 }
 
 void McaSearchManager::removeFeed(const QModelIndex &index)
@@ -201,6 +204,32 @@ void McaSearchManager::removeFeed(const QModelIndex &index)
         m_upidToFeedInfo.remove(upid);
         delete info->feed;
         delete info;
+    }
+}
+
+void McaSearchManager::createFeedDone(McaSearchableContainer *container, int uniqueRequestId) {
+    qDebug() << "McaSearchManager::createFeedDone " << uniqueRequestId << m_requestIds.keys();
+    if (m_requestIds.keys().contains(uniqueRequestId) && 0 != container) {
+        QModelIndex index = m_serviceModel->index(uniqueRequestId, 0);
+        QString name = m_serviceModel->data(index, McaServiceModel::RequiredNameRole).toString();
+        QString displayName = m_serviceModel->data(index, McaServiceModel::CommonDisplayNameRole).toString();
+        QString iconUrl = m_serviceModel->data(index, McaServiceModel::CommonIconUrlRole).toString();
+        QString category = m_serviceModel->data(index, McaServiceModel::RequiredCategoryRole).toString();
+
+        QAbstractListModel *model = qobject_cast<QAbstractListModel*>(m_serviceModel->data(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
+        QString upid = m_feedmgr->serviceId(model, name);
+
+        connect(this, SIGNAL(searchTextChanged(QString)),
+                container, SLOT(setSearchText(QString)));
+        m_requestIds.remove(uniqueRequestId);
+
+        McaFeedAdapter *adapter = new McaFeedAdapter(container->feedModel(), name, displayName, iconUrl, category);
+        adapter->setLimit(TemporaryFeedLimit);
+        FeedInfo *info = new FeedInfo;
+        info->upid = upid;
+        info->feed = adapter;
+        m_upidToFeedInfo.insert(upid, info);
+        m_aggregator->addSourceModel(adapter);
     }
 }
 

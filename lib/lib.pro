@@ -20,7 +20,8 @@ SOURCES += \
     searchablecontainer.cpp \
     serviceadapter.cpp \
     serviceproxy.cpp \
-    settings.cpp
+    settings.cpp \
+    feedplugincontainer.cpp
 
 INSTALL_HEADERS += \
     actions.h \
@@ -43,7 +44,8 @@ HEADERS += \
     serviceadapter.h \
     serviceproxy.h \
     settings.h \
-    $$INSTALL_HEADERS
+    $$INSTALL_HEADERS \
+    feedplugincontainer.h
 
 target.path = $$[QT_INSTALL_LIBS]
 INSTALLS += target
@@ -55,3 +57,5 @@ INSTALLS += headers
 pkgconfig.files += meego-ux-content.pc
 pkgconfig.path += $$[QT_INSTALL_LIBS]/pkgconfig
 INSTALLS += pkgconfig
+
+VERSION = 0.1.2

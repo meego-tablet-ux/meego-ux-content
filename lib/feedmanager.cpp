@@ -15,7 +15,8 @@
 #include <QSettings>
 
 #include "feedmanager.h"
-#include "feedplugin.h"
+//#include "feedplugin.h"
+#include "feedplugincontainer.h"
 #include "aggregatedservicemodel.h"
 #include "settings.h"
 #include "serviceadapter.h"
@@ -64,6 +65,8 @@ void McaFeedManager::releaseManager()
 
 McaFeedManager::McaFeedManager()
 {
+    m_requestIdCounter = 0;
+
     m_watcher = new QFileSystemWatcher;
     m_services = new McaAggregatedServiceModel;
 
@@ -71,8 +74,9 @@ McaFeedManager::McaFeedManager()
 
     // watch for new plugins getting installed and load them
     QStringList paths;
-    foreach (QString path, QCoreApplication::libraryPaths())
-        paths << path + PLUGIN_RELPATH;
+    paths << "/home/radu/work/meego/gits/content-build-meego/sampleplugin";
+//    foreach (QString path, QCoreApplication::libraryPaths())
+//        paths << path + PLUGIN_RELPATH;
     m_watcher->addPaths(paths);
     connect(m_watcher, SIGNAL(directoryChanged(QString)),
             this, SLOT(loadPlugins()));
@@ -84,8 +88,15 @@ McaFeedManager::~McaFeedManager()
 {
     delete m_watcher;
     delete m_services;
-    foreach (McaFeedPlugin *plugin, m_pluginToPaths.keys())
+    foreach (McaFeedPluginContainer *plugin, m_pluginToPaths.keys()) {
+        // Terminate the threads associated with the plugins
+        plugin->thread()->terminate();
+        // Block main thread for 10 seconds (or when thread finishes)
+        if( !plugin->thread()->wait(10000) ) {
+            qWarning() << "Plugin thread is not responding";
+        }
         delete plugin;
+    }
 }
 
 QAbstractItemModel *McaFeedManager::serviceModel()
@@ -93,27 +104,32 @@ QAbstractItemModel *McaFeedManager::serviceModel()
     return m_services;
 }
 
-QAbstractItemModel *McaFeedManager::createFeed(const QAbstractItemModel *serviceModel,
+int McaFeedManager::createFeed(const QAbstractItemModel *serviceModel,
                                                const QString& name)
 {
     // TODO: clean up destroyed models
 
-    McaFeedPlugin *plugin = m_modelToPlugin.value(serviceModel);
-    if (plugin)
-        return plugin->createFeedModel(name);
+    McaFeedPluginContainer *plugin = m_modelToPlugin.value(serviceModel);
+    if (plugin) {
+        QMetaObject::invokeMethod(plugin, "createFeedModel", Qt::QueuedConnection, Q_ARG(QString, name), Q_ARG(int, m_requestIdCounter));
+        return ++m_requestIdCounter;
+    }
 
-    return NULL;
+    return -1;
 }
 
-McaSearchableContainer *McaFeedManager::createSearchFeed(const QAbstractItemModel *serviceModel,
+//McaSearchableContainer *McaFeedManager::createSearchFeed(const QAbstractItemModel *serviceModel,
+int McaFeedManager::createSearchFeed(const QAbstractItemModel *serviceModel,
                                                          const QString& name, const QString& searchText)
 {
     // TODO: clean up destroyed models
-
-    McaFeedPlugin *plugin = m_modelToPlugin.value(serviceModel);
-    if (plugin)
-        return McaSearchableContainer::create(plugin->createSearchModel(name, searchText));
-    return NULL;
+    McaFeedPluginContainer *plugin = m_modelToPlugin.value(serviceModel);
+    if (plugin) {
+        QMetaObject::invokeMethod(plugin, "createSearchModel", Qt::QueuedConnection, Q_ARG(QString, name), Q_ARG(QString, searchText), Q_ARG(int, m_requestIdCounter));
+//        m_requestIdCounter++;
+        return ++m_requestIdCounter;
+    }
+    return -1;
 }
 
 QString McaFeedManager::getHash(QSettings *settings, const QString& path,
@@ -147,7 +163,7 @@ QString McaFeedManager::serviceId(const QAbstractItemModel *serviceModel,
 {
     // returns: empty string on error, unique hash otherwise
 
-    McaFeedPlugin *plugin = m_modelToPlugin.value(serviceModel);
+    McaFeedPluginContainer *plugin = m_modelToPlugin.value(serviceModel);
     if (!plugin)
         return QString();
 
@@ -178,31 +194,31 @@ void McaFeedManager::loadPlugins()
 {
     qDebug() << "McaFeedManager::loadPlugins()";
     // effects: checks plugin paths for any new plugins to load
-    foreach (QString path, QCoreApplication::libraryPaths()) {
-        QDir dir = QDir(path + PLUGIN_RELPATH);
+//    foreach (QString path, QCoreApplication::libraryPaths()) {
+//        QDir dir = QDir(path + PLUGIN_RELPATH);
+        QDir dir = QDir("/home/radu/work/meego/gits/content-build-meego/sampleplugin");
         foreach (QString filename, dir.entryList(QStringList() << QString("*.so"))) {
             QString abspath = dir.absoluteFilePath(filename);
             if (m_pluginToPaths.values().contains(abspath))
                 continue;
 
-            PluginLoaderThread *loaderThread = new PluginLoaderThread(this);
-            loaderThread->start();
-            connect(loaderThread,
-                    SIGNAL(loadCompleted(McaFeedPlugin*,QString)),
-                    this,
-                    SLOT(onLoadCompleted(McaFeedPlugin*,QString)));
-            loaderThread->loadPlugin(abspath);
-//            QPluginLoader loader(abspath);
-//            McaFeedPlugin *plugin = qobject_cast<McaFeedPlugin *>(loader.instance());
-//            if (plugin)
-//                addPlugin(plugin, abspath);
-//            else
-//                qWarning() << "Error loading plugin:" << loader.errorString();
+            McaFeedPluginContainer *pluginContainer = new McaFeedPluginContainer();
+            pluginContainer->setPath(abspath);
+
+            connect(pluginContainer, SIGNAL(loadCompleted(McaFeedPluginContainer*,QString)), this, SLOT(onLoadCompleted(McaFeedPluginContainer*,QString)));
+            connect(pluginContainer, SIGNAL(loadError(QString)), this, SLOT(onLoadError(QString)));
+            connect(pluginContainer, SIGNAL(searchModelCreated(McaSearchableContainer*,int)), this, SIGNAL(searchFeedCreated(McaSearchableContainer*,int)));
+            connect(pluginContainer, SIGNAL(feedModelCreated(QAbstractItemModel*,int)), this, SIGNAL(feedCreated(QAbstractItemModel*,int)));
+
+            QThread *pluginThread = new QThread(this);
+            connect(pluginThread, SIGNAL(started()), pluginContainer, SLOT(load()));
+            pluginContainer->moveToThread(pluginThread);
+            pluginThread->start();
         }
-    }
+//    }
 }
 
-void McaFeedManager::onLoadCompleted(McaFeedPlugin *plugin, const QString &absPath)
+void McaFeedManager::onLoadCompleted(McaFeedPluginContainer *plugin, const QString &absPath)
 {
     if (plugin) {
         addPlugin(plugin, absPath);
@@ -220,10 +236,9 @@ void McaFeedManager::onLoadError(const QString &errorString)
 // protected members
 //
 
-void McaFeedManager::addPlugin(McaFeedPlugin *plugin, const QString& abspath)
+void McaFeedManager::addPlugin(McaFeedPluginContainer *plugin, const QString& abspath)
 {
     m_pluginToPaths.insert(plugin, abspath);
-
     QAbstractItemModel *model = plugin->serviceModel();
     McaServiceAdapter *adapter = new McaServiceAdapter(this, this);
     m_modelToPlugin.insert(adapter, plugin);

@@ -65,6 +65,8 @@ McaPanelManager::McaPanelManager(QObject *parent):
     m_serviceProxy = new McaServiceProxy(this, m_feedmgr->serviceModel(), this);
 
     m_servicesEnabledByDefault = true;
+
+    connect(m_feedmgr, SIGNAL(feedCreated(QAbstractItemModel*,int)), this, SLOT(createFeedDone(QAbstractItemModel*,int)));
 }
 
 McaPanelManager::~McaPanelManager()
@@ -270,16 +272,22 @@ void McaPanelManager::feedRowsChanged()
 void McaPanelManager::addFeed(const QModelIndex &index)
 {
     QAbstractListModel *model = qobject_cast<QAbstractListModel*>(m_serviceProxy->data(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
+
     QString name = m_serviceProxy->data(index, McaServiceModel::RequiredNameRole).toString();
+/*
     QString displayName = m_serviceProxy->data(index, McaServiceModel::CommonDisplayNameRole).toString();
     QString iconUrl = m_serviceProxy->data(index, McaServiceModel::CommonIconUrlRole).toString();
     QString category = m_serviceProxy->data(index, McaServiceModel::RequiredCategoryRole).toString();
+*/
     QString upid = m_feedmgr->serviceId(model, name);
-
     if (m_upidToFeedInfo.contains(upid)) {
         qWarning() << "warning: panel manager: unexpected duplicate add feed request";
         return;
     }
+
+    m_requestIds[m_feedmgr->createFeed(model, name)] = index.row();
+
+/*
     QAbstractItemModel *feed = m_feedmgr->createFeed(model, name);
     if (feed) {
         McaFeedFilter *filter = new McaFeedFilter(feed, upid);
@@ -294,6 +302,7 @@ void McaPanelManager::addFeed(const QModelIndex &index)
         m_allocator->addFeed(upid, adapter);
         m_aggregator->addSourceModel(adapter);
     }
+*/
 }
 
 void McaPanelManager::removeFeed(const QModelIndex &index)
@@ -322,3 +331,31 @@ QString McaPanelManager::fullEnabledKey()
         key.append(QString("-") + m_panelName);
     return key;
 }
+
+void McaPanelManager::createFeedDone(QAbstractItemModel *feed, int uniqueRequestId) {
+    qDebug() << "McaSearchManager::createFeedDone " << uniqueRequestId << m_requestIds.keys();
+    if (m_requestIds.keys().contains(uniqueRequestId) && 0 != feed) {
+        qDebug() << "Key matched";
+        QModelIndex index = m_serviceProxy->index(m_requestIds[uniqueRequestId], 0);
+        QAbstractListModel *model = qobject_cast<QAbstractListModel*>(m_serviceProxy->data(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
+
+        QString name = m_serviceProxy->data(index, McaServiceModel::RequiredNameRole).toString();
+        QString displayName = m_serviceProxy->data(index, McaServiceModel::CommonDisplayNameRole).toString();
+        QString iconUrl = m_serviceProxy->data(index, McaServiceModel::CommonIconUrlRole).toString();
+        QString category = m_serviceProxy->data(index, McaServiceModel::RequiredCategoryRole).toString();
+        QString upid = m_feedmgr->serviceId(model, name);
+
+        McaFeedFilter *filter = new McaFeedFilter(feed, upid);
+        McaFeedAdapter *adapter = new McaFeedAdapter(filter, name, displayName, iconUrl, category);
+        FeedInfo *info = new FeedInfo;
+        info->upid = upid;
+        info->feed = adapter;
+        info->filter = filter;
+        m_upidToFeedInfo.insert(upid, info);
+        if (m_upidToFeedInfo.count() == 1)
+            emit servicesConfiguredChanged(true);
+        m_allocator->addFeed(upid, adapter);
+        m_aggregator->addSourceModel(adapter);
+    }
+}
+

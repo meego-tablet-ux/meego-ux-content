@@ -14,9 +14,11 @@
 class QFileSystemWatcher;
 class QAbstractItemModel;
 class QSettings;
-class McaFeedPlugin;
+//class McaFeedPlugin;
+class McaFeedPluginContainer;
 class McaAggregatedServiceModel;
 class McaSearchableContainer;
+class McaSearchableFeed;
 
 class McaFeedManager: public QObject
 {
@@ -36,31 +38,38 @@ public:
     // aggregated service model owned by the feed manager
     QAbstractItemModel *serviceModel();
 
-    QAbstractItemModel *createFeed(const QAbstractItemModel *serviceModel,
+    int createFeed(const QAbstractItemModel *serviceModel,
                                    const QString& name);
-    McaSearchableContainer *createSearchFeed(const QAbstractItemModel *serviceModel,
+//    McaSearchableContainer *createSearchFeed(const QAbstractItemModel *serviceModel,
+    int createSearchFeed(const QAbstractItemModel *serviceModel,
                                              const QString& name, const QString& searchText);
     QString serviceId(const QAbstractItemModel *serviceModel,
                       const QString& name);
 
+signals:
+    void searchFeedCreated(McaSearchableContainer *container, int uniqueRequestId);
+    void feedCreated(QAbstractItemModel *model, int uniqueRequestId);
+
 protected slots:
     void loadPlugins();
-    void onLoadCompleted(McaFeedPlugin *plugin, const QString &absPath);
+    void onLoadCompleted(McaFeedPluginContainer *plugin, const QString &absPath);
     void onLoadError(const QString &errorString);
 
 protected:
-    void addPlugin(McaFeedPlugin *plugin, const QString& abspath);
+    void addPlugin(McaFeedPluginContainer *plugin, const QString& abspath);
     QString getHash(QSettings *settings, const QString& path,
                     const QString& name, int pass);
 
 private:
-    QHash<McaFeedPlugin *, QString> m_pluginToPaths;
+    QHash<McaFeedPluginContainer *, QString> m_pluginToPaths;
     McaAggregatedServiceModel *m_services;
     QFileSystemWatcher* m_watcher;
-    QHash<const QAbstractItemModel*, McaFeedPlugin*> m_modelToPlugin;
+    QHash<const QAbstractItemModel*, McaFeedPluginContainer*> m_modelToPlugin;
 
     // map from pluginPath:serviceName to a unique hash
     QHash<QString, QString> m_idToHash;
+
+    int m_requestIdCounter;
 };
 
 #endif  // __mcafeedmanager_h
