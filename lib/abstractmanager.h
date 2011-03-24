@@ -19,15 +19,15 @@ struct FeedInfo
     McaFeedFilter *filter;
 };
 
-class AbstractManager : public QObject
+class McaAbstractManager : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QSortFilterProxyModel *feedModel READ feedModel)
     Q_PROPERTY(bool frozen READ frozen WRITE setFrozen NOTIFY frozenChanged)
 
 public:
-    AbstractManager(QObject *parent = 0);
-    virtual ~AbstractManager();
+    McaAbstractManager(QObject *parent = 0);
+    virtual ~McaAbstractManager();
 
     //managerData will be panelName for PanelManager, searchText for SearchManager
     Q_INVOKABLE virtual void initialize(const QString& managerData = QString()) = 0;

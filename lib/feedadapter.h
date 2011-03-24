@@ -10,8 +10,10 @@
 #define __mcafeedadapter_h
 
 #include <QAbstractListModel>
+#include "adapter.h"
+#include "defines.h"
 
-class McaFeedAdapter: public QAbstractListModel
+class McaFeedAdapter: public McaAdapter
 {
     Q_OBJECT
     Q_ENUMS(Roles)
@@ -45,11 +47,8 @@ public:
     virtual void fetchMore(const QModelIndex &parent = QModelIndex());
 
     QAbstractItemModel *getSource();
-
-    Q_INVOKABLE void triggerInitialUpdate();
 signals:
     void limitChanged();
-    void initialUpdate(const QModelIndex &model, int start, int end);
 
     // source model updates have changed the number of rows provided
     void rowCountChanged();
@@ -82,8 +81,6 @@ private:
     int m_rowCount;
     int m_lastRowCount;
     bool m_updating;    
-
-    bool m_thread_locked;
 };
 
 #endif  // __mcafeedadapter_h

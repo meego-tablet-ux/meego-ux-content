@@ -37,7 +37,7 @@ const int TemporaryFeedLimit = 1000;
 //
 
 McaSearchManager::McaSearchManager(QObject *parent):
-        AbstractManager(parent)
+        McaAbstractManager(parent)
 {
     m_serviceModel = m_feedmgr->serviceModel();
 }
@@ -135,6 +135,8 @@ void McaSearchManager::createFeedFinalise(QObject *containerObj, McaFeedAdapter 
 
     McaSearchableContainer *container = qobject_cast<McaSearchableContainer*>(containerObj);
 
+    qDebug() << "New container: " << container << container->searchable();
+
     connect(container, SIGNAL(searchDone()), this, SLOT(searchDone()));
     m_searchableContainers.push_back(container);
     if(!m_searchRequests.contains(container->thread())) {
@@ -170,10 +172,20 @@ void McaSearchManager::searchDone()
 }
 
 void McaSearchManager::removeFeedCleanup(const QString& upid) {
-    qDebug() << "McaSearchManager::removeFeedCleanup NOT IMPLEMENTED, WILL CRASH ON REMOVE SERVICE";
-    //This will crash if we do a search after a service is removed
-    //TODO: remove the searchableContainer from m_searchableContainers
-    //m_upidToFeedInfo[upid]->feed gives us the McaSearchableFeed, how do we get to McaSearchableContainer
+    // TODO: Assuming these are unique containers for unique feeds?
+    FeedInfo *info = m_upidToFeedInfo[upid];
+    McaFeedAdapter *adapter = qobject_cast<McaFeedAdapter*>(info->feed);
+    if( adapter ) {
+        foreach(McaSearchableContainer *container, m_searchableContainers) {
+            qDebug() << "Matching: " << container->feedModel() << adapter->getSource();
+            if( container->feedModel() == adapter->getSource() ) {
+                m_searchableContainers.removeOne( container );
+                break;
+            }
+        }
+    } else {
+        qWarning() << "McaSearchManager::removeFeedCleanup: Requesting removal of non-McaFeedAdapter in search";
+    }
 }
 
 void McaSearchManager::addSearchRequest(McaSearchableContainer *container, const QString &searchText)

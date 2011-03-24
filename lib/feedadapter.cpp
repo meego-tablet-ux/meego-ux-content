@@ -7,6 +7,7 @@
  */
 
 #include <QDebug>
+#include <QThread>
 
 #include "feedadapter.h"
 #include "feedmodel.h"
@@ -27,7 +28,7 @@ const int ContentMaxChars = 160;
 McaFeedAdapter::McaFeedAdapter(QAbstractItemModel *source, const QString &serviceId,
                                const QString &serviceName, const QString &serviceIcon,
                                const QString &serviceCategory, QObject *parent):
-        QAbstractListModel(parent)
+        McaAdapter(parent)
 {
     m_source = source;
     m_serviceId = serviceId;
@@ -65,8 +66,6 @@ McaFeedAdapter::McaFeedAdapter(QAbstractItemModel *source, const QString &servic
             this, SLOT(sourceModelAboutToBeReset()));
     connect(source, SIGNAL(modelReset()),
             this, SLOT(sourceModelReset()));
-
-    m_thread_locked = false;
 }
 
 McaFeedAdapter::~McaFeedAdapter()
@@ -96,9 +95,13 @@ void McaFeedAdapter::setLimit(int limit)
         if (limit > oldLimit)
             fetchMore();
         else if (limit < m_rowCount) {
-            m_thread_locked = true;
+#if defined(THREADING_DEBUG)
+            THREAD_SET_TEST(this);
             beginRemoveRows(QModelIndex(), limit, m_rowCount - 1);
-            m_thread_locked = false;
+            THREAD_UNSET_TEST(this);
+#else
+            beginRemoveRows(QModelIndex(), limit, m_rowCount - 1);
+#endif
             m_rowCount = limit;
             endRemoveRows();
         }
@@ -113,11 +116,9 @@ int McaFeedAdapter::rowCount(const QModelIndex &parent) const
 
 QVariant McaFeedAdapter::data(const QModelIndex &index, int role) const
 {
-    if(!m_thread_locked)
-    {
-        qDebug() << "McaFeedAdapter::data locked " << m_thread_locked;
-    }
-   
+#if defined(THREADING_DEBUG)
+    THREAD_PRINT_TEST(this);
+#endif
     if (index.row() > m_rowCount) {
         if (m_limit == 0)
             qWarning() << "WARNING: limit zero in feed adapter data call";
@@ -177,19 +178,14 @@ void McaFeedAdapter::fetchMore(const QModelIndex& parent)
     if (count > m_rowCount) {
         beginInsertRows(QModelIndex(), m_rowCount, count - 1);
         m_rowCount = count;
-        m_thread_locked = true;
+#if defined(THREADING_DEBUG)
+        THREAD_SET_TEST(this);
         endInsertRows();
-        m_thread_locked = false;
+        THREAD_UNSET_TEST(this);
+#else
+        endInsertRows();
+#endif
     }
-}
-
-void McaFeedAdapter::triggerInitialUpdate()
-{
-    // This is here inorder to block the plugin event system
-    // while the initial rows are inserted
-    m_thread_locked = true;
-    emit initialUpdate(QModelIndex(), 0, m_rowCount - 1);
-    m_thread_locked = false;
 }
 
 //
@@ -214,9 +210,13 @@ void McaFeedAdapter::sourceRowsAboutToBeInserted(const QModelIndex &parent, int 
     if (addCount > m_limit) {
         // preemptively remove rows that will exceed the limit
         int remove = addCount - m_limit;
-        m_thread_locked = true;
+#if defined(THREADING_DEBUG)
+        THREAD_SET_TEST(this);
         beginRemoveRows(QModelIndex(), m_rowCount - remove, m_rowCount - 1);
-        m_thread_locked = false;
+        THREAD_UNSET_TEST(this);
+#else
+        beginRemoveRows(QModelIndex(), m_rowCount - remove, m_rowCount - 1);
+#endif
         m_rowCount -= remove;
         endRemoveRows();
     }
@@ -233,9 +233,13 @@ void McaFeedAdapter::sourceRowsInserted(const QModelIndex &parent, int start, in
     if (start >= m_limit)
         return;
 
-    m_thread_locked = true;
+#if defined(THREADING_DEBUG)
+    THREAD_SET_TEST(this);
     endInsertRows();
-    m_thread_locked = false;
+    THREAD_UNSET_TEST(this);
+#else
+    endInsertRows();
+#endif
 
     if (m_rowCount != m_lastRowCount)
         emit rowCountChanged();
@@ -257,10 +261,13 @@ void McaFeedAdapter::sourceRowsAboutToBeRemoved(const QModelIndex &parent, int s
 
     if (end >= m_limit)
         end = m_limit - 1;
-
-    m_thread_locked = true;
+#if defined(THREADING_DEBUG)
+    THREAD_SET_TEST(this);
     beginRemoveRows(QModelIndex(), start, end);
-    m_thread_locked = false;
+    THREAD_UNSET_TEST(this);
+#else
+    beginRemoveRows(QModelIndex(), start, end);
+#endif
 }
 
 void McaFeedAdapter::sourceRowsRemoved(const QModelIndex &parent, int start, int end)
@@ -327,9 +334,13 @@ void McaFeedAdapter::sourceDataChanged(const QModelIndex &topLeft, const QModelI
 
     QModelIndex myTopLeft = index(top);
     QModelIndex myBottomRight = index(bottom);
-    m_thread_locked = true;
+#if defined(THREADING_DEBUG)
+    THREAD_SET_TEST(this);
     emit dataChanged(myTopLeft, myBottomRight);
-    m_thread_locked = false;
+    THREAD_UNSET_TEST(this);
+#else
+    emit dataChanged(myTopLeft, myBottomRight);
+#endif
 }
 
 void McaFeedAdapter::sourceModelAboutToBeReset()

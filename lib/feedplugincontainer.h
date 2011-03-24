@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QString>
 
+#include "threadtest.h"
+
 //Qt classes
 class QAbstractItemModel;
 //Meego classes
@@ -36,7 +38,8 @@ public slots:
 
 private:
     McaFeedPlugin *m_plugin;
-    QString m_pluginPath;    
+    QString m_pluginPath;
+    THREAD_TEST
 };
 
 #endif // FEEDPLUGINCONTAINER_H

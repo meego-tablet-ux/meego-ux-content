@@ -13,6 +13,7 @@
 #include <QDir>
 #include <QFileSystemWatcher>
 #include <QSettings>
+#include <QThread>
 
 #include "feedmanager.h"
 //#include "feedplugin.h"
@@ -21,8 +22,8 @@
 #include "settings.h"
 #include "serviceadapter.h"
 #include "searchablecontainer.h"
-#include "pluginloaderthread.h"
 #include "defines.h"
+#include "threadtest.h"
 
 //
 // Overview of McaFeedManager
@@ -211,12 +212,20 @@ void McaFeedManager::loadPlugins()
             McaFeedPluginContainer *pluginContainer = new McaFeedPluginContainer();
             pluginContainer->setPath(abspath);
 
-            connect(pluginContainer, SIGNAL(loadCompleted(McaFeedPluginContainer*,QString)), this, SLOT(onLoadCompleted(McaFeedPluginContainer*,QString)));
-            connect(pluginContainer, SIGNAL(loadError(QString)), this, SLOT(onLoadError(QString)));
-            connect(pluginContainer, SIGNAL(feedModelCreated(QObject*,McaFeedAdapter*,int)), this, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)));
-            connect(pluginContainer, SIGNAL(createFeedError(QString,int)), this, SIGNAL(createFeedError(QString,int)));
-
+            connect(pluginContainer, SIGNAL(loadCompleted(McaFeedPluginContainer*,QString)), 
+                    this, SLOT(onLoadCompleted(McaFeedPluginContainer*,QString)));
+            connect(pluginContainer, SIGNAL(loadError(QString)), 
+                    this, SLOT(onLoadError(QString)));
+            // Service data is accessed when the feed is created, which is why it blocks the thread. 
+            connect(pluginContainer, SIGNAL(feedModelCreated(QObject*,McaFeedAdapter*,int)), 
+                    this, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)), Qt::BlockingQueuedConnection );
+            connect(pluginContainer, SIGNAL(createFeedError(QString,int)), 
+                    this, SIGNAL(createFeedError(QString,int)));
+#if defined(THREADING_DEBUG)
+            McaThreadTest *pluginThread = new McaThreadTest(this);
+#else
             QThread *pluginThread = new QThread(this);
+#endif
             connect(pluginThread, SIGNAL(started()), pluginContainer, SLOT(load()));
 
 #if defined(THREADING)

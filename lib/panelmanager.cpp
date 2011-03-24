@@ -44,7 +44,7 @@
 //
 
 McaPanelManager::McaPanelManager(QObject *parent):
-        AbstractManager(parent)
+        McaAbstractManager(parent)
 {
     m_allocator = new McaAllocator;
     m_isEmpty = false;

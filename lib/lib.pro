@@ -15,7 +15,6 @@ SOURCES += \
     feedfilter.cpp \
     feedmanager.cpp \
     panelmanager.cpp \
-    pluginloaderthread.cpp \
     searchmanager.cpp \
     searchablecontainer.cpp \
     serviceadapter.cpp \
@@ -23,7 +22,9 @@ SOURCES += \
     settings.cpp \
     feedplugincontainer.cpp \
     abstractmanager.cpp \
-    actionsproxy.cpp
+    actionsproxy.cpp \
+    adapter.cpp \
+    threadtest.cpp
 
 INSTALL_HEADERS += \
     actions.h \
@@ -41,7 +42,6 @@ HEADERS += \
     feedcache.h \
     feedfilter.h \
     feedmanager.h \
-    pluginloaderthread.h \
     searchablecontainer.h \
     serviceadapter.h \
     serviceproxy.h \
@@ -50,6 +50,8 @@ HEADERS += \
     feedplugincontainer.h \
     abstractmanager.h \
     actionsproxy.h \
+    threadtest.h \
+    adapter.h \
     defines.h
 
 target.path = $$[QT_INSTALL_LIBS]

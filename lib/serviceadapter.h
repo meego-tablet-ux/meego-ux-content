@@ -11,11 +11,12 @@
 
 #include <QAbstractListModel>
 #include <QStringList>
+#include "adapter.h"
 
 class McaActions;
 class McaFeedManager;
 
-class McaServiceAdapter: public QAbstractListModel
+class McaServiceAdapter: public McaAdapter
 {
     Q_OBJECT
     Q_ENUMS(Roles)

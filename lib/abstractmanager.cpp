@@ -10,7 +10,7 @@
 #include "aggregatedmodel.h"
 #include "feedadapter.h"
 
-AbstractManager::AbstractManager(QObject *parent) :
+McaAbstractManager::McaAbstractManager(QObject *parent) :
     QObject(parent)
 {
     m_feedmgr = McaFeedManager::takeManager();
@@ -26,33 +26,33 @@ AbstractManager::AbstractManager(QObject *parent) :
     m_feedProxy->sort(0, Qt::DescendingOrder);
     m_feedProxy->setDynamicSortFilter(true);
 
-    connect(m_feedmgr, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)), this, SLOT(createFeedDone(QObject*,McaFeedAdapter*,int)));
+    connect(m_feedmgr, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)), this, SLOT(createFeedDone(QObject*,McaFeedAdapter*,int)), Qt::DirectConnection);
     connect(m_feedmgr, SIGNAL(createFeedError(QString,int)), this, SLOT(createFeedError(QString,int)));
 }
 
-AbstractManager::~AbstractManager()
+McaAbstractManager::~McaAbstractManager()
 {
     delete m_cache;
 
     McaFeedManager::releaseManager();
 }
 
-bool AbstractManager::frozen()
+bool McaAbstractManager::frozen()
 {
     return m_cache->frozen();
 }
 
-QSortFilterProxyModel *AbstractManager::feedModel()
+QSortFilterProxyModel *McaAbstractManager::feedModel()
 {
     return m_feedProxy;
 }
 
-void AbstractManager::setFrozen(bool frozen)
+void McaAbstractManager::setFrozen(bool frozen)
 {
     m_cache->setFrozen(frozen);
 }
 
-void AbstractManager::rowsAboutToBeRemoved(const QModelIndex &index, int start, int end)
+void McaAbstractManager::rowsAboutToBeRemoved(const QModelIndex &index, int start, int end)
 {
     Q_UNUSED(index)
 
@@ -62,7 +62,7 @@ void AbstractManager::rowsAboutToBeRemoved(const QModelIndex &index, int start, 
     }
 }
 
-void AbstractManager::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight)
+void McaAbstractManager::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight)
 {
     for (int i=topLeft.row(); i<=bottomRight.row(); i++) {
         QModelIndex qmi = serviceModelIndex(i);//m_serviceProxy->index(i, 0);
@@ -85,7 +85,7 @@ void AbstractManager::dataChanged(const QModelIndex &topLeft, const QModelIndex 
     }
 }
 
-void AbstractManager::addFeed(const QModelIndex &index)
+void McaAbstractManager::addFeed(const QModelIndex &index)
 {
     QAbstractListModel *model = qobject_cast<QAbstractListModel*>(serviceModelData(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
     QString name = serviceModelData(index, McaServiceModel::RequiredNameRole).toString();
@@ -99,7 +99,7 @@ void AbstractManager::addFeed(const QModelIndex &index)
     m_requestIds[createFeed(model, name)] = index.row();
 }
 
-void AbstractManager::removeFeed(const QModelIndex &index)
+void McaAbstractManager::removeFeed(const QModelIndex &index)
 {
     QAbstractListModel *model = qobject_cast<QAbstractListModel*>(serviceModelData(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
     QString name = serviceModelData(index, McaServiceModel::RequiredNameRole).toString();
@@ -108,15 +108,15 @@ void AbstractManager::removeFeed(const QModelIndex &index)
     FeedInfo *info = m_upidToFeedInfo.value(upid, NULL);
     if (info) {
         m_aggregator->removeSourceModel(info->feed);
-        m_upidToFeedInfo.remove(upid);
         removeFeedCleanup(upid);
+        m_upidToFeedInfo.remove(upid);
         //delete info->feed;
         info->feed->deleteLater();
         delete info;
     }
 }
 
-void AbstractManager::rowsInserted(const QModelIndex &index, int start, int end)
+void McaAbstractManager::rowsInserted(const QModelIndex &index, int start, int end)
 {
     Q_UNUSED(index)
 
@@ -129,7 +129,7 @@ void AbstractManager::rowsInserted(const QModelIndex &index, int start, int end)
     }
 }
 
-void AbstractManager::createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId) {
+void McaAbstractManager::createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId) {
     if (m_requestIds.keys().contains(uniqueRequestId) && 0 != containerObj) {
         QModelIndex index = serviceModelIndex(m_requestIds[uniqueRequestId]);
         QString name = serviceModelData(index, McaServiceModel::RequiredNameRole).toString();
@@ -147,7 +147,7 @@ void AbstractManager::createFeedDone(QObject *containerObj, McaFeedAdapter *feed
     }
 }
 
-void AbstractManager::createFeedError(QString serviceName, int uniqueRequestId) {
+void McaAbstractManager::createFeedError(QString serviceName, int uniqueRequestId) {
     if(m_requestIds.contains(uniqueRequestId)) {
         qDebug() << "CREATE Feed Error " << serviceName << " with request id " << uniqueRequestId;
         m_requestIds.remove(uniqueRequestId);

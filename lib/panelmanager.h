@@ -18,7 +18,7 @@
 class McaAllocator;
 class McaServiceProxy;
 
-class McaPanelManager: public AbstractManager
+class McaPanelManager: public McaAbstractManager
 {
     Q_OBJECT
     Q_PROPERTY(QSortFilterProxyModel *serviceModel READ serviceModel)

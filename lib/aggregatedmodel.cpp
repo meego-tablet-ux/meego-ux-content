@@ -9,7 +9,7 @@
 #include <QDebug>
 
 #include "aggregatedmodel.h"
-#include "feedadapter.h"
+#include "adapter.h"
 #include "defines.h"
 
 //
@@ -40,16 +40,18 @@ void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)
             this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)), Qt::BlockingQueuedConnection);
 
     
-    McaFeedAdapter *adapter_model = qobject_cast<McaFeedAdapter*>(model);
+    McaAdapter *adapter_model = qobject_cast<McaAdapter*>(model);
     if (adapter_model) {
-        connect(adapter_model, SIGNAL(initialUpdate(QModelIndex,int,int)),
-                this, SLOT(sourceRowsInserted(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
-
+        qDebug() << "Got adapter: " << adapter_model;
+        // Alternative: Pass this object as a argument, use invokeMethod,
+        connect(adapter_model, SIGNAL(syncUpdate(McaAdapter*,int,int)),
+                this, SLOT(syncUpdate(McaAdapter*,int,int)), Qt::BlockingQueuedConnection);
+        connect(adapter_model, SIGNAL(syncRemoval(McaAdapter*,int,int)),
+                this, SLOT(syncRemoval(McaAdapter*,int,int)), Qt::BlockingQueuedConnection);
 
         // TODO: Make sure this doesn't cause issues if it gets between begin/end updates
-        // as the handling is split in McaFeedAdapter.
-        qDebug() << "Recieved McaFeedAdapter";
-        QMetaObject::invokeMethod(adapter_model, "triggerInitialUpdate", Qt::QueuedConnection);
+        // as the handling is split in McaAdapter.
+        QMetaObject::invokeMethod(adapter_model, "triggerSyncUpdate", Qt::QueuedConnection);
     } else {
         qWarning() << "McaAggregatedModel: Recieved an unknown model, threading might break.";
         rowsInserted(model, 0, model->rowCount() - 1);
@@ -70,14 +72,27 @@ void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)
 
 void McaAggregatedModel::removeSourceModel(QAbstractItemModel *model)
 {    
-//    qDebug() << "McaAggregatedModel::removeSourceModel " << model;
-    disconnect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
+#if defined(THREADING)
+    McaAdapter *adapter_model = qobject_cast<McaAdapter*>(model);
+    if (adapter_model) {
+        // TODO: Make sure this doesn't cause issues if it gets between begin/end updates
+        // as the handling is split in McaAdapter.
+        QMetaObject::invokeMethod(adapter_model, "triggerSyncRemoval", Qt::QueuedConnection);
+    } else {
+        qWarning() << "McaAggregatedModel: Recieved an unknown model, threading might break.";
+
+        disconnect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
                this, SLOT(sourceRowsInserted(QModelIndex,int,int)));
-    disconnect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
+        disconnect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
                this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
-    disconnect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+        disconnect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
                this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
+
+        rowsRemoved(model, 0, model->rowCount() - 1);
+    }
+#else
     rowsRemoved(model, 0, model->rowCount() - 1);
+#endif
 }
 
 int McaAggregatedModel::rowCount(const QModelIndex &parent) const
@@ -99,6 +114,31 @@ QVariant McaAggregatedModel::data(const QModelIndex &index, int role) const
 
     return QVariant();
 }
+
+#if defined(THREADING)
+
+void McaAggregatedModel::syncUpdate(McaAdapter *model, int start, int end)
+{
+    rowsInserted(model, start, end);
+}
+
+void McaAggregatedModel::syncRemoval(McaAdapter *model, int start, int end)
+{
+    rowsRemoved(model, start, end);
+
+    disconnect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
+           this, SLOT(sourceRowsInserted(QModelIndex,int,int)));
+    disconnect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
+           this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
+    disconnect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+           this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
+
+    disconnect(model, SIGNAL(syncUpdate(McaAdapter*,int,int)),
+            this, SLOT(syncUpdate(McaAdapter*,int,int)));
+    disconnect(model, SIGNAL(syncRemoval(McaAdapter*,int,int)),
+            this, SLOT(syncRemoval(McaAdapter*,int,int)));
+}
+#endif
 
 //
 // helper functions

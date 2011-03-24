@@ -16,6 +16,7 @@ McaFeedPluginContainer::McaFeedPluginContainer(QObject *parent)
         m_plugin(0),
         m_pluginPath(QString::null)
 {    
+    THREAD_TEST_INIT
 }
 
 McaFeedPluginContainer::~McaFeedPluginContainer()
@@ -50,8 +51,10 @@ void McaFeedPluginContainer::createFeedModel(const QString &service, int uniqueR
 
     McaFeedFilter *filter = new McaFeedFilter(feed, upid);
     McaFeedAdapter *adapter = new McaFeedAdapter(filter, name, displayName, iconUrl, category);
-
+    
+    THREAD_SET_TEST(this);
     emit feedModelCreated(qobject_cast<QObject*>(feed), adapter, uniqueRequestId);
+    THREAD_UNSET_TEST(this);
 }
 
 void McaFeedPluginContainer::createSearchModel(const QString &service, const QString &searchText, int uniqueRequestId)
@@ -81,7 +84,9 @@ void McaFeedPluginContainer::createSearchModel(const QString &service, const QSt
 
     McaFeedAdapter *adapter = new McaFeedAdapter(container->feedModel(), name, displayName, iconUrl, category);
 
+    THREAD_SET_TEST(this);
     emit feedModelCreated(qobject_cast<QObject*>(container), adapter, uniqueRequestId);
+    THREAD_UNSET_TEST(this);
 }
 
 QAbstractItemModel *McaFeedPluginContainer::serviceModel()

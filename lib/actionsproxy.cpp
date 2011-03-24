@@ -51,12 +51,10 @@ void McaActionsProxy::addCustomAction(QString id, QString displayName)
 
 void McaActionsProxy::performStandardAction(QString action, QString uniqueid)
 {
-    qDebug() << "Proxy standard action: " << action << uniqueid;
     emit standardAction(action, uniqueid);
 }
 
 void McaActionsProxy::performCustomAction(QString action, QString uniqueid)
 {
-    qDebug() << "Proxy custom action: " << action << uniqueid;
     emit customAction(action, uniqueid);
 }

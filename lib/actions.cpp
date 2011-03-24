@@ -36,7 +36,6 @@ void McaActions::addCustomAction(QString id, QString displayName)
 
 void McaActions::performStandardAction(QString action, QString uniqueid)
 {
-    qDebug() << "Performing standard action" << this;
     emit standardAction(action, uniqueid);
 }
 
