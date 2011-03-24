@@ -52,7 +52,8 @@ protected slots:
     virtual void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 
     virtual void createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
-    virtual void removeFeedCleanup(const QString& upid);
+    virtual void removeFeedCleanup(const QString& upid) = 0;
+    void createFeedError(QString serviceName, int uniqueRequestId);
 
 private:
     virtual QModelIndex serviceModelIndex(int row) = 0;

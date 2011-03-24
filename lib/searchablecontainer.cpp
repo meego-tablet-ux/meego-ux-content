@@ -60,5 +60,6 @@ QAbstractItemModel *McaSearchableContainer::feedModel()
 
 void McaSearchableContainer::setSearchText(const QString &text)
 {
-    m_searchable->setSearchText(text);
+    m_searchable->setSearchText(text);    
+    emit searchDone();
 }

@@ -77,6 +77,10 @@ void McaSearchManager::setSearchText(const QString& searchText)
     m_searchText = searchText;
 
     emit searchTextChanged(searchText);
+
+    foreach(McaSearchableContainer* container, m_searchableContainers) {
+        addSearchRequest(container, searchText);
+    }
 }
 
 QModelIndex McaSearchManager::serviceModelIndex(int row)
@@ -125,12 +129,73 @@ int McaSearchManager::createFeed(const QAbstractItemModel *serviceModel, const Q
 //    }
 //}
 
-void McaSearchManager::createFeedFinalise(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo) {
+void McaSearchManager::createFeedFinalise(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo)
+{
     Q_UNUSED(feedInfo);
 
     McaSearchableContainer *container = qobject_cast<McaSearchableContainer*>(containerObj);
-    connect(this, SIGNAL(searchTextChanged(QString)),
-            container, SLOT(setSearchText(QString)));
-    QMetaObject::invokeMethod(container, "setSearchText", Q_ARG(QString, m_searchText));
+
+    connect(container, SIGNAL(searchDone()), this, SLOT(searchDone()));
+    m_searchableContainers.push_back(container);
+    if(!m_searchRequests.contains(container->thread())) {
+        m_searchRequests[container->thread()] = new t_SearchRequestQueue();
+    }
+    addSearchRequest(container, m_searchText);
+
     feedAdapter->setLimit(TemporaryFeedLimit);
+}
+
+void McaSearchManager::searchDone()
+{
+    McaSearchableContainer *container = qobject_cast<McaSearchableContainer*>(sender());
+    if(!container) {
+        qDebug() << "ERROR: searchDone called from a QObject different from McaSearchableContainer";
+        return;
+    }
+
+    QThread *containerThread = container->thread();
+    if(!m_searchRequests.contains(containerThread)) {
+        qDebug() << "CRITICAL ERROR: m_searchRequests does not contain entry for thread " << containerThread;
+        return;
+    }
+    t_SearchRequestQueue *threadQueue = m_searchRequests[containerThread];
+    m_processingRequests.removeOne(containerThread);
+    qDebug() << "McaSearchManager::searchDone " << m_processingRequests;
+    if(!threadQueue->isEmpty()) {
+        t_SearchRequestEntry *searchRequest = threadQueue->front();
+        threadQueue->pop_front();
+        addSearchRequest(searchRequest->first, searchRequest->second);
+        delete searchRequest;
+    }
+}
+
+void McaSearchManager::removeFeedCleanup(const QString& upid) {
+    qDebug() << "McaSearchManager::removeFeedCleanup NOT IMPLEMENTED, WILL CRASH ON REMOVE SERVICE";
+    //This will crash if we do a search after a service is removed
+    //TODO: remove the searchableContainer from m_searchableContainers
+    //m_upidToFeedInfo[upid]->feed gives us the McaSearchableFeed, how do we get to McaSearchableContainer
+}
+
+void McaSearchManager::addSearchRequest(McaSearchableContainer *container, const QString &searchText)
+{
+    QThread *containerThread = container->thread();
+    if(m_processingRequests.contains(containerThread)) {
+        t_SearchRequestQueue *threadQueue = m_searchRequests.value(containerThread);
+        t_SearchRequestEntry *requestEntry = 0;
+        for(int index =0; index < threadQueue->count(); index++) {
+            requestEntry = threadQueue->at(index);
+            if(requestEntry->first == container) {
+                qDebug() << container << requestEntry->second << searchText;
+                threadQueue->removeOne(requestEntry);
+            }
+        }
+        t_SearchRequestEntry *searchRequest = new t_SearchRequestEntry();
+        searchRequest->first = container;
+        searchRequest->second = searchText;
+        threadQueue->push_back(searchRequest);
+    } else {
+        m_processingRequests.push_back(containerThread);
+        qDebug() << "McaSearchManager::addSearchRequest " << m_processingRequests;
+        QMetaObject::invokeMethod(container, "setSearchText", Q_ARG(QString, searchText));
+    }
 }

@@ -8,7 +8,6 @@
 #include "servicemodel.h"
 #include "feedfilter.h"
 #include "aggregatedmodel.h"
-#include "feedmanager.h"
 #include "feedadapter.h"
 
 
@@ -24,9 +23,15 @@ McaFeedPluginContainer::~McaFeedPluginContainer()
     delete m_plugin;
 }
 
-void McaFeedPluginContainer::createFeedModel(const QString &service, int uniqueRequestId)
+void McaFeedPluginContainer::createFeedModel(const QString &service, int uniqueRequestId, const QString &upid)
 {
     qDebug() << "McaFeedPluginContainer::createFeedModel " << service << uniqueRequestId;
+
+    QAbstractItemModel *feed = m_plugin->createFeedModel(service);
+    if(0 == feed) {
+        emit createFeedError(service, uniqueRequestId);
+        return;
+    }
 
     QString currentServiceName = "";
     QAbstractItemModel *model = m_plugin->serviceModel();
@@ -38,15 +43,10 @@ void McaFeedPluginContainer::createFeedModel(const QString &service, int uniqueR
         index++;
     }
 
-    McaFeedManager *manager = McaFeedManager::takeManager();
     QString name = model->data(modelIndex, McaServiceModel::RequiredNameRole).toString();
     QString displayName = model->data(modelIndex, McaServiceModel::CommonDisplayNameRole).toString();
     QString iconUrl = model->data(modelIndex, McaServiceModel::CommonIconUrlRole).toString();
-    QString category = model->data(modelIndex, McaServiceModel::RequiredCategoryRole).toString();
-    QString upid = manager->serviceId(qobject_cast<QAbstractListModel*>(model->data(modelIndex, McaAggregatedModel::SourceModelRole).value<QObject*>()), name);
-    manager->releaseManager();
-
-    QAbstractItemModel *feed = m_plugin->createFeedModel(service);
+    QString category = model->data(modelIndex, McaServiceModel::RequiredCategoryRole).toString();    
 
     McaFeedFilter *filter = new McaFeedFilter(feed, upid);
     McaFeedAdapter *adapter = new McaFeedAdapter(filter, name, displayName, iconUrl, category);
@@ -57,7 +57,12 @@ void McaFeedPluginContainer::createFeedModel(const QString &service, int uniqueR
 void McaFeedPluginContainer::createSearchModel(const QString &service, const QString &searchText, int uniqueRequestId)
 {    
     qDebug() << "McaFeedPluginContainer::createSearchModel " << service << searchText << uniqueRequestId;
-    McaSearchableContainer *container = McaSearchableContainer::create(m_plugin->createSearchModel(service, searchText));
+    McaSearchableFeed *searchableFeed = m_plugin->createSearchModel(service, searchText);
+    if(0 == searchableFeed) {
+        emit createFeedError(service, uniqueRequestId);
+        return;
+    }
+    McaSearchableContainer *container = McaSearchableContainer::create(searchableFeed);
 
     QString currentServiceName = "";
     QAbstractItemModel *model = m_plugin->serviceModel();

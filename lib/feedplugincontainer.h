@@ -18,16 +18,17 @@ public:
     explicit McaFeedPluginContainer( QObject *parent = 0 );
     ~McaFeedPluginContainer();
 
-    Q_INVOKABLE void createFeedModel(const QString &service, int uniqueRequestId);
+    Q_INVOKABLE void createFeedModel(const QString &service, int uniqueRequestId, const QString &upid);
     Q_INVOKABLE void createSearchModel(const QString &service, const QString &searchText, int uniqueRequestId);
     Q_INVOKABLE QAbstractItemModel *serviceModel();
 
-    void setPath(const QString& pluginPath);
+    void setPath(const QString& pluginPath);    
 signals:
     void loadCompleted( McaFeedPluginContainer *plugin, const QString &abspath );
     void loadError(const QString &errorString);
 
-    void feedModelCreated(QObject *model, McaFeedAdapter *feedAdapter, int uniqueRequestId);
+    void feedModelCreated(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
+    void createFeedError(const QString &service, int uniqueRequestId);
 //    void searchModelCreated(McaSearchableContainer *container, int uniqueRequestId);
 
 public slots:
@@ -35,7 +36,7 @@ public slots:
 
 private:
     McaFeedPlugin *m_plugin;
-    QString m_pluginPath;
+    QString m_pluginPath;    
 };
 
 #endif // FEEDPLUGINCONTAINER_H

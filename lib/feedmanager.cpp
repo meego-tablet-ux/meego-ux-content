@@ -118,7 +118,7 @@ int McaFeedManager::createFeed(const QAbstractItemModel *serviceModel,
 
     McaFeedPluginContainer *plugin = m_modelToPlugin.value(serviceModel);
     if (plugin) {
-        QMetaObject::invokeMethod(plugin, "createFeedModel", Qt::QueuedConnection, Q_ARG(QString, name), Q_ARG(int, m_requestIdCounter));
+        QMetaObject::invokeMethod(plugin, "createFeedModel", Qt::QueuedConnection, Q_ARG(QString, name), Q_ARG(int, m_requestIdCounter), Q_ARG(QString, serviceId(serviceModel, name)));
         return m_requestIdCounter++;
     }
 
@@ -133,7 +133,6 @@ int McaFeedManager::createSearchFeed(const QAbstractItemModel *serviceModel,
     McaFeedPluginContainer *plugin = m_modelToPlugin.value(serviceModel);
     if (plugin) {
         QMetaObject::invokeMethod(plugin, "createSearchModel", Qt::QueuedConnection, Q_ARG(QString, name), Q_ARG(QString, searchText), Q_ARG(int, m_requestIdCounter));
-//        m_requestIdCounter++;
         return m_requestIdCounter++;
     }
     return -1;
@@ -215,6 +214,7 @@ void McaFeedManager::loadPlugins()
             connect(pluginContainer, SIGNAL(loadCompleted(McaFeedPluginContainer*,QString)), this, SLOT(onLoadCompleted(McaFeedPluginContainer*,QString)));
             connect(pluginContainer, SIGNAL(loadError(QString)), this, SLOT(onLoadError(QString)));
             connect(pluginContainer, SIGNAL(feedModelCreated(QObject*,McaFeedAdapter*,int)), this, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)));
+            connect(pluginContainer, SIGNAL(createFeedError(QString,int)), this, SIGNAL(createFeedError(QString,int)));
 
             QThread *pluginThread = new QThread(this);
             connect(pluginThread, SIGNAL(started()), pluginContainer, SLOT(load()));
@@ -249,7 +249,8 @@ void McaFeedManager::addPlugin(McaFeedPluginContainer *plugin, const QString& ab
 {
     m_pluginToPaths.insert(plugin, abspath);
     QAbstractItemModel *model = plugin->serviceModel();
-    McaServiceAdapter *adapter = new McaServiceAdapter(this, this);
+    McaServiceAdapter *adapter = new McaServiceAdapter(this, 0);
+    adapter->moveToThread(plugin->thread());
     m_modelToPlugin.insert(adapter, plugin);
     adapter->setSourceModel(model);
     m_services->addSourceModel(adapter);

@@ -27,6 +27,7 @@ AbstractManager::AbstractManager(QObject *parent) :
     m_feedProxy->setDynamicSortFilter(true);
 
     connect(m_feedmgr, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)), this, SLOT(createFeedDone(QObject*,McaFeedAdapter*,int)));
+    connect(m_feedmgr, SIGNAL(createFeedError(QString,int)), this, SLOT(createFeedError(QString,int)));
 }
 
 AbstractManager::~AbstractManager()
@@ -98,11 +99,6 @@ void AbstractManager::addFeed(const QModelIndex &index)
     m_requestIds[createFeed(model, name)] = index.row();
 }
 
-void AbstractManager::removeFeedCleanup(const QString& upid) {
-    Q_UNUSED(upid);
-}
-
-
 void AbstractManager::removeFeed(const QModelIndex &index)
 {
     QAbstractListModel *model = qobject_cast<QAbstractListModel*>(serviceModelData(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
@@ -148,5 +144,13 @@ void AbstractManager::createFeedDone(QObject *containerObj, McaFeedAdapter *feed
         m_upidToFeedInfo.insert(upid, info);
         createFeedFinalise(containerObj, feedAdapter, info);
         m_aggregator->addSourceModel(feedAdapter);
+    }
+}
+
+void AbstractManager::createFeedError(QString serviceName, int uniqueRequestId) {
+    if(m_requestIds.contains(uniqueRequestId)) {
+        qDebug() << "CREATE Feed Error " << serviceName << " with request id " << uniqueRequestId;
+        m_requestIds.remove(uniqueRequestId);
+        //TODO: any aditional cleanup on feed creation error
     }
 }

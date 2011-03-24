@@ -48,8 +48,8 @@ public:
                       const QString& name);
 
 signals:
-//    void searchFeedCreated(McaSearchableContainer *container, int uniqueRequestId);
     void feedCreated(QObject *model, McaFeedAdapter *feedAdapter, int uniqueRequestId);
+    void createFeedError(const QString &service, int uniqueRequestId);
 
 protected slots:
     void loadPlugins();

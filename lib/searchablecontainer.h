@@ -32,6 +32,9 @@ public:
     McaSearchableFeed *searchable();
     QAbstractItemModel *feedModel();
 
+signals:
+    void searchDone();
+
 public slots:
     Q_INVOKABLE void setSearchText(const QString& text);
 
