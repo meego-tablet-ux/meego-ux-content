@@ -6,6 +6,11 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+#include "defines.h"
+#ifdef MEMORY_LEAK_DETECTOR
+#include <base.h>
+#endif
+
 #include <QDebug>
 
 #include "feedcache.h"
@@ -13,6 +18,11 @@
 #include "feedmodel.h"
 #include "actions.h"
 #include "actionsproxy.h"
+
+#ifdef MEMORY_LEAK_DETECTOR
+#define __DEBUG_NEW__ new(__FILE__, __LINE__)
+#define new __DEBUG_NEW__
+#endif
 
 static void connectToSource(McaFeedCache *cache, QAbstractListModel *model)
 {
@@ -90,8 +100,11 @@ McaFeedCache::~McaFeedCache()
     qDebug() << "Removing proxies: " << m_safeActions.count();
 
     foreach(McaActionsProxy *proxy, m_safeActions) {
-        delete proxy;
+        delete proxy;        
     }
+    m_safeActions.clear();
+
+    rowsRemoved(0, m_cache.count() - 1);
 }
 
 void McaFeedCache::setSourceModel(QAbstractListModel *model)
@@ -307,7 +320,7 @@ void McaFeedCache::sourceDataChanged(const QModelIndex& topLeft,
 }
 
 void McaFeedCache::actionsDestroyed(QObject *object)
-{
+{    
     McaActionsProxy *proxy = m_safeActions.value(object);
     delete proxy;
     m_safeActions.remove(object);
@@ -343,8 +356,12 @@ void McaFeedCache::rowsRemoved(int start, int end)
 
     // should only get here when not frozen
     int count = end - start + 1;
-    for (int i = 0; i < count; i++)
+    QMap<int,QVariant> *map = 0;
+    for (int i = 0; i < count; i++) {
+        map = m_cache.at(start);
         m_cache.removeAt(start);
+        delete map;
+    }
 
     endRemoveRows();
 }
@@ -362,8 +379,8 @@ void McaFeedCache::updateRow(QMap<int,QVariant> *map, int row)
 
     McaActions *actions = map->value(McaFeedModel::CommonActionsRole).value<McaActions*>();
     if( !m_safeActions.contains(actions) ) {
-        McaActionsProxy *proxy = new McaActionsProxy(actions);
-        m_safeActions.insert(actions, proxy);
+       McaActionsProxy *proxy = new McaActionsProxy(actions);
+       m_safeActions.insert(qobject_cast<QObject*>(actions), proxy);
        connect(actions, SIGNAL(destroyed(QObject*)),
                 this, SLOT(actionsDestroyed(QObject*)));
     }

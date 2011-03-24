@@ -6,11 +6,20 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#include <QDebug>
-#include <QThread>
+#include "defines.h"
+#ifdef MEMORY_LEAK_DETECTOR
+#include <base.h>
+#endif
 
+#include <QDebug>
 #include "feedadapter.h"
 #include "feedmodel.h"
+#include "feedfilter.h"
+
+#ifdef MEMORY_LEAK_DETECTOR
+#define __DEBUG_NEW__ new(__FILE__, __LINE__)
+#define new __DEBUG_NEW__
+#endif
 
 // enough display a full SMS or tweet
 const int ContentMaxChars = 160;
@@ -69,8 +78,13 @@ McaFeedAdapter::McaFeedAdapter(QAbstractItemModel *source, const QString &servic
 }
 
 McaFeedAdapter::~McaFeedAdapter()
-{    
-    delete m_source;
+{
+    McaFeedFilter *feedFilter = qobject_cast<McaFeedFilter*>(m_source);
+    if(feedFilter) {
+        delete feedFilter;
+    } else {
+        delete m_source;
+    }
 }
 
 int McaFeedAdapter::limit()

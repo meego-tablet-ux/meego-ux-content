@@ -1,3 +1,8 @@
+#include "defines.h"
+#ifdef MEMORY_LEAK_DETECTOR
+#include <base.h>
+#endif
+
 #include "abstractmanager.h"
 
 #include <QSortFilterProxyModel>
@@ -9,6 +14,11 @@
 #include "feedcache.h"
 #include "aggregatedmodel.h"
 #include "feedadapter.h"
+
+#ifdef MEMORY_LEAK_DETECTOR
+#define __DEBUG_NEW__ new(__FILE__, __LINE__)
+#define new __DEBUG_NEW__
+#endif
 
 McaAbstractManager::McaAbstractManager(QObject *parent) :
     QObject(parent)
@@ -32,8 +42,11 @@ McaAbstractManager::McaAbstractManager(QObject *parent) :
 
 McaAbstractManager::~McaAbstractManager()
 {
-    delete m_cache;
-
+    m_requestIds.clear();
+    if(0 != m_cache) {
+        delete m_cache;
+        m_cache = 0;
+    }
     McaFeedManager::releaseManager();
 }
 
@@ -110,7 +123,6 @@ void McaAbstractManager::removeFeed(const QModelIndex &index)
         m_aggregator->removeSourceModel(info->feed);
         removeFeedCleanup(upid);
         m_upidToFeedInfo.remove(upid);
-        //delete info->feed;
         info->feed->deleteLater();
         delete info;
     }

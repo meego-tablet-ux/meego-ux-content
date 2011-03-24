@@ -6,6 +6,11 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+#include "defines.h"
+#ifdef MEMORY_LEAK_DETECTOR
+#include <base.h>
+#endif
+
 #include <QDebug>
 
 #include <QSettings>
@@ -23,11 +28,11 @@
 #include "settings.h"
 #include "searchablecontainer.h"
 
-//struct FeedInfo
-//{
-//    QString upid;
-//    QAbstractListModel *feed;
-//};
+#ifdef MEMORY_LEAK_DETECTOR
+#define __DEBUG_NEW__ new(__FILE__, __LINE__)
+#define new __DEBUG_NEW__
+#endif
+
 
 // TODO: remove this temporary solution to not really wanting limits on search
 const int TemporaryFeedLimit = 1000;
@@ -42,9 +47,15 @@ McaSearchManager::McaSearchManager(QObject *parent):
     m_serviceModel = m_feedmgr->serviceModel();
 }
 
-McaSearchManager::~McaSearchManager()
+McaSearchManager::~McaSearchManager()        
 {
     rowsAboutToBeRemoved(QModelIndex(), 0, m_serviceModel->rowCount() - 1);
+
+    while(m_searchRequests.count()) {
+        QThread *thread = m_searchRequests.keys().at(0);
+        delete m_searchRequests.value(thread);
+        m_searchRequests.remove(thread);
+    }
 }
 
 void McaSearchManager::initialize(const QString& managerData)
@@ -162,7 +173,7 @@ void McaSearchManager::searchDone()
     }
     t_SearchRequestQueue *threadQueue = m_searchRequests[containerThread];
     m_processingRequests.removeOne(containerThread);
-    qDebug() << "McaSearchManager::searchDone " << m_processingRequests;
+//    qDebug() << "McaSearchManager::searchDone " << m_processingRequests;
     if(!threadQueue->isEmpty()) {
         t_SearchRequestEntry *searchRequest = threadQueue->front();
         threadQueue->pop_front();
@@ -176,10 +187,24 @@ void McaSearchManager::removeFeedCleanup(const QString& upid) {
     FeedInfo *info = m_upidToFeedInfo[upid];
     McaFeedAdapter *adapter = qobject_cast<McaFeedAdapter*>(info->feed);
     if( adapter ) {
-        foreach(McaSearchableContainer *container, m_searchableContainers) {
-            qDebug() << "Matching: " << container->feedModel() << adapter->getSource();
+        foreach(McaSearchableContainer *container, m_searchableContainers) {            
             if( container->feedModel() == adapter->getSource() ) {
                 m_searchableContainers.removeOne( container );
+
+                //remove search requests for the removed feed
+                t_SearchRequestQueue *threadQueue = m_searchRequests[container->thread()];
+                t_SearchRequestEntry *requestEntry = 0;
+                int index = 0;
+                while (index < threadQueue->count()) {
+                    requestEntry = threadQueue->at(index);
+                    if(requestEntry->first == container) {
+                        threadQueue->removeAt(index);
+                        delete requestEntry;
+                    } else {
+                        index++;
+                    }
+                }
+                container->deleteLater();
                 break;
             }
         }
@@ -196,9 +221,9 @@ void McaSearchManager::addSearchRequest(McaSearchableContainer *container, const
         t_SearchRequestEntry *requestEntry = 0;
         for(int index =0; index < threadQueue->count(); index++) {
             requestEntry = threadQueue->at(index);
-            if(requestEntry->first == container) {
-                qDebug() << container << requestEntry->second << searchText;
+            if(requestEntry->first == container) {                
                 threadQueue->removeOne(requestEntry);
+                delete requestEntry;
             }
         }
         t_SearchRequestEntry *searchRequest = new t_SearchRequestEntry();
@@ -207,7 +232,7 @@ void McaSearchManager::addSearchRequest(McaSearchableContainer *container, const
         threadQueue->push_back(searchRequest);
     } else {
         m_processingRequests.push_back(containerThread);
-        qDebug() << "McaSearchManager::addSearchRequest " << m_processingRequests;
+//        qDebug() << "McaSearchManager::addSearchRequest " << m_processingRequests;
         QMetaObject::invokeMethod(container, "setSearchText", Q_ARG(QString, searchText));
     }
 }

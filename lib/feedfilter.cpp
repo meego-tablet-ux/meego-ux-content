@@ -6,8 +6,12 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#include <QDebug>
+#include "defines.h"
+#ifdef MEMORY_LEAK_DETECTOR
+#include <base.h>
+#endif
 
+#include <QDebug>
 #include <QSettings>
 #include <QTimer>
 
@@ -16,6 +20,10 @@
 #include "actions.h"
 #include "settings.h"
 
+#ifdef MEMORY_LEAK_DETECTOR
+#define __DEBUG_NEW__ new(__FILE__, __LINE__)
+#define new __DEBUG_NEW__
+#endif
 //
 // Overview of McaFeedFilter
 //    - records ids of hidden rows and filters them out of the model
@@ -50,9 +58,10 @@ McaFeedFilter::McaFeedFilter(QAbstractItemModel *source, QString serviceId, QObj
 }
 
 McaFeedFilter::~McaFeedFilter()
-{
+{    
     delete m_actions;
     delete m_source;
+    delete []m_hiddenByDate;
 }
 
 int McaFeedFilter::lookback()

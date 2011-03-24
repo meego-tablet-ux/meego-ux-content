@@ -39,13 +39,9 @@ public:
     // aggregated service model owned by the feed manager
     QAbstractItemModel *serviceModel();
 
-    int createFeed(const QAbstractItemModel *serviceModel,
-                                   const QString& name);
-//    McaSearchableContainer *createSearchFeed(const QAbstractItemModel *serviceModel,
-    int createSearchFeed(const QAbstractItemModel *serviceModel,
-                                             const QString& name, const QString& searchText);
-    QString serviceId(const QAbstractItemModel *serviceModel,
-                      const QString& name);
+    int createFeed(const QAbstractItemModel *serviceModel, const QString& name);
+    int createSearchFeed(const QAbstractItemModel *serviceModel, const QString& name, const QString& searchText);
+    QString serviceId(const QAbstractItemModel *serviceModel, const QString& name);
 
 signals:
     void feedCreated(QObject *model, McaFeedAdapter *feedAdapter, int uniqueRequestId);
@@ -54,12 +50,14 @@ signals:
 protected slots:
     void loadPlugins();
     void onLoadCompleted(McaFeedPluginContainer *plugin, const QString &absPath);
-    void onLoadError(const QString &errorString);
+    void onLoadError(McaFeedPluginContainer *plugin, const QString &errorString);
 
 protected:
     void addPlugin(McaFeedPluginContainer *plugin, const QString& abspath);
-    QString getHash(QSettings *settings, const QString& path,
-                    const QString& name, int pass);
+    QString getHash(QSettings *settings, const QString& path, const QString& name, int pass);
+
+protected:
+    void removePlugin(McaFeedPluginContainer *plugin);
 
 private:
     QHash<McaFeedPluginContainer *, QString> m_pluginToPaths;
@@ -71,6 +69,7 @@ private:
     QHash<QString, QString> m_idToHash;
 
     int m_requestIdCounter;
+    bool m_destroying;
 };
 
 #endif  // __mcafeedmanager_h

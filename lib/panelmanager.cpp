@@ -6,8 +6,12 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#include <QDebug>
+#include "defines.h"
+#ifdef MEMORY_LEAK_DETECTOR
+#include <base.h>
+#endif
 
+#include <QDebug>
 #include <QSettings>
 
 #include "allocator.h"
@@ -20,6 +24,11 @@
 #include "feedmodel.h"
 #include "serviceproxy.h"
 #include "settings.h"
+
+#ifdef MEMORY_LEAK_DETECTOR
+#define __DEBUG_NEW__ new(__FILE__, __LINE__)
+#define new __DEBUG_NEW__
+#endif
 
 //
 // Overview of McaPanelManager
@@ -55,6 +64,9 @@ McaPanelManager::McaPanelManager(QObject *parent):
 McaPanelManager::~McaPanelManager()
 {
     rowsAboutToBeRemoved(QModelIndex(), 0, m_serviceProxy->rowCount() - 1);
+    if(m_allocator) {
+        delete m_allocator;
+    }
 }
 
 void McaPanelManager::initialize(const QString& managerData)

@@ -6,7 +6,17 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+#include "defines.h"
+#ifdef MEMORY_LEAK_DETECTOR
+#include <base.h>
+#endif
+
 #include "settings.h"
+
+#ifdef MEMORY_LEAK_DETECTOR
+#define __DEBUG_NEW__ new(__FILE__, __LINE__)
+#define new __DEBUG_NEW__
+#endif
 
 //
 // Overview of McaSettings

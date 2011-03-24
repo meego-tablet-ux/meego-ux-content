@@ -12,6 +12,7 @@ class McaAdapter : public QAbstractListModel
 #if defined(THREADING)
 public:
     McaAdapter(QObject *parent);
+    virtual ~McaAdapter();
 
     Q_INVOKABLE void triggerSyncUpdate();
     Q_INVOKABLE void triggerSyncRemoval();

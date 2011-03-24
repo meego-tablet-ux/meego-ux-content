@@ -1,6 +1,16 @@
-#include <QDebug>
 
+#include "defines.h"
+#ifdef MEMORY_LEAK_DETECTOR
+#include <base.h>
+#endif
+
+#include <QDebug>
 #include "adapter.h"
+
+#ifdef MEMORY_LEAK_DETECTOR
+#define __DEBUG_NEW__ new(__FILE__, __LINE__)
+#define new __DEBUG_NEW__
+#endif
 
 McaAdapter::McaAdapter(QObject *parent):
     QAbstractListModel(parent)
@@ -18,6 +28,10 @@ void McaAdapter::moveToThread(QThread *thread)
     THREAD_TEST_INIT
 }
 #endif
+
+McaAdapter::~McaAdapter()
+{
+}
 
 void McaAdapter::triggerSyncUpdate()
 {

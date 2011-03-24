@@ -9,13 +9,14 @@ class McaFeedCache;
 class McaAggregatedModel;
 class McaFeedFilter;
 class McaFeedAdapter;
+class McaAdapter;
 
 class QSortFilterProxyModel;
 
 struct FeedInfo
 {
     QString upid;
-    QAbstractListModel *feed;
+    McaAdapter *feed;
     McaFeedFilter *filter;
 };
 

@@ -52,7 +52,8 @@ HEADERS += \
     actionsproxy.h \
     threadtest.h \
     adapter.h \
-    defines.h
+    defines.h \
+    base.h
 
 target.path = $$[QT_INSTALL_LIBS]
 INSTALLS += target

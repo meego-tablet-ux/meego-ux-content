@@ -1,3 +1,8 @@
+#include "defines.h"
+#ifdef MEMORY_LEAK_DETECTOR
+#include <base.h>
+#endif
+
 #include <QAbstractItemModel>
 #include <QDebug>
 #include <QPluginLoader>
@@ -10,6 +15,10 @@
 #include "aggregatedmodel.h"
 #include "feedadapter.h"
 
+#ifdef MEMORY_LEAK_DETECTOR
+#define __DEBUG_NEW__ new(__FILE__, __LINE__)
+#define new __DEBUG_NEW__
+#endif
 
 McaFeedPluginContainer::McaFeedPluginContainer(QObject *parent)
       : QObject(parent),
@@ -111,5 +120,5 @@ void McaFeedPluginContainer::load()
     if (m_plugin)
         emit this->loadCompleted(this, m_pluginPath);
     else
-        emit this->loadError(loader.errorString());
+        emit this->loadError(this, loader.errorString());
 }

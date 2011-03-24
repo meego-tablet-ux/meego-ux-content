@@ -6,13 +6,21 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#include <QDebug>
+#include "defines.h"
+#ifdef MEMORY_LEAK_DETECTOR
+#include <base.h>
+#endif
 
+#include <QDebug>
 #include <QAbstractItemModel>
 
 #include "searchablecontainer.h"
 #include "feedmodel.h"
 
+#ifdef MEMORY_LEAK_DETECTOR
+#define __DEBUG_NEW__ new(__FILE__, __LINE__)
+#define new __DEBUG_NEW__
+#endif
 //
 // Overview of McaSearchableContainer
 //   - wrapper for McaSearchable feed
@@ -38,7 +46,9 @@ McaSearchableContainer::McaSearchableContainer(McaSearchableFeed *searchable, QO
 
 McaSearchableContainer::~McaSearchableContainer()
 {
-    delete m_searchable;
+    QAbstractItemModel *model = dynamic_cast<QAbstractItemModel*>(m_searchable);
+    model->deleteLater();
+    m_searchable = 0;
 }
 
 bool McaSearchableContainer::isValid()

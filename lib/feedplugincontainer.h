@@ -26,8 +26,8 @@ public:
 
     void setPath(const QString& pluginPath);    
 signals:
-    void loadCompleted( McaFeedPluginContainer *plugin, const QString &abspath );
-    void loadError(const QString &errorString);
+    void loadCompleted(McaFeedPluginContainer *plugin, const QString &abspath );
+    void loadError(McaFeedPluginContainer *plugin, const QString &errorString);
 
     void feedModelCreated(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
     void createFeedError(const QString &service, int uniqueRequestId);

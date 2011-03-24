@@ -6,6 +6,11 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+#include "defines.h"
+#ifdef MEMORY_LEAK_DETECTOR
+#include <base.h>
+#endif
+
 #include <QDebug>
 
 #include <QCoreApplication>
@@ -22,8 +27,11 @@
 #include "settings.h"
 #include "serviceadapter.h"
 #include "searchablecontainer.h"
-#include "defines.h"
-#include "threadtest.h"
+
+#ifdef MEMORY_LEAK_DETECTOR
+#define __DEBUG_NEW__ new(__FILE__, __LINE__)
+#define new __DEBUG_NEW__
+#endif
 
 //
 // Overview of McaFeedManager
@@ -68,6 +76,7 @@ void McaFeedManager::releaseManager()
 McaFeedManager::McaFeedManager()
 {
     m_requestIdCounter = 0;
+    m_destroying = false;
 
     m_watcher = new QFileSystemWatcher;
     m_services = new McaAggregatedServiceModel;
@@ -88,23 +97,55 @@ McaFeedManager::McaFeedManager()
 
 McaFeedManager::~McaFeedManager()
 {
+    m_destroying = true;
     delete m_watcher;
     delete m_services;
     
-    foreach (McaFeedPluginContainer *plugin, m_pluginToPaths.keys()) {
-        // Terminate the threads associated with the plugins
-        qDebug() << "Terminating plugin " << m_pluginToPaths[plugin];
-        QThread *plugin_thread = plugin->thread();
-        plugin_thread->quit();
-        // Block main thread for 10 seconds (or when thread finishes)
-            if( !plugin_thread->wait(10000) ) {
-            qWarning() << "Plugin thread is not responding";
-        }            
-        plugin->deleteLater();
-        qDebug() << "Done terminating plugin " << m_pluginToPaths[plugin];
-        // TODO: Should we be doing this?
-//        delete plugin_thread;
+    foreach (McaFeedPluginContainer *plugin, m_pluginToPaths.keys())
+    {
+        removePlugin(plugin);
     }
+}
+
+void McaFeedManager::removePlugin(McaFeedPluginContainer *plugin)
+{
+    disconnect(plugin, SIGNAL(loadCompleted(McaFeedPluginContainer*,QString)),
+            this, SLOT(onLoadCompleted(McaFeedPluginContainer*,QString)));
+    disconnect(plugin, SIGNAL(loadError(McaFeedPluginContainer*,QString)),
+            this, SLOT(onLoadError(McaFeedPluginContainer*,QString)));
+    disconnect(plugin, SIGNAL(feedModelCreated(QObject*,McaFeedAdapter*,int)),
+            this, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)));
+    disconnect(plugin, SIGNAL(createFeedError(QString,int)),
+            this, SIGNAL(createFeedError(QString,int)));
+
+    //Allow remaining signals from threads to be dispatched
+    QCoreApplication::instance()->processEvents(QEventLoop::ExcludeUserInputEvents);
+
+    qDebug() << "Terminating plugin " << m_pluginToPaths[plugin];
+    QThread *plugin_thread = plugin->thread();
+    plugin_thread->quit();
+    if( !plugin_thread->wait(10000) ) {
+        qWarning() << "Plugin thread is not responding";
+    }
+
+    //remove service
+    foreach(const QAbstractItemModel *serviceModel, m_modelToPlugin.keys()) {
+        if(m_modelToPlugin[serviceModel] == plugin) {
+            const McaServiceAdapter *serviceAdapter = qobject_cast<const McaServiceAdapter*>(serviceModel);
+            if(serviceAdapter) {
+                //const_cast<McaServiceAdapter*>(serviceAdapter)->deleteLater();
+                delete const_cast<McaServiceAdapter*>(serviceAdapter);
+            } else {
+                qDebug() << "NOT A SERVICE ADAPTER";
+            }
+            m_modelToPlugin.remove(serviceModel);
+            break;
+        }
+    }
+    //plugin->deleteLater();
+    delete plugin;
+
+    qDebug() << "Done terminating plugin " << m_pluginToPaths[plugin];
 }
 
 QAbstractItemModel *McaFeedManager::serviceModel()
@@ -126,11 +167,10 @@ int McaFeedManager::createFeed(const QAbstractItemModel *serviceModel,
     return -1;
 }
 
-//McaSearchableContainer *McaFeedManager::createSearchFeed(const QAbstractItemModel *serviceModel,
-int McaFeedManager::createSearchFeed(const QAbstractItemModel *serviceModel,
-                                                         const QString& name, const QString& searchText)
+int McaFeedManager::createSearchFeed(const QAbstractItemModel *serviceModel, const QString& name, const QString& searchText)
 {
     // TODO: clean up destroyed models
+
     McaFeedPluginContainer *plugin = m_modelToPlugin.value(serviceModel);
     if (plugin) {
         QMetaObject::invokeMethod(plugin, "createSearchModel", Qt::QueuedConnection, Q_ARG(QString, name), Q_ARG(QString, searchText), Q_ARG(int, m_requestIdCounter));
@@ -139,8 +179,7 @@ int McaFeedManager::createSearchFeed(const QAbstractItemModel *serviceModel,
     return -1;
 }
 
-QString McaFeedManager::getHash(QSettings *settings, const QString& path,
-                                const QString& name, int pass)
+QString McaFeedManager::getHash(QSettings *settings, const QString& path, const QString& name, int pass)
 {
     QString key = path + ":" + name;
     if (pass > 0)
@@ -156,17 +195,17 @@ QString McaFeedManager::getHash(QSettings *settings, const QString& path,
         settings->setValue(McaSettings::KeyPluginPath, path);
         settings->setValue(McaSettings::KeyServiceName, name);
     }
-    else if (settingsPath != path || settingsName != name)
+    else if (settingsPath != path || settingsName != name) {
         // found non-matching section, return to iterate
         hash.clear();
-    // otherwise, hash is good so return it
+    }
 
+    // otherwise, hash is good so return it
     settings->endGroup();
     return hash;
 }
 
-QString McaFeedManager::serviceId(const QAbstractItemModel *serviceModel,
-                                  const QString& name)
+QString McaFeedManager::serviceId(const QAbstractItemModel *serviceModel, const QString& name)
 {
     // returns: empty string on error, unique hash otherwise
 
@@ -184,8 +223,9 @@ QString McaFeedManager::serviceId(const QAbstractItemModel *serviceModel,
         int pass = 0;
         while (true) {
             hash = getHash(&settings, pluginPath, name, pass++);
-            if (!hash.isEmpty())
+            if (!hash.isEmpty()) {
                 break;
+            }
         }
         m_idToHash[serviceKey] = hash;
     }
@@ -214,8 +254,8 @@ void McaFeedManager::loadPlugins()
 
             connect(pluginContainer, SIGNAL(loadCompleted(McaFeedPluginContainer*,QString)), 
                     this, SLOT(onLoadCompleted(McaFeedPluginContainer*,QString)));
-            connect(pluginContainer, SIGNAL(loadError(QString)), 
-                    this, SLOT(onLoadError(QString)));
+            connect(pluginContainer, SIGNAL(loadError(McaFeedPluginContainer*, QString)),
+                    this, SLOT(onLoadError(McaFeedPluginContainer*,QString)));
             // Service data is accessed when the feed is created, which is why it blocks the thread. 
             connect(pluginContainer, SIGNAL(feedModelCreated(QObject*,McaFeedAdapter*,int)), 
                     this, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)), Qt::BlockingQueuedConnection );
@@ -237,17 +277,26 @@ void McaFeedManager::loadPlugins()
 }
 
 void McaFeedManager::onLoadCompleted(McaFeedPluginContainer *plugin, const QString &absPath)
-{
+{    
     if (plugin) {
-        addPlugin(plugin, absPath);
+        if(m_destroying) {
+            removePlugin(plugin);
+        } else {
+            addPlugin(plugin, absPath);
+        }
     } else {
         qWarning() << "Error loading plugin: received null plugin from threaded loader!";
     }
 }
 
-void McaFeedManager::onLoadError(const QString &errorString)
+void McaFeedManager::onLoadError(McaFeedPluginContainer *plugin, const QString &errorString)
 {
     qWarning() << "Error loading plugin: " << errorString;
+    if (plugin) {
+        removePlugin(plugin);
+    } else {
+        qWarning() << "Error deleting plugin: received null plugin from threaded loader!";
+    }
 }
 
 //
@@ -255,10 +304,10 @@ void McaFeedManager::onLoadError(const QString &errorString)
 //
 
 void McaFeedManager::addPlugin(McaFeedPluginContainer *plugin, const QString& abspath)
-{
+{    
     m_pluginToPaths.insert(plugin, abspath);
     QAbstractItemModel *model = plugin->serviceModel();
-    McaServiceAdapter *adapter = new McaServiceAdapter(this, 0);
+    McaServiceAdapter *adapter = new McaServiceAdapter(this, 0);    
     adapter->moveToThread(plugin->thread());
     m_modelToPlugin.insert(adapter, plugin);
     adapter->setSourceModel(model);
