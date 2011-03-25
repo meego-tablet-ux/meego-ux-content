@@ -1,0 +1,6 @@
+MeeGo Content Aggregator
+
+This project provides a library that loads content plugins that provide feeds
+of data to display in home screen panels. The content aggregator provides an
+interface for a panel to choose the feeds it wants to display, and takes care
+of merging them into a single model for the panel.

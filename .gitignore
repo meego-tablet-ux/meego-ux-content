@@ -1,0 +1,12 @@
+*~
+Makefile
+*/.moc
+*/.obj
+*.pro.user
+meego-ux-content-*.tar.bz2
+libmeegouxcontent.so*
+libContent.so
+mtfcontent
+libsample_plugin.so
+catester
+libtestplugin.so
