@@ -23,6 +23,7 @@ McaAdapter::~McaAdapter()
 {
 }
 
+#ifdef THREADING
 void McaAdapter::triggerSyncUpdate()
 {
     THREAD_SET_TEST(this);
@@ -36,4 +37,4 @@ void McaAdapter::triggerSyncRemoval()
     emit syncRemoval(this, 0, rowCount() - 1);
     THREAD_UNSET_TEST(this);
 }
-
+#endif

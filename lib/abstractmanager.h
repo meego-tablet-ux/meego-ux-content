@@ -40,6 +40,7 @@ protected:
     virtual void addFeed(const QModelIndex &index);
     virtual void removeFeed(const QModelIndex &index);
     virtual QString fullEnabledKey() { return ""; }
+    void removeAllFeeds();
 
 signals:
     void frozenChanged(bool frozen);

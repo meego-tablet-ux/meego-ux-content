@@ -121,6 +121,23 @@ void McaAbstractManager::removeFeed(const QModelIndex &index)
     }
 }
 
+void McaAbstractManager::removeAllFeeds()
+{
+    QHashIterator<QString, FeedInfo *> iter(m_upidToFeedInfo);
+    while( iter.hasNext() ) {
+        iter.next();
+        FeedInfo *info = iter.value();
+        QString upid = iter.key();
+        if(info) {
+            m_aggregator->removeSourceModel(info->feed);
+            removeFeedCleanup(upid);
+            info->feed->deleteLater();
+            delete info;
+        }
+    }
+    m_upidToFeedInfo.clear();
+}
+
 void McaAbstractManager::rowsInserted(const QModelIndex &index, int start, int end)
 {
     Q_UNUSED(index)

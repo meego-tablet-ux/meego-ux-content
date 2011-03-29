@@ -2,8 +2,8 @@ include(../common.pri)
 TARGET = meegouxcontent
 TEMPLATE = lib
 CONFIG += threading
-CONFIG += threading-debug 
-CONFIG += memoryleak
+#CONFIG += threading-debug 
+#CONFIG += memoryleak
 
 threading {
     DEFINES *= THREADING
@@ -47,7 +47,8 @@ INSTALL_HEADERS += \
     feedplugin.h \
     panelmanager.h \
     servicemodel.h \
-    searchmanager.h
+    searchmanager.h \
+    abstractmanager.h 
 
 HEADERS += \
     aggregatedmodel.h \
@@ -63,7 +64,6 @@ HEADERS += \
     settings.h \
     $$INSTALL_HEADERS \
     feedplugincontainer.h \
-    abstractmanager.h \
     actionsproxy.h \
     threadtest.h \
     adapter.h \

@@ -42,7 +42,7 @@ McaSearchManager::McaSearchManager(QObject *parent):
 
 McaSearchManager::~McaSearchManager()        
 {
-    rowsAboutToBeRemoved(QModelIndex(), 0, m_serviceModel->rowCount() - 1);
+    removeAllFeeds();
 
     while(m_searchRequests.count()) {
         QThread *thread = m_searchRequests.keys().at(0);

@@ -57,7 +57,8 @@ McaPanelManager::McaPanelManager(QObject *parent):
 
 McaPanelManager::~McaPanelManager()
 {
-    rowsAboutToBeRemoved(QModelIndex(), 0, m_serviceProxy->rowCount() - 1);
+    removeAllFeeds();
+
     if(m_allocator) {
         delete m_allocator;
     }
