@@ -1,5 +1,4 @@
 #include "threadtest.h"
-#include "debug.h"
 
 #ifdef THREADING_DEBUG
 #include <QDebug>
@@ -26,7 +25,6 @@ void McaThreadTest::print()
 {
     if (!m_lock) {
         qDebug() << "Thread is not locked" << this;
-        BACKTRACE
     }
 }
 #endif
