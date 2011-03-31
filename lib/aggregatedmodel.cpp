@@ -33,7 +33,6 @@ McaAggregatedModel::~McaAggregatedModel()
 
 void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)
 {
-//    qDebug() << "McaAggregatedModel::addSourceModel " << model;
 #ifdef THREADING
     connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
             this, SLOT(sourceRowsInserted(QModelIndex,int,int)), Qt::BlockingQueuedConnection);

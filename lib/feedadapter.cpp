@@ -89,7 +89,6 @@ int McaFeedAdapter::limit()
 
 void McaFeedAdapter::setLimit(int limit)
 {
-    //qDebug() << "SETLIMIT ON" << m_serviceName << "-" << (void *)this << "TO" << limit;
     if (m_limit != limit) {
         if (m_updating) {
             qWarning() << "WARNING: limit changed during an update";

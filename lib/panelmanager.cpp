@@ -228,29 +228,6 @@ QString McaPanelManager::fullEnabledKey()
     return key;
 }
 
-//void McaPanelManager::createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId)
-//{
-//    QAbstractItemModel *feed = qobject_cast<QAbstractItemModel*>(containerObj);
-//    qDebug() << m_requestIds << feed << uniqueRequestId;
-//    if (m_requestIds.keys().contains(uniqueRequestId) && 0 != feed) {
-//        QModelIndex index = m_serviceProxy->index(m_requestIds[uniqueRequestId], 0);
-//        QAbstractListModel *model = qobject_cast<QAbstractListModel*>(m_serviceProxy->data(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
-//        QString name = m_serviceProxy->data(index, McaServiceModel::RequiredNameRole).toString();
-//        QString upid = m_feedmgr->serviceId(model, name);
-
-//        m_requestIds.remove(uniqueRequestId);
-//        FeedInfo *info = new FeedInfo;
-//        info->upid = upid;
-//        info->feed = feedAdapter;
-//        info->filter = qobject_cast<McaFeedFilter*>(feedAdapter->getSource());
-//        m_upidToFeedInfo.insert(upid, info);
-//        if (m_upidToFeedInfo.count() == 1)
-//            emit servicesConfiguredChanged(true);
-//        m_allocator->addFeed(upid, feedAdapter);
-//        m_aggregator->addSourceModel(feedAdapter);
-//    }
-//}
-
 void McaPanelManager::createFeedFinalise(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo)
 {
     Q_UNUSED(containerObj);

@@ -28,7 +28,7 @@
 #include "memoryleak-defines.h"
 
 // TODO: remove this temporary solution to not really wanting limits on search
-const int TemporaryFeedLimit = 1000;
+const int TemporaryFeedLimit = 100;
 
 //
 // public methods
@@ -112,27 +112,6 @@ int McaSearchManager::createFeed(const QAbstractItemModel *serviceModel, const Q
 // protected methods
 //
 
-//void McaSearchManager::createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId) {
-//    McaSearchableContainer *container = qobject_cast<McaSearchableContainer*>(containerObj);
-//    if (m_requestIds.keys().contains(uniqueRequestId) && 0 != container) {
-//        QModelIndex index = m_serviceModel->index(m_requestIds[uniqueRequestId], 0);
-//        QString name = m_serviceModel->data(index, McaServiceModel::RequiredNameRole).toString();
-//        QAbstractListModel *model = qobject_cast<QAbstractListModel*>(m_serviceModel->data(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
-//        QString upid = m_feedmgr->serviceId(model, name);
-
-//        connect(this, SIGNAL(searchTextChanged(QString)),
-//                container, SLOT(setSearchText(QString)));
-//        m_requestIds.remove(uniqueRequestId);
-
-//        feedAdapter->setLimit(TemporaryFeedLimit);
-//        FeedInfo *info = new FeedInfo;
-//        info->upid = upid;
-//        info->feed = feedAdapter;
-//        m_upidToFeedInfo.insert(upid, info);
-//        m_aggregator->addSourceModel(feedAdapter);
-//    }
-//}
-
 void McaSearchManager::createFeedFinalise(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo)
 {
     Q_UNUSED(feedInfo);
@@ -166,7 +145,6 @@ void McaSearchManager::searchDone()
     }
     t_SearchRequestQueue *threadQueue = m_searchRequests[containerThread];
     m_processingRequests.removeOne(containerThread);
-//    qDebug() << "McaSearchManager::searchDone " << m_processingRequests;
     if(!threadQueue->isEmpty()) {
         t_SearchRequestEntry *searchRequest = threadQueue->front();
         threadQueue->pop_front();
@@ -225,7 +203,6 @@ void McaSearchManager::addSearchRequest(McaSearchableContainer *container, const
         threadQueue->push_back(searchRequest);
     } else {
         m_processingRequests.push_back(containerThread);
-//        qDebug() << "McaSearchManager::addSearchRequest " << m_processingRequests;
         QMetaObject::invokeMethod(container, "setSearchText", Q_ARG(QString, searchText));
     }
 }

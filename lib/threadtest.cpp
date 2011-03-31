@@ -16,13 +16,13 @@ McaThreadTest::McaThreadTest(QObject *parent):
 void McaThreadTest::setTestLock()
 {
     m_lock = true;
-    qDebug() << "******** Lock set";
+    qDebug() << "******** Lock set" << this;
 }
 
 void McaThreadTest::unsetTestLock()
 {
     m_lock = false;
-    qDebug() << "******** Lock unset";
+    qDebug() << "******** Lock unset" << this;
 }
 
 void McaThreadTest::print()
