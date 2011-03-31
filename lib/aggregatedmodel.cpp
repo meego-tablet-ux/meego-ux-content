@@ -34,17 +34,8 @@ McaAggregatedModel::~McaAggregatedModel()
 void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)
 {
 #ifdef THREADING
-    connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
-            this, SLOT(sourceRowsInserted(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
-    connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
-            this, SLOT(sourceRowsRemoved(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
-    connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-            this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)), Qt::BlockingQueuedConnection);
-
-    
     McaAdapter *adapter_model = qobject_cast<McaAdapter*>(model);
     if (adapter_model) {
-        qDebug() << "Got adapter: " << adapter_model;
         // Alternative: Pass this object as a argument, use invokeMethod,
         connect(adapter_model, SIGNAL(syncUpdate(McaAdapter*,int,int)),
                 this, SLOT(syncUpdate(McaAdapter*,int,int)), Qt::BlockingQueuedConnection);
@@ -57,6 +48,13 @@ void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)
     } else {
         qWarning() << "McaAggregatedModel: Recieved an unknown model, threading might break.";
         rowsInserted(model, 0, model->rowCount() - 1);
+
+        connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
+                this, SLOT(sourceRowsInserted(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
+        connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
+                this, SLOT(sourceRowsRemoved(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
+        connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+                this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)), Qt::BlockingQueuedConnection);
     }
 #else
     connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
@@ -122,6 +120,13 @@ QVariant McaAggregatedModel::data(const QModelIndex &index, int role) const
 void McaAggregatedModel::syncUpdate(McaAdapter *model, int start, int end)
 {
     rowsInserted(model, start, end);
+
+    connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
+            this, SLOT(sourceRowsInserted(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
+    connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
+            this, SLOT(sourceRowsRemoved(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
+    connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+            this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)), Qt::BlockingQueuedConnection);
 }
 
 void McaAggregatedModel::syncRemoval(McaAdapter *model, int start, int end)
