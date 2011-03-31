@@ -6,7 +6,6 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#include "defines.h"
 #ifdef MEMORY_LEAK_DETECTOR
 #include <base.h>
 #endif
@@ -40,7 +39,7 @@ McaAggregatedModel::~McaAggregatedModel()
 void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)
 {
 //    qDebug() << "McaAggregatedModel::addSourceModel " << model;
-#if defined(THREADING)
+#ifdef THREADING
     connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
             this, SLOT(sourceRowsInserted(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
     connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
@@ -81,7 +80,7 @@ void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)
 
 void McaAggregatedModel::removeSourceModel(QAbstractItemModel *model)
 {    
-#if defined(THREADING)
+#ifdef THREADING
     McaAdapter *adapter_model = qobject_cast<McaAdapter*>(model);
     if (adapter_model) {
         // TODO: Make sure this doesn't cause issues if it gets between begin/end updates
@@ -124,7 +123,7 @@ QVariant McaAggregatedModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-#if defined(THREADING)
+#ifdef THREADING
 
 void McaAggregatedModel::syncUpdate(McaAdapter *model, int start, int end)
 {

@@ -1,6 +1,21 @@
 include(../common.pri)
 TARGET = meegouxcontent
 TEMPLATE = lib
+CONFIG += threading
+CONFIG += threading-debug 
+#CONFIG += memoryleak
+
+threading {
+    DEFINES *= THREADING
+    threading-debug {
+        DEFINES *= THREADING_DEBUG
+        SOURCES += threadtest.cpp
+    }
+}
+
+memoryleak {
+    DEFINES *= MEMORY_LEAK_DETECTOR 
+}
 
 OBJECTS_DIR = .obj
 MOC_DIR = .moc
@@ -23,8 +38,7 @@ SOURCES += \
     feedplugincontainer.cpp \
     abstractmanager.cpp \
     actionsproxy.cpp \
-    adapter.cpp \
-    threadtest.cpp
+    adapter.cpp
 
 INSTALL_HEADERS += \
     actions.h \
@@ -52,8 +66,7 @@ HEADERS += \
     actionsproxy.h \
     threadtest.h \
     adapter.h \
-    defines.h \
-    base.h
+    threadtest.h 
 
 target.path = $$[QT_INSTALL_LIBS]
 INSTALLS += target

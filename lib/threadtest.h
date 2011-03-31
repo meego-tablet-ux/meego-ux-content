@@ -1,8 +1,6 @@
 #ifndef __threadtest_h
 #define __threadtest_h
 
-#include "defines.h"
-
 #ifdef THREADING_DEBUG
 
 #include <QThread>
@@ -32,6 +30,14 @@ public:
 private:
     bool m_lock;
 };
+
+#else
+
+#define THREAD_SET_TEST(a)
+#define THREAD_UNSET_TEST(a)
+#define THREAD_PRINT_TEST
+#define THREAD_TEST 
+#define THREAD_TEST_INIT
 
 #endif
 #endif

@@ -10,7 +10,6 @@
 #define __mcaaggregatedmodel_h
 
 #include <QPersistentModelIndex>
-#include "defines.h"
 
 class McaAdapter;
 class McaFeedAdapter;
@@ -36,7 +35,7 @@ public:
     QVariant data(const QModelIndex& index, int role) const;
 
 protected slots:
-#if defined(THREADING)
+#ifdef THREADING
     void syncUpdate(McaAdapter *model, int start, int end);
     void syncRemoval(McaAdapter *model, int start, int end);
 #endif

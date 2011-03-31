@@ -6,7 +6,6 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#include "defines.h"
 #ifdef MEMORY_LEAK_DETECTOR
 #include <base.h>
 #endif
@@ -32,6 +31,8 @@
 #define __DEBUG_NEW__ new(__FILE__, __LINE__)
 #define new __DEBUG_NEW__
 #endif
+
+#include "threadtest.h"
 
 //
 // Overview of McaFeedManager
@@ -265,14 +266,15 @@ void McaFeedManager::loadPlugins()
                     this, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)), Qt::BlockingQueuedConnection );
             connect(pluginContainer, SIGNAL(createFeedError(QString,int)), 
                     this, SIGNAL(createFeedError(QString,int)));
-#if defined(THREADING_DEBUG)
+
+#ifdef THREADING_DEBUG
             McaThreadTest *pluginThread = new McaThreadTest(this);
 #else
             QThread *pluginThread = new QThread(this);
 #endif
             connect(pluginThread, SIGNAL(started()), pluginContainer, SLOT(load()));
 
-#if defined(THREADING)
+#ifdef THREADING
             pluginContainer->moveToThread(pluginThread);
 #endif
             pluginThread->start();

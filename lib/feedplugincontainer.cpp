@@ -1,4 +1,3 @@
-#include "defines.h"
 #ifdef MEMORY_LEAK_DETECTOR
 #include <base.h>
 #endif
@@ -24,7 +23,7 @@ McaFeedPluginContainer::McaFeedPluginContainer(QObject *parent)
       : QObject(parent),
         m_plugin(0),
         m_pluginPath(QString::null)
-{    
+{
     THREAD_TEST_INIT
 }
 
@@ -60,7 +59,7 @@ void McaFeedPluginContainer::createFeedModel(const QString &service, int uniqueR
 
     McaFeedFilter *filter = new McaFeedFilter(feed, upid);
     McaFeedAdapter *adapter = new McaFeedAdapter(filter, name, displayName, iconUrl, category);
-    
+
     THREAD_SET_TEST(this);
     emit feedModelCreated(qobject_cast<QObject*>(feed), adapter, uniqueRequestId);
     THREAD_UNSET_TEST(this);

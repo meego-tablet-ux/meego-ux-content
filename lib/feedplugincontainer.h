@@ -39,6 +39,7 @@ public slots:
 private:
     McaFeedPlugin *m_plugin;
     QString m_pluginPath;
+
     THREAD_TEST
 };
 

@@ -11,7 +11,6 @@
 
 #include <QAbstractListModel>
 #include "adapter.h"
-#include "defines.h"
 
 class McaFeedAdapter: public McaAdapter
 {

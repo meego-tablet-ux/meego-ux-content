@@ -6,7 +6,6 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#include "defines.h"
 #ifdef MEMORY_LEAK_DETECTOR
 #include <base.h>
 #endif
@@ -101,13 +100,9 @@ void McaServiceAdapter::setSourceModel(QAbstractItemModel *model)
         disconnectFromSource(this, m_source);
         int count = m_source->rowCount();
         if (count > 0) {
-#if defined(THREADING_DEBUG)
             THREAD_SET_TEST(this);
             beginRemoveRows(QModelIndex(), 0, count - 1);
             THREAD_UNSET_TEST(this);
-#else
-            beginRemoveRows(QModelIndex(), 0, count - 1);
-#endif
             rowsRemoved(0, count - 1);
             endRemoveRows();
         }
@@ -121,13 +116,9 @@ void McaServiceAdapter::setSourceModel(QAbstractItemModel *model)
         if (count > 0) {
             beginInsertRows(QModelIndex(), 0, count - 1);
             rowsInserted(0, count - 1);
-#if defined(THREADING_DEBUG)
             THREAD_SET_TEST(this);
             endInsertRows();
             THREAD_UNSET_TEST(this);
-#else
-            endInsertRows();
-#endif
         }
 
         QHash<int, QByteArray> roles = m_source->roleNames();
@@ -144,9 +135,8 @@ int McaServiceAdapter::rowCount(const QModelIndex &parent) const
 
 QVariant McaServiceAdapter::data(const QModelIndex &index, int role) const
 {
-#if defined(THREADING_DEBUG)
     THREAD_PRINT_TEST(this);
-#endif
+    
     int row = index.row();
     if (!index.isValid() || row > m_source->rowCount())
         return QVariant();
@@ -183,25 +173,17 @@ void McaServiceAdapter::sourceRowsInserted(const QModelIndex &parent, int start,
 {
     Q_UNUSED(parent)
     rowsInserted(start, end);
-#if defined(THREADING_DEBUG)
     THREAD_SET_TEST(this);
     endInsertRows();
     THREAD_UNSET_TEST(this);
-#else
-    endInsertRows();
-#endif
 }
 
 void McaServiceAdapter::sourceRowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
 {
     Q_UNUSED(parent)
-#if defined(THREADING_DEBUG)
     THREAD_SET_TEST(this);
     beginRemoveRows(QModelIndex(), start, end);
     THREAD_UNSET_TEST(this);
-#else
-     beginRemoveRows(QModelIndex(), start, end);
-#endif
 }
 
 void McaServiceAdapter::sourceRowsRemoved(const QModelIndex &parent, int start, int end)
@@ -239,13 +221,9 @@ void McaServiceAdapter::sourceDataChanged(const QModelIndex &topLeft, const QMod
 {
     QModelIndex top = index(topLeft.row(), 0);
     QModelIndex bottom = index(bottomRight.row(), 0);
-#if defined(THREADING_DEBUG)
     THREAD_SET_TEST(this);
     emit dataChanged(top, bottom);
     THREAD_UNSET_TEST(this);
-#else
-    emit dataChanged(top, bottom);
-#endif
     // service name should never change, not updating m_upids
 }
 
