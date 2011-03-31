@@ -6,9 +6,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#ifdef MEMORY_LEAK_DETECTOR
-#include <base.h>
-#endif
+#include "memoryleak.h"
 
 #include <QDebug>
 
@@ -27,10 +25,7 @@
 #include "serviceadapter.h"
 #include "searchablecontainer.h"
 
-#ifdef MEMORY_LEAK_DETECTOR
-#define __DEBUG_NEW__ new(__FILE__, __LINE__)
-#define new __DEBUG_NEW__
-#endif
+#include "memoryleak-defines.h"
 
 #include "threadtest.h"
 
@@ -41,6 +36,7 @@
 //    - passes on feed requests to the right plugin and service
 //    - generates unique ids for services and stores some info in QSettings
 //
+
 
 const char PLUGIN_RELPATH[] = "/MeeGo/Content";
 
@@ -121,7 +117,7 @@ void McaFeedManager::removePlugin(McaFeedPluginContainer *plugin)
     //Allow remaining signals from threads to be dispatched
     QCoreApplication::instance()->processEvents(QEventLoop::ExcludeUserInputEvents);
 
-    qDebug() << "Terminating plugin " << m_pluginToPaths[plugin];
+    qDebug() << "Terminating plugin " << m_pluginToPaths.value(plugin);
     QThread *plugin_thread = plugin->thread();
     plugin_thread->quit();
     if( !plugin_thread->wait(10000) ) {
@@ -145,7 +141,7 @@ void McaFeedManager::removePlugin(McaFeedPluginContainer *plugin)
     //plugin->deleteLater();
     delete plugin;
 
-    qDebug() << "Done terminating plugin " << m_pluginToPaths[plugin];
+    qDebug() << "Done terminating plugin " << m_pluginToPaths.value(plugin);
 }
 
 QAbstractItemModel *McaFeedManager::serviceModel()
@@ -241,14 +237,8 @@ void McaFeedManager::loadPlugins()
 {
     qDebug() << "McaFeedManager::loadPlugins()";
     // effects: checks plugin paths for any new plugins to load
-<<<<<<< HEAD
-//    foreach (QString path, QCoreApplication::libraryPaths()) {
-//        QDir dir = QDir(path + PLUGIN_RELPATH);
-        QDir dir = QDir("/home/radu/work/meego/gits/content-build-meego/sampleplugin");
-=======
     foreach (QString path, QCoreApplication::libraryPaths()) {
         QDir dir = QDir(path + PLUGIN_RELPATH);
->>>>>>> 616b36e... FeedManager: Removed debug plugin path.
         foreach (QString filename, dir.entryList(QStringList() << QString("*.so"))) {
             QString abspath = dir.absoluteFilePath(filename);
             if (m_pluginToPaths.values().contains(abspath))

@@ -6,9 +6,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#ifdef MEMORY_LEAK_DETECTOR
-#include <base.h>
-#endif
+#include "memoryleak.h"
 
 #include <QDebug>
 #include <QSettings>
@@ -19,10 +17,8 @@
 #include "actions.h"
 #include "settings.h"
 
-#ifdef MEMORY_LEAK_DETECTOR
-#define __DEBUG_NEW__ new(__FILE__, __LINE__)
-#define new __DEBUG_NEW__
-#endif
+#include "memoryleak-defines.h"
+
 //
 // Overview of McaFeedFilter
 //    - records ids of hidden rows and filters them out of the model

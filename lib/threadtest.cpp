@@ -1,7 +1,11 @@
+#include "memoryleak.h"
+
 #include "threadtest.h"
+#include <QDebug>
+
+#include "memoryleak-defines.h"
 
 #ifdef THREADING_DEBUG
-#include <QDebug>
 
 McaThreadTest::McaThreadTest(QObject *parent):
     QThread(parent)

@@ -1,6 +1,4 @@
-#ifdef MEMORY_LEAK_DETECTOR
-#include <base.h>
-#endif
+#include "memoryleak.h"
 
 #include <QAbstractItemModel>
 #include <QDebug>
@@ -14,10 +12,7 @@
 #include "aggregatedmodel.h"
 #include "feedadapter.h"
 
-#ifdef MEMORY_LEAK_DETECTOR
-#define __DEBUG_NEW__ new(__FILE__, __LINE__)
-#define new __DEBUG_NEW__
-#endif
+#include "memoryleak-defines.h"
 
 McaFeedPluginContainer::McaFeedPluginContainer(QObject *parent)
       : QObject(parent),

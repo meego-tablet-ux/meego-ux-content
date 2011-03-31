@@ -3,7 +3,7 @@ TARGET = meegouxcontent
 TEMPLATE = lib
 CONFIG += threading
 CONFIG += threading-debug 
-#CONFIG += memoryleak
+CONFIG += memoryleak
 
 threading {
     DEFINES *= THREADING
@@ -14,7 +14,8 @@ threading {
 }
 
 memoryleak {
-    DEFINES *= MEMORY_LEAK_DETECTOR 
+    DEFINES *= MEMORY_LEAK_DETECTOR
+    SOURCES += memoryleak.cpp
 }
 
 OBJECTS_DIR = .obj
@@ -66,7 +67,9 @@ HEADERS += \
     actionsproxy.h \
     threadtest.h \
     adapter.h \
-    threadtest.h 
+    threadtest.h \
+    memoryleak.h \
+    memoryleak-defines.h
 
 target.path = $$[QT_INSTALL_LIBS]
 INSTALLS += target

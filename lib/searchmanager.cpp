@@ -6,9 +6,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#ifdef MEMORY_LEAK_DETECTOR
-#include <base.h>
-#endif
+#include "memoryleak.h"
 
 #include <QDebug>
 
@@ -27,11 +25,7 @@
 #include "settings.h"
 #include "searchablecontainer.h"
 
-#ifdef MEMORY_LEAK_DETECTOR
-#define __DEBUG_NEW__ new(__FILE__, __LINE__)
-#define new __DEBUG_NEW__
-#endif
-
+#include "memoryleak-defines.h"
 
 // TODO: remove this temporary solution to not really wanting limits on search
 const int TemporaryFeedLimit = 1000;
