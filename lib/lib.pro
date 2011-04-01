@@ -82,4 +82,3 @@ pkgconfig.files += meego-ux-content.pc
 pkgconfig.path += $$[QT_INSTALL_LIBS]/pkgconfig
 INSTALLS += pkgconfig
 
-VERSION = 0.1.2

@@ -15,6 +15,7 @@
 #include <QDir>
 #include <QFileSystemWatcher>
 #include <QSettings>
+#include <QModelIndex>
 #include <QThread>
 
 #include "feedmanager.h"
@@ -74,6 +75,8 @@ McaFeedManager::McaFeedManager()
 {
     m_requestIdCounter = 0;
     m_destroying = false;
+
+    qRegisterMetaType<QModelIndex>("QModelIndex");
 
     m_watcher = new QFileSystemWatcher;
     m_services = new McaAggregatedServiceModel;
