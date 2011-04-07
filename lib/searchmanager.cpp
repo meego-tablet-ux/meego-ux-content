@@ -83,6 +83,7 @@ void McaSearchManager::setSearchText(const QString& searchText)
     emit searchTextChanged(searchText);
 
     foreach(McaSearchableContainer* container, m_searchableContainers) {
+        container->searchable()->haltSearch();
         addSearchRequest(container, searchText);
     }
 }
@@ -203,6 +204,7 @@ void McaSearchManager::addSearchRequest(McaSearchableContainer *container, const
         threadQueue->push_back(searchRequest);
     } else {
         m_processingRequests.push_back(containerThread);
+        container->searchable()->resetSearchHalt();
         QMetaObject::invokeMethod(container, "setSearchText", Q_ARG(QString, searchText));
     }
 }

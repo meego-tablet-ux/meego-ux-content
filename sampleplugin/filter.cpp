@@ -20,15 +20,55 @@
 //
 
 Filter::Filter(QAbstractItemModel *source, QObject *parent):
-        QSortFilterProxyModel(parent)
+        QAbstractItemModel(parent)
 {
-    setSourceModel(source);
     m_source = source;
+
+    // These aren't actually ever triggered in the sampleplugin
+    // but quite likely would be in a live plugin
+    connect(source, SIGNAL(rowsInserted(QModelIndex,int,int)),
+            this, SLOT(sourceRowsInserted(QModelIndex,int,int)));
+    connect(source, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
+            this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
 }
 
 Filter::~Filter()
 {
     delete m_source;
+}
+QModelIndex Filter::index(int row, int column, const QModelIndex& parent) const
+{
+    Q_UNUSED(parent);
+    if( column == 0 )
+        return createIndex(row,column);
+    else
+        return QModelIndex();
+}
+
+QModelIndex Filter::parent(const QModelIndex& index) const
+{
+    Q_UNUSED(index);
+    return QModelIndex();
+}
+
+int Filter::rowCount(const QModelIndex& index) const
+{
+    Q_UNUSED(index);
+    return m_filteredList.count();
+}
+
+int Filter::columnCount(const QModelIndex& index) const
+{
+    Q_UNUSED(index);
+    return 1;
+}
+
+QVariant Filter::data(const QModelIndex& index, int role) const
+{
+    if(index.isValid())
+        return m_filteredList.value(index.row()).data(role);
+    else
+        return QVariant();
 }
 
 void Filter::setSearchText(const QString &text)
@@ -37,13 +77,33 @@ void Filter::setSearchText(const QString &text)
     invalidateFilter();
 }
 
-bool Filter::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+void Filter::invalidateFilter()
 {
-    Q_UNUSED(source_parent)
+    int i = 0, j = 0, count = m_source->rowCount();
+
+    if (m_filteredList.count()) {
+        // Reset model isn't currently supported
+        beginRemoveRows(QModelIndex(), 0, m_filteredList.count() - 1);
+        m_filteredList.clear();
+        endRemoveRows();
+    }
 
     if (m_searchText.isEmpty())
-        return false;
+        return;
 
+    while(!isSearchHalted() && i < count) {
+        if(filterAcceptsRow(i)) {
+            beginInsertRows(QModelIndex(), j, j);
+            m_filteredList.push_back(m_source->index(i, 0));
+            endInsertRows();
+            j++;
+        }
+        i++;
+    }
+}
+
+bool Filter::filterAcceptsRow(int source_row) const
+{
     QModelIndex sourceIndex = m_source->index(source_row, 0);
     QString title = m_source->data(sourceIndex, McaFeedModel::GenericTitleRole).toString();
     if (title.contains(m_searchText, Qt::CaseInsensitive))
@@ -55,3 +115,41 @@ bool Filter::filterAcceptsRow(int source_row, const QModelIndex &source_parent) 
 
     return false;
 }
+
+//
+// private slots
+//
+
+void Filter::sourceRowsInserted(const QModelIndex& parent, int start, int end)
+{
+    Q_UNUSED(parent);
+
+
+    // Beware: Dragons Ahead
+    // Untested sample, it compiles!
+    int j = m_filteredList.count() - 1;
+    while(!isSearchHalted() && start < end) {
+        if (filterAcceptsRow(start)) {
+            beginInsertRows(QModelIndex(), j, j);
+            m_filteredList.push_back(m_source->index(start, 0));
+            endInsertRows();
+            j++;
+        }
+        start++;
+    }
+}
+
+void Filter::sourceRowsRemoved(const QModelIndex &parent, int start, int end)
+{
+    Q_UNUSED(parent);
+
+    // Beware: Dragons Ahead
+    // Untested sample, it compiles!
+    QMutableListIterator<QPersistentModelIndex> iter(m_filteredList);
+    while(iter.hasNext()) {
+        int row = iter.next().row();
+        if (row >= start && row <= end)
+            iter.remove();
+    }
+}
+

@@ -10,12 +10,14 @@
 #define __filter_h
 
 #include <QSortFilterProxyModel>
+#include <QList>
+#include <QPersistentModelIndex>
 
 #include <feedmodel.h>
 
 class McaActions;
 
-class Filter: public QSortFilterProxyModel, public McaSearchableFeed
+class Filter: public QAbstractItemModel, public McaSearchableFeed
 {
     Q_OBJECT
 
@@ -23,12 +25,24 @@ public:
     Filter(QAbstractItemModel *source, QObject *parent = NULL);
     ~Filter();
 
-    void setSearchText(const QString& text);
+    QModelIndex index(int row, int column, const QModelIndex& parent) const;
+    QModelIndex parent(const QModelIndex& index) const;
+    int rowCount(const QModelIndex& index) const;
+    int columnCount(const QModelIndex& index) const;
+    QVariant data(const QModelIndex&, int role = Qt::DisplayRole) const;
 
-    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+
+    void setSearchText(const QString& text);
+    void invalidateFilter();
+    bool filterAcceptsRow(int source_row) const;
+
+private slots:
+    void sourceRowsInserted(const QModelIndex &parent, int start, int end);
+    void sourceRowsRemoved(const QModelIndex &parent, int start, int end);
 
 private:
     QAbstractItemModel *m_source;
+    QList<QPersistentModelIndex> m_filteredList;
     QString m_searchText;
 };
 

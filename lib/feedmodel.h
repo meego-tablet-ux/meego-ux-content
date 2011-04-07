@@ -58,7 +58,17 @@ public:
 // additional interface to implement for a search model
 class McaSearchableFeed {
 public:
+    McaSearchableFeed() : m_haltSearch(false) {}
+
     virtual void setSearchText(const QString& text) = 0;
+    void haltSearch() { m_haltSearch = true; }
+    void resetSearchHalt() {  m_haltSearch = false; } 
+
+protected:
+    bool isSearchHalted() { return m_haltSearch; }
+
+private:
+    bool m_haltSearch;
 };
 
 #endif  // __mcafeedmodel_h
