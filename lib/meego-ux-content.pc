@@ -5,6 +5,6 @@ includedir=${prefix}/include/meegouxcontent
 
 Name: meego-ux-content
 Description: MeeGo Content Aggregation library
-Version: 0.2.0
+Version: 0.2.1
 Libs: -L${libdir} -lmeegouxcontent
 Cflags: -I${includedir}
