@@ -9,7 +9,6 @@
 #ifndef __filter_h
 #define __filter_h
 
-#include <QSortFilterProxyModel>
 #include <QList>
 #include <QPersistentModelIndex>
 
@@ -30,7 +29,6 @@ public:
     int rowCount(const QModelIndex& index) const;
     int columnCount(const QModelIndex& index) const;
     QVariant data(const QModelIndex&, int role = Qt::DisplayRole) const;
-
 
     void setSearchText(const QString& text);
     void invalidateFilter();

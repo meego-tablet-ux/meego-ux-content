@@ -36,10 +36,11 @@ Filter::~Filter()
 {
     delete m_source;
 }
+
 QModelIndex Filter::index(int row, int column, const QModelIndex& parent) const
 {
     Q_UNUSED(parent);
-    if( column == 0 )
+    if (column == 0)
         return createIndex(row,column);
     else
         return QModelIndex();
@@ -65,7 +66,7 @@ int Filter::columnCount(const QModelIndex& index) const
 
 QVariant Filter::data(const QModelIndex& index, int role) const
 {
-    if(index.isValid())
+    if (index.isValid())
         return m_filteredList.value(index.row()).data(role);
     else
         return QVariant();
@@ -91,8 +92,8 @@ void Filter::invalidateFilter()
     if (m_searchText.isEmpty())
         return;
 
-    while(!isSearchHalted() && i < count) {
-        if(filterAcceptsRow(i)) {
+    while (!isSearchHalted() && i < count) {
+        if (filterAcceptsRow(i)) {
             beginInsertRows(QModelIndex(), j, j);
             m_filteredList.push_back(m_source->index(i, 0));
             endInsertRows();
@@ -124,11 +125,10 @@ void Filter::sourceRowsInserted(const QModelIndex& parent, int start, int end)
 {
     Q_UNUSED(parent);
 
-
     // Beware: Dragons Ahead
     // Untested sample, it compiles!
     int j = m_filteredList.count() - 1;
-    while(!isSearchHalted() && start < end) {
+    while (!isSearchHalted() && start < end) {
         if (filterAcceptsRow(start)) {
             beginInsertRows(QModelIndex(), j, j);
             m_filteredList.push_back(m_source->index(start, 0));
@@ -145,11 +145,17 @@ void Filter::sourceRowsRemoved(const QModelIndex &parent, int start, int end)
 
     // Beware: Dragons Ahead
     // Untested sample, it compiles!
+    int row = 0;
     QMutableListIterator<QPersistentModelIndex> iter(m_filteredList);
-    while(iter.hasNext()) {
-        int row = iter.next().row();
-        if (row >= start && row <= end)
+    while (iter.hasNext()) {
+        int sourceRow = iter.next().row();
+        if (sourceRow >= start && sourceRow <= end) {
+            beginRemoveRows(QModelIndex(), row, row);
             iter.remove();
+            endRemoveRows();
+        }
+        else {
+            row++;
+        }
     }
 }
-

@@ -123,7 +123,7 @@ void McaSearchManager::createFeedFinalise(QObject *containerObj, McaFeedAdapter 
 
     connect(container, SIGNAL(searchDone()), this, SLOT(searchDone()));
     m_searchableContainers.push_back(container);
-    if(!m_searchRequests.contains(container->thread())) {
+    if (!m_searchRequests.contains(container->thread())) {
         m_searchRequests[container->thread()] = new t_SearchRequestQueue();
     }
     addSearchRequest(container, m_searchText);
@@ -134,19 +134,19 @@ void McaSearchManager::createFeedFinalise(QObject *containerObj, McaFeedAdapter 
 void McaSearchManager::searchDone()
 {
     McaSearchableContainer *container = qobject_cast<McaSearchableContainer*>(sender());
-    if(!container) {
+    if (!container) {
         qDebug() << "ERROR: searchDone called from a QObject different from McaSearchableContainer";
         return;
     }
 
     QThread *containerThread = container->thread();
-    if(!m_searchRequests.contains(containerThread)) {
+    if (!m_searchRequests.contains(containerThread)) {
         qDebug() << "CRITICAL ERROR: m_searchRequests does not contain entry for thread " << containerThread;
         return;
     }
     t_SearchRequestQueue *threadQueue = m_searchRequests[containerThread];
     m_processingRequests.removeOne(containerThread);
-    if(!threadQueue->isEmpty()) {
+    if (!threadQueue->isEmpty()) {
         t_SearchRequestEntry *searchRequest = threadQueue->front();
         threadQueue->pop_front();
         addSearchRequest(searchRequest->first, searchRequest->second);
@@ -158,7 +158,7 @@ void McaSearchManager::removeFeedCleanup(const QString& upid) {
     // TODO: Assuming these are unique containers for unique feeds?
     FeedInfo *info = m_upidToFeedInfo[upid];
     McaFeedAdapter *adapter = qobject_cast<McaFeedAdapter*>(info->feed);
-    if( adapter ) {
+    if (adapter) {
         foreach(McaSearchableContainer *container, m_searchableContainers) {            
             if( container->feedModel() == adapter->getSource() ) {
                 m_searchableContainers.removeOne( container );
@@ -169,10 +169,11 @@ void McaSearchManager::removeFeedCleanup(const QString& upid) {
                 int index = 0;
                 while (index < threadQueue->count()) {
                     requestEntry = threadQueue->at(index);
-                    if(requestEntry->first == container) {
+                    if (requestEntry->first == container) {
                         threadQueue->removeAt(index);
                         delete requestEntry;
-                    } else {
+                    }
+                    else {
                         index++;
                     }
                 }
@@ -180,7 +181,8 @@ void McaSearchManager::removeFeedCleanup(const QString& upid) {
                 break;
             }
         }
-    } else {
+    }
+    else {
         qWarning() << "McaSearchManager::removeFeedCleanup: Requesting removal of non-McaFeedAdapter in search";
     }
 }
@@ -188,7 +190,7 @@ void McaSearchManager::removeFeedCleanup(const QString& upid) {
 void McaSearchManager::addSearchRequest(McaSearchableContainer *container, const QString &searchText)
 {
     QThread *containerThread = container->thread();
-    if(m_processingRequests.contains(containerThread)) {
+    if (m_processingRequests.contains(containerThread)) {
         t_SearchRequestQueue *threadQueue = m_searchRequests.value(containerThread);
         t_SearchRequestEntry *requestEntry = 0;
         for(int index =0; index < threadQueue->count(); index++) {
@@ -202,7 +204,8 @@ void McaSearchManager::addSearchRequest(McaSearchableContainer *container, const
         searchRequest->first = container;
         searchRequest->second = searchText;
         threadQueue->push_back(searchRequest);
-    } else {
+    }
+    else {
         m_processingRequests.push_back(containerThread);
         container->searchable()->resetSearchHalt();
         QMetaObject::invokeMethod(container, "setSearchText", Q_ARG(QString, searchText));
