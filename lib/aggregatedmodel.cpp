@@ -55,6 +55,8 @@ void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)
                 this, SLOT(sourceRowsRemoved(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
         connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
                 this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)), Qt::BlockingQueuedConnection);
+        connect(model, SIGNAL(modelAboutToBeReset()),
+                this, SLOT(sourceModelAboutToBeReset()), Qt::BlockingQueuedConnection);
     }
 #else
     connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
@@ -63,6 +65,8 @@ void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)
             this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
     connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
             this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
+    connect(model, SIGNAL(modelAboutToBeReset()),
+            this, SLOT(sourceModelAboutToBeReset()));
 
     rowsInserted(model, 0, model->rowCount() - 1);
 #endif
@@ -127,6 +131,8 @@ void McaAggregatedModel::syncUpdate(McaAdapter *model, int start, int end)
             this, SLOT(sourceRowsRemoved(QModelIndex,int,int)), Qt::BlockingQueuedConnection);
     connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
             this, SLOT(sourceDataChanged(QModelIndex,QModelIndex)), Qt::BlockingQueuedConnection);
+    connect(model, SIGNAL(modelAboutToBeReset()),
+            this, SLOT(sourceModelAboutToBeReset()), Qt::BlockingQueuedConnection);
 }
 
 void McaAggregatedModel::syncRemoval(McaAdapter *model, int start, int end)
@@ -241,6 +247,14 @@ void McaAggregatedModel::sourceDataChanged(const QModelIndex& topLeft,
         QModelIndex last = index(block.second);
         emit dataChanged(first, last);
     }
+}
+
+
+void McaAggregatedModel::sourceModelAboutToBeReset()
+{
+    QAbstractListModel *model = qobject_cast<QAbstractListModel *>(sender());
+
+    rowsRemoved(model, 0, model->rowCount() - 1);
 }
 
 //

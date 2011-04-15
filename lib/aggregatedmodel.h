@@ -42,6 +42,7 @@ protected slots:
     void sourceRowsInserted(const QModelIndex& parent, int start, int end);
     void sourceRowsRemoved(const QModelIndex& parent, int start, int end);
     void sourceDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
+    void sourceModelAboutToBeReset();
 
 protected:
     void rowsInserted(const QAbstractItemModel *model, int start, int end);
