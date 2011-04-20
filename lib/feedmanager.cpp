@@ -117,34 +117,38 @@ void McaFeedManager::removePlugin(McaFeedPluginContainer *plugin)
     disconnect(plugin, SIGNAL(createFeedError(QString,int)),
             this, SIGNAL(createFeedError(QString,int)));
 
-    //Allow remaining signals from threads to be dispatched
+    // allow remaining signals from threads to be dispatched
     QCoreApplication::instance()->processEvents(QEventLoop::ExcludeUserInputEvents);
 
     qDebug() << "Terminating plugin " << m_pluginToPaths.value(plugin);
     QThread *plugin_thread = plugin->thread();
-    plugin_thread->quit();
-    if( !plugin_thread->wait(10000) ) {
-        qWarning() << "Plugin thread is not responding";
-    }
 
-    //remove service
-    foreach(const QAbstractItemModel *serviceModel, m_modelToPlugin.keys()) {
-        if(m_modelToPlugin[serviceModel] == plugin) {
+    // remove service
+    foreach (const QAbstractItemModel *serviceModel, m_modelToPlugin.keys()) {
+        if (m_modelToPlugin[serviceModel] == plugin) {
             const McaServiceAdapter *serviceAdapter = qobject_cast<const McaServiceAdapter*>(serviceModel);
-            if(serviceAdapter) {
+            if (serviceAdapter) {
                 //const_cast<McaServiceAdapter*>(serviceAdapter)->deleteLater();
                 delete const_cast<McaServiceAdapter*>(serviceAdapter);
-            } else {
+            }
+            else {
                 qDebug() << "NOT A SERVICE ADAPTER";
             }
             m_modelToPlugin.remove(serviceModel);
             break;
         }
     }
-    //plugin->deleteLater();
-    delete plugin;
+
+    plugin->deleteLater();
+    QCoreApplication::instance()->processEvents(QEventLoop::ExcludeUserInputEvents);
+
+    plugin_thread->quit();
+    if (!plugin_thread->wait(3000)) {
+        qWarning() << "Plugin thread is not responding";
+    }
 
     qDebug() << "Done terminating plugin " << m_pluginToPaths.value(plugin);
+    m_pluginToPaths.remove(plugin);
 }
 
 QAbstractItemModel *McaFeedManager::serviceModel()
