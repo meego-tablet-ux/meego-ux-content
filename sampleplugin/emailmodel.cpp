@@ -79,6 +79,14 @@ EmailModel::EmailModel(QObject *parent): McaFeedModel(parent)
         //   from McaActions and pass an object that overrides the slots.
         connect(&m_emails[i].actions, SIGNAL(standardAction(QString,QString)),
                 this, SLOT(performAction(QString,QString)));
+
+        list.clear();
+        list << "delete" << "reset" << "reload";
+        for(int j = 0; j < list.size(); j++) {
+            m_emails[i].actions.addCustomAction(list[j], list[j].toUpper());
+        }
+        connect(&m_emails[i].actions, SIGNAL(customAction(QString,QString)),
+                this, SLOT(performCustomAction(QString,QString)));
     }
 }
 
@@ -172,4 +180,9 @@ void EmailModel::performAction(QString action, QString uniqueid)
     //   Alternately, you could connect to a slot on an individual item, if
     //   you make it a QObject, and you don't need that parameter.
     qDebug() << "Action" << action << "called for email" << uniqueid;
+}
+
+void EmailModel::performCustomAction(QString action, QString uniqueid)
+{
+    qDebug() << "Custom action " << action << " called for social item" << uniqueid;
 }

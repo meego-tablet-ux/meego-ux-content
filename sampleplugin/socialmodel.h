@@ -28,6 +28,7 @@ public:
 
 protected slots:
     void performAction(QString action, QString uniqueid);
+    void performCustomAction(QString action, QString uniqueid);
 
 private:
     Social *m_socials;

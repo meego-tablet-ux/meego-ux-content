@@ -61,6 +61,14 @@ SocialModel::SocialModel(QObject *parent): McaFeedModel(parent)
 
         connect(&m_socials[i].actions, SIGNAL(standardAction(QString,QString)),
                 this, SLOT(performAction(QString,QString)));
+
+        list.clear();
+        list << "delete" << "reset" << "reload";        
+        for(int j = 0; j < list.size(); j++) {
+            m_socials[i].actions.addCustomAction(list[j], list[j].toUpper());
+        }
+        connect(&m_socials[i].actions, SIGNAL(customAction(QString,QString)),
+                this, SLOT(performCustomAction(QString,QString)));
     }
 }
 
@@ -117,3 +125,9 @@ void SocialModel::performAction(QString action, QString uniqueid)
 {
     qDebug() << "Action" << action << "called for social item" << uniqueid;
 }
+
+void SocialModel::performCustomAction(QString action, QString uniqueid)
+{
+    qDebug() << "Custom action " << action << " called for social item" << uniqueid;
+}
+

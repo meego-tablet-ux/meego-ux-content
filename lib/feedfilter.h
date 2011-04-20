@@ -41,13 +41,11 @@ protected:
     void update();
 
 protected slots:
-    void performStandardAction(QString action, QString uniqueid);
-    void performCustomAction(QString action, QString uniqueid);
+    void performStandardAction(QString action, QString uniqueid);    
     void saveNow();
 
 private:
     QAbstractItemModel *m_source;
-    McaActions *m_actions;
 
     QString m_serviceId;
     QDate m_lastDate;

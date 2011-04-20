@@ -34,8 +34,9 @@ QStringList McaActionsProxy::customActions()
 {
     // TODO: These two might cause deadlocks in the ui thread, if the thread the Action exists
     // in has a deadlock.
-    QStringList list;
-    QMetaObject::invokeMethod(m_action, "customActions", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QStringList, list));
+    //    QMetaObject::invokeMethod(m_action, "customActions", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QStringList, list));
+    QStringList list = m_action->customActions();
+
     return list;
 }
 
@@ -43,8 +44,9 @@ QStringList McaActionsProxy::customDisplayActions()
 {
     // TODO: These two might cause deadlocks in the ui thread, if the thread the Action exists
     // in has a deadlock.
-    QStringList list;
-    QMetaObject::invokeMethod(m_action, "customDisplayActions", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QStringList, list));
+    //    QMetaObject::invokeMethod(m_action, "customDisplayActions", Qt::BlockingQueuedConnection/*, Q_RETURN_ARG(QStringList, list)*/);
+    QStringList list = m_action->customDisplayActions();
+
     return list;
 }
 

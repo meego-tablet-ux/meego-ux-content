@@ -57,6 +57,7 @@ protected slots:
     //   may occur if the user clicks outside the button area.
     // You should test the action string and ignore any unknown ones.
     void performAction(QString action, QString uniqueid);
+    void performCustomAction(QString action, QString uniqueid);
 
 private:
     Email *m_emails;

@@ -38,13 +38,6 @@ McaFeedFilter::McaFeedFilter(QAbstractItemModel *source, QString serviceId, QObj
 
     m_source = source;
 
-    // create actions proxy
-    m_actions = new McaActions;
-    connect(m_actions, SIGNAL(standardAction(QString,QString)),
-            this, SLOT(performStandardAction(QString,QString)));
-    connect(m_actions, SIGNAL(customAction(QString,QString)),
-            this, SLOT(performCustomAction(QString,QString)));
-
     m_serviceId = serviceId;
     m_numDays = LookbackDaysDefault;
     m_hiddenByDate = new QSet<QString>[m_numDays];
@@ -54,7 +47,6 @@ McaFeedFilter::McaFeedFilter(QAbstractItemModel *source, QString serviceId, QObj
 
 McaFeedFilter::~McaFeedFilter()
 {    
-    delete m_actions;
     delete m_source;
     delete []m_hiddenByDate;
 }
@@ -112,9 +104,15 @@ bool McaFeedFilter::filterAcceptsRow(int source_row, const QModelIndex &source_p
 
 QVariant McaFeedFilter::data(const QModelIndex &index, int role) const
 {
-    // replace the real action with our proxy
-    if (role == McaFeedModel::CommonActionsRole)
-        return QVariant::fromValue<McaActions*>(m_actions);
+    if (role == McaFeedModel::CommonActionsRole) {
+        QVariant variantActions = m_source->data(index, McaFeedModel::CommonActionsRole);
+        McaActions *actions = variantActions.value<McaActions*>();
+        if (actions) {
+            connect(actions, SIGNAL(standardAction(QString,QString)),
+                    this, SLOT(performStandardAction(QString,QString)), Qt::UniqueConnection);
+        }
+        return variantActions;
+    }
 
     return QSortFilterProxyModel::data(index, role);
 }
@@ -246,30 +244,5 @@ void McaFeedFilter::performStandardAction(QString action, QString uniqueid)
     if (action == "hide") {
         hide(uniqueid);
         return;
-    }
-
-    // TODO: this is not incredibly efficient because it has to search rows
-    QModelIndex start = index(0, 0);
-    QModelIndexList list = match(start, McaFeedModel::RequiredUniqueIdRole,
-                                 uniqueid, 1, Qt::MatchExactly);
-    if (list.count() > 0) {
-        QModelIndex sourceIndex = m_source->index(list.at(0).row(), 0);
-        McaActions *actions = m_source->data(sourceIndex, McaFeedModel::CommonActionsRole).value<McaActions*>();
-        if (actions)
-            actions->performStandardAction(action, uniqueid);
-    }
-}
-
-void McaFeedFilter::performCustomAction(QString action, QString uniqueid)
-{
-    // TODO: this is not incredibly efficient because it has to search rows
-    QModelIndex start = index(0, 0);
-    QModelIndexList list = match(start, McaFeedModel::RequiredUniqueIdRole,
-                                 uniqueid, 1, Qt::MatchExactly);
-    if (list.count() > 0) {
-        QObject *object = data(list[0], McaFeedModel::CommonActionsRole).value<QObject*>();
-        McaActions *actions = qobject_cast<McaActions*>(object);
-        if (actions)
-            actions->performCustomAction(action, uniqueid);
-    }
+    }    
 }

@@ -134,7 +134,6 @@ QVariant McaFeedCache::data(const QModelIndex &index, int role) const
     if (m_source) {
         QVariant variant = m_cache.at(row)->value(role);
         if (role == McaFeedModel::CommonActionsRole) {
-            qDebug() << m_safeActions << variant.value<McaActions*>();
             if (!m_safeActions.contains(variant.value<McaActions*>())) {
                 qWarning() << "warning: ignoring action (target destroyed)";
                 return QVariant();
