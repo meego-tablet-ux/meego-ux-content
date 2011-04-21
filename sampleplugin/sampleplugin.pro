@@ -7,17 +7,22 @@ include(../common.pri)
 TARGET = sample_plugin
 TEMPLATE = lib
 
-CONFIG += plugin link_pkgconfig
-PKGCONFIG += meego-ux-content
+CONFIG += plugin
 
-# use pkg-config paths for include in both g++ and moc
-INCLUDEPATH += $$system(pkg-config --cflags meego-ux-content \
-    | tr \' \' \'\\n\' | grep ^-I | cut -d 'I' -f 2-)
+exists($$OUT_PWD/../.intree_build) {
+    include(../common.pri)
 
-# this is only for building within the meego-ux-content source tree
-INCLUDEPATH += ../lib
+    INCLUDEPATH += ../lib
+    LIBS += -L../lib -lmeegouxcontent
+} else {
+    CONFIG += link_pkgconfig
+    PKGCONFIG += meego-ux-content
+    VERSION = 0.0.0
 
-LIBS += -L../lib -lmeegouxcontent
+    # use pkg-config paths for include in both g++ and moc
+    INCLUDEPATH += $$system(pkg-config --cflags meego-ux-content \
+        | tr \' \' \'\\n\' | grep ^-I | cut -d 'I' -f 2-)
+}
 
 OBJECTS_DIR = .obj
 MOC_DIR = .moc

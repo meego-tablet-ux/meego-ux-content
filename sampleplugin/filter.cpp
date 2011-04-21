@@ -13,7 +13,6 @@
 
 #include "filter.h"
 #include "actions.h"
-#include "settings.h"
 
 //
 // public methods

@@ -2,6 +2,8 @@ include(common.pri)
 CONFIG += ordered
 TEMPLATE = subdirs
 
+system("touch $$OUT_PWD/.intree_build")
+
 SUBDIRS += lib libqml
 SUBDIRS += sampleapp sampleplugin sampleqml
 
