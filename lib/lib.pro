@@ -71,6 +71,8 @@ HEADERS += \
     memoryleak.h \
     memoryleak-defines.h
 
+system(sed 's/__library_version__/$${VERSION}/g' meego-ux-content.pc.in > meego-ux-content.pc)
+
 target.path = $$[QT_INSTALL_LIBS]
 INSTALLS += target
 
