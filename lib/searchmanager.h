@@ -50,7 +50,7 @@ private:
     virtual bool dataChangedCondition(const QModelIndex& index);
 
     virtual int createFeed(const QAbstractItemModel *serviceModel, const QString& name);
-    virtual void createFeedFinalise(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo);
+    virtual void createFeedFinalize(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo);
 
     void addSearchRequest(McaSearchableContainer *container, const QString &searchText);
     virtual void removeFeedCleanup(const QString& upid);

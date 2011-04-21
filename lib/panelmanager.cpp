@@ -228,7 +228,7 @@ QString McaPanelManager::fullEnabledKey()
     return key;
 }
 
-void McaPanelManager::createFeedFinalise(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo)
+void McaPanelManager::createFeedFinalize(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo)
 {
     Q_UNUSED(containerObj);
     feedInfo->filter = qobject_cast<McaFeedFilter*>(feedAdapter->getSource());

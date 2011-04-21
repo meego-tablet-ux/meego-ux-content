@@ -164,7 +164,7 @@ void McaAbstractManager::createFeedDone(QObject *containerObj, McaFeedAdapter *f
         info->upid = upid;
         info->feed = feedAdapter;
         m_upidToFeedInfo.insert(upid, info);
-        createFeedFinalise(containerObj, feedAdapter, info);
+        createFeedFinalize(containerObj, feedAdapter, info);
         m_aggregator->addSourceModel(feedAdapter);
     }
 }

@@ -63,7 +63,7 @@ private:
     virtual bool dataChangedCondition(const QModelIndex& index) = 0;
 
     virtual int createFeed(const QAbstractItemModel *serviceModel, const QString& name) = 0;
-    virtual void createFeedFinalise(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo) = 0;
+    virtual void createFeedFinalize(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo) = 0;
 
 protected:
     McaFeedManager *m_feedmgr;

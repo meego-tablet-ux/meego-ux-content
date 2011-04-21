@@ -74,7 +74,7 @@ private:
 
     virtual int createFeed(const QAbstractItemModel *serviceModel, const QString& name);
     virtual void removeFeedCleanup(const QString& upid);
-    virtual void createFeedFinalise(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo);
+    virtual void createFeedFinalize(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo);
 
 private:
     McaAllocator *m_allocator;

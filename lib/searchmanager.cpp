@@ -113,7 +113,7 @@ int McaSearchManager::createFeed(const QAbstractItemModel *serviceModel, const Q
 // protected methods
 //
 
-void McaSearchManager::createFeedFinalise(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo)
+void McaSearchManager::createFeedFinalize(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo)
 {
     Q_UNUSED(feedInfo);
 
