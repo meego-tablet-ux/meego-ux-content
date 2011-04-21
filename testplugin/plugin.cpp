@@ -21,15 +21,19 @@ Plugin::Plugin(QObject *parent): QObject(parent), McaFeedPlugin()
     m_server = new QLocalServer;
     connect(m_server, SIGNAL(newConnection()),
             this, SLOT(newConnection()));
-    if (!m_server->listen("meego-ux-content-test"))
-        qWarning() << "error: plugin not listening on server socket";
 
     m_serviceModel = new ServiceModel;
+
+    if (!m_server->listen("meego-ux-content-test")) {
+        qWarning() << "error: plugin not listening on server socket";
+        m_serviceModel->addService();
+    }
 }
 
 Plugin::~Plugin()
 {
     delete m_serviceModel;
+    delete m_server;
 }
 
 QAbstractItemModel *Plugin::serviceModel()
@@ -40,8 +44,15 @@ QAbstractItemModel *Plugin::serviceModel()
 QAbstractItemModel *Plugin::createFeedModel(const QString& service)
 {
     qDebug() << "Plugin::createFeedModel: " << service;
+    TestModel *model;
 
-    TestModel *model = new TestModel(m_serviceModel->displayNameFromId(service));
+    if (m_server->isListening())
+        model = new TestModel(m_serviceModel->displayNameFromId(service));
+    else {
+        model = new TestModel("Error: Server failed to create the socket: /tmp/meego-ux-content-test");
+        model->addRandomContentRow();
+    }
+
     m_serviceToModel.insert(service, model);
     connect(model, SIGNAL(destroyed(QObject*)), this, SLOT(modelDestroyed(QObject*)));
     return model;
