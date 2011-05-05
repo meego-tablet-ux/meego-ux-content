@@ -16,6 +16,8 @@
 #include "feedmodel.h"
 #include "actions.h"
 #include "settings.h"
+#include "feedrelevance.h"
+#include "actionsproxy.h"
 
 #include "memoryleak-defines.h"
 
@@ -37,6 +39,7 @@ McaFeedFilter::McaFeedFilter(QAbstractItemModel *source, QString serviceId, QObj
     setSourceModel(source);
 
     m_source = source;
+    m_feedRelevance = 0;
 
     m_serviceId = serviceId;
     m_numDays = LookbackDaysDefault;
@@ -47,6 +50,10 @@ McaFeedFilter::McaFeedFilter(QAbstractItemModel *source, QString serviceId, QObj
 
 McaFeedFilter::~McaFeedFilter()
 {    
+    if(0 != m_feedRelevance) {
+        m_feedRelevance->release(m_panelName, m_serviceId);
+        m_feedRelevance = 0;
+    }
     delete m_source;
     delete []m_hiddenByDate;
 }
@@ -107,14 +114,46 @@ QVariant McaFeedFilter::data(const QModelIndex &index, int role) const
     if (role == McaFeedModel::CommonActionsRole) {
         QVariant variantActions = m_source->data(index, McaFeedModel::CommonActionsRole);
         McaActions *actions = variantActions.value<McaActions*>();
-        if (actions) {
-            connect(actions, SIGNAL(standardAction(QString,QString)),
-                    this, SLOT(performStandardAction(QString,QString)), Qt::UniqueConnection);
+
+        if (!actions) return variantActions;
+
+        // return our own McaActions to catch all actions
+        McaActions *proxyActions = actions->findChild<McaActions*>("proxyAction");
+        if(0 == proxyActions) {
+            // set parent to real actions object and let Qt delete this
+            proxyActions = new McaActions();
+            proxyActions->moveToThread(actions->thread());
+            proxyActions->setParent(actions);
+            proxyActions->setObjectName("proxyAction");
+
+            // copy any custom actions exist
+            // TODO: what happens if more actions are added to the original object?
+            QStringList actionNames = actions->customDisplayActions();
+            QStringList actionIds = actions->customActions();
+            for(int i=0; i < actionNames.length(); i++) {
+                proxyActions->addCustomAction(actionIds.at(i), actionNames.at(i));
+            }
+
+            connect(proxyActions, SIGNAL(standardAction(QString,QString)),
+                    this, SLOT(performStandardAction(QString,QString)));
+            connect(proxyActions, SIGNAL(customAction(QString,QString)),
+                    this, SLOT(performCustomAction(QString,QString)));
         }
-        return variantActions;
+        return QVariant::fromValue<McaActions*>(proxyActions);
     }
 
     return QSortFilterProxyModel::data(index, role);
+}
+
+void McaFeedFilter::setPanelName(const QString &panelName)
+{
+    if(m_panelName == panelName) return;
+
+    if(0 != m_feedRelevance) {
+        m_feedRelevance->release(m_panelName, m_serviceId);
+    }
+    m_panelName = panelName;
+    m_feedRelevance = FeedRelevance::instance(m_panelName, m_serviceId);
 }
 
 //
@@ -239,10 +278,34 @@ void McaFeedFilter::update()
 //
 
 void McaFeedFilter::performStandardAction(QString action, QString uniqueid)
-{
-    // intercept actions so we can handle hide here
-    if (action == "hide") {
+{    
+    if (action == "hide") {        
         hide(uniqueid);
+        m_feedRelevance->negativeFeedback(uniqueid);
         return;
-    }    
+    }
+
+    if (action == "setViewed") {
+        m_feedRelevance->recordSeen(uniqueid);
+        return;
+    }
+    m_feedRelevance->positiveFeedback(uniqueid);
+
+    if(sender()) {
+        McaActions *realActions = qobject_cast<McaActions*>(sender()->parent());
+        if(0 != realActions) {
+            realActions->performCustomAction(action, uniqueid);
+        }
+    }
+}
+
+void McaFeedFilter::performCustomAction(QString action, QString uniqueid)
+{
+    m_feedRelevance->positiveFeedback(uniqueid);    
+    if(sender()) {
+        McaActions *realActions = qobject_cast<McaActions*>(sender()->parent());
+        if(0 != realActions) {
+            realActions->performCustomAction(action, uniqueid);
+        }
+    }
 }

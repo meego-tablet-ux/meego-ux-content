@@ -39,7 +39,8 @@ SOURCES += \
     feedplugincontainer.cpp \
     abstractmanager.cpp \
     actionsproxy.cpp \
-    adapter.cpp
+    adapter.cpp \
+    feedrelevance.cpp
 
 INSTALL_HEADERS += \
     actions.h \
@@ -69,7 +70,8 @@ HEADERS += \
     adapter.h \
     threadtest.h \
     memoryleak.h \
-    memoryleak-defines.h
+    memoryleak-defines.h \
+    feedrelevance.h
 
 system(sed 's/__library_version__/$${VERSION}/g' meego-ux-content.pc.in > meego-ux-content.pc)
 
@@ -83,4 +85,3 @@ INSTALLS += headers
 pkgconfig.files += meego-ux-content.pc
 pkgconfig.path += $$INSTALL_ROOT/usr/lib/pkgconfig
 INSTALLS += pkgconfig
-

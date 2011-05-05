@@ -67,6 +67,7 @@ McaPanelManager::~McaPanelManager()
 void McaPanelManager::initialize(const QString& managerData)
 {
     m_panelName = managerData;
+    m_allocator->setPanelName(m_panelName);
 
     // proxy model should be empty, but seem to need to call rowCount to wake it up
     rowsInserted(QModelIndex(), 0, m_serviceProxy->rowCount() - 1);
@@ -232,6 +233,7 @@ void McaPanelManager::createFeedFinalize(QObject *containerObj, McaFeedAdapter *
 {
     Q_UNUSED(containerObj);
     feedInfo->filter = qobject_cast<McaFeedFilter*>(feedAdapter->getSource());
+    feedInfo->filter->setPanelName(m_panelName);
     if (m_upidToFeedInfo.count() == 1) {
         emit servicesConfiguredChanged(true);
     }

@@ -14,6 +14,7 @@
 #include <QSet>
 
 class McaActions;
+class FeedRelevance;
 
 class McaFeedFilter: public QSortFilterProxyModel
 {
@@ -34,6 +35,8 @@ public:
     virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
     virtual QVariant data(const QModelIndex &index, int role) const;
 
+    void setPanelName(const QString &panelName);
+
 protected:
     void clear();
     void load();
@@ -41,7 +44,8 @@ protected:
     void update();
 
 protected slots:
-    void performStandardAction(QString action, QString uniqueid);    
+    void performStandardAction(QString action, QString uniqueid);
+    void performCustomAction(QString action, QString uniqueid);
     void saveNow();
 
 private:
@@ -62,6 +66,10 @@ private:
 
     // earliest time for which to show items
     QDateTime m_earliestTime;
+
+    // name of the current panel, used for feed relevance
+    QString m_panelName;
+    FeedRelevance *m_feedRelevance;
 };
 
 #endif  // __mcafeedfilter_h

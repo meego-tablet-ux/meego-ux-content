@@ -10,8 +10,11 @@
 
 #include <QDebug>
 #include "allocator.h"
+#include "feedrelevance.h"
 
 #include "memoryleak-defines.h"
+
+#define MINIMIUM_SLOTS_PER_FEED 2
 
 //
 // public methods
@@ -22,6 +25,7 @@ McaAllocator::McaAllocator()
     // default to 30 items
     m_total = 30;
     m_nextAlloc = 0;
+    m_panelNameSet = false;
 }
 
 McaAllocator::~McaAllocator()
@@ -130,22 +134,49 @@ int McaAllocator::allocateRemaining()
 void McaAllocator::reallocate()
 {
     int count = m_feeds.count();
-    if (count <= 0)
+    if (count <= 0 || !m_panelNameSet)
         return;
 
-    int base = m_total / count;
-
-    // simply divide up the available slots among the feeds
-    int remain = m_total - count * base;
-    m_nextAlloc = 0;
+    // get the score for each of the feeds
+    QList<qreal> relevanceList;
+    qreal totalRelevance = 0;
+    qreal relevance;
     for (int i = 0; i < count; i++) {
-        int target = base;
-        if (remain > 0) {
-            target++;
-            remain--;
-            m_nextAlloc++;
+        FeedDescriptor& fd = m_feeds[i];
+        FeedRelevance *feedRelevance = FeedRelevance::instance(m_panelName, fd.serviceId);
+        relevance = feedRelevance->relevance() * 100;
+        relevanceList.push_back(relevance);
+        totalRelevance += relevance;
+        FeedRelevance::release(m_panelName, fd.serviceId);
+    }
+
+    // assign slots taking the feed score into account
+    int base = MINIMIUM_SLOTS_PER_FEED;
+    int slotsToSplit = m_total - count * base;
+    int remain = m_total;
+
+    for(int i=0; i < count; i++) {
+        FeedDescriptor& fd = m_feeds[i];
+        int extraSlots = 0;
+        if(totalRelevance != 0) {
+            extraSlots = relevanceList[i]/totalRelevance * slotsToSplit;
         }
-        m_feeds[i].target = target;
+        fd.target = base + extraSlots;
+        remain -= fd.target;
+    }
+
+    // simply divide up the remaining slots among the feeds
+    m_nextAlloc = 0;
+    while(remain > 0) {
+        for (int i = 0; i < count; i++) {
+            if (remain > 0) {
+                m_feeds[i].target++;
+                remain--;
+                m_nextAlloc = (i + 1) % count ;
+            } else {
+                break;
+            }
+        }
     }
 
     reallocateDynamic();
@@ -175,5 +206,15 @@ void McaAllocator::reallocateDynamic()
        if (remain <= 0 || remain == remaining)
            break;
        remaining = remain;
+    }
+}
+
+void McaAllocator::setPanelName(const QString &panelName)
+{
+    if(!m_panelNameSet) {
+        m_panelName = panelName;
+        m_panelNameSet = true;
+    } else {
+        qDebug() << "McaAllocator: panel name already set";
     }
 }

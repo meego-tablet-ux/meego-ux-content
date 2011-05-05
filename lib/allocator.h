@@ -37,6 +37,8 @@ public:
     virtual int total();
     virtual void setTotal(int total);
 
+    void setPanelName(const QString &panelName);
+
 signals:
     void totalChanged();
 
@@ -52,6 +54,8 @@ private:
     QList<FeedDescriptor> m_feeds;
     QHash<QString, McaFeedAdapter*> m_idToFeed;
     int m_nextAlloc;
+    QString m_panelName;
+    bool m_panelNameSet;
 };
 
 #endif  // __allocator_h
