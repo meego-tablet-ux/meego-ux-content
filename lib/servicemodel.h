@@ -25,7 +25,7 @@ public:
         RequiredNameRole        = Qt::UserRole + 10,  // QString
 
         // [immutable]
-        // "email", "social", "im", "media", or "other" for now
+        // "email", "social", "im", "media", "messages" or "other" for now
         RequiredCategoryRole    = Qt::UserRole + 11,  // QString
 
         // McaActions object
