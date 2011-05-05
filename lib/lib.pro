@@ -77,7 +77,7 @@ target.path = $$[QT_INSTALL_LIBS]
 INSTALLS += target
 
 headers.files += $$INSTALL_HEADERS
-headers.path += $$INSTALL_ROOT/usr/include/meegouxcontent
+headers.path += $$[QT_INSTALL_HEADERS]/meegouxcontent
 INSTALLS += headers
 
 pkgconfig.files += meego-ux-content.pc
