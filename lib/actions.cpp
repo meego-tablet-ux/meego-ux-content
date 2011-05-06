@@ -32,10 +32,11 @@ QStringList McaActions::customDisplayActions()
     return m_names;
 }
 
-void McaActions::addCustomAction(QString id, QString displayName)
+void McaActions::addCustomAction(QString id, QString displayName, bool actionType)
 {
     m_ids.append(id);
     m_names.append(displayName);
+    m_actionTypes[id] = actionType;
 }
 
 void McaActions::performStandardAction(QString action, QString uniqueid)
@@ -46,4 +47,12 @@ void McaActions::performStandardAction(QString action, QString uniqueid)
 void McaActions::performCustomAction(QString action, QString uniqueid)
 {
     emit customAction(action, uniqueid);
+}
+
+bool McaActions::actionType(const QString &action)
+{
+    if(m_actionTypes.contains(action)) {
+        return m_actionTypes[action];
+    }
+    return true;
 }

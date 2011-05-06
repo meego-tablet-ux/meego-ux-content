@@ -11,6 +11,7 @@
 
 #include <QStringList>
 #include <QMetaType>
+#include <QMap>
 
 class McaActions: public QObject
 {
@@ -26,6 +27,7 @@ public:
 
     Q_INVOKABLE virtual QStringList customActions();
     Q_INVOKABLE virtual QStringList customDisplayActions();
+    Q_INVOKABLE virtual bool actionType(const QString &action); // true = positive, false = negative
 signals:
     // standard actions are defined by the model
     void standardAction(QString action, QString uniqueid);
@@ -37,8 +39,8 @@ public slots:
     //   removed from your model occasionally; you should either be able to
     //   still act on the removed content or gracefully throw away the action
 
-    // standard actions are defined by the model
-    virtual void addCustomAction(QString id, QString displayName);
+    // custom actions are defined by the model
+    virtual void addCustomAction(QString id, QString displayName, bool actionType = true);
 
     virtual void performStandardAction(QString action, QString uniqueid);
     virtual void performCustomAction(QString action, QString uniqueid);
@@ -46,6 +48,7 @@ public slots:
 private:
     QStringList m_ids;
     QStringList m_names;
+    QMap<QString, bool> m_actionTypes; // true = positive, false = negative
 };
 
 Q_DECLARE_METATYPE(McaActions*)

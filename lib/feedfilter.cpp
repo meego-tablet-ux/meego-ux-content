@@ -131,7 +131,7 @@ QVariant McaFeedFilter::data(const QModelIndex &index, int role) const
             QStringList actionNames = actions->customDisplayActions();
             QStringList actionIds = actions->customActions();
             for(int i=0; i < actionNames.length(); i++) {
-                proxyActions->addCustomAction(actionIds.at(i), actionNames.at(i));
+                proxyActions->addCustomAction(actionIds.at(i), actionNames.at(i), actions->actionType(actionIds.at(i)));
             }
 
             connect(proxyActions, SIGNAL(standardAction(QString,QString)),
@@ -301,10 +301,14 @@ void McaFeedFilter::performStandardAction(QString action, QString uniqueid)
 
 void McaFeedFilter::performCustomAction(QString action, QString uniqueid)
 {
-    m_feedRelevance->positiveFeedback(uniqueid);    
     if(sender()) {
         McaActions *realActions = qobject_cast<McaActions*>(sender()->parent());
         if(0 != realActions) {
+            if(realActions->actionType(action)) {
+                m_feedRelevance->positiveFeedback(uniqueid);
+            } else {
+                m_feedRelevance->negativeFeedback(uniqueid);
+            }
             realActions->performCustomAction(action, uniqueid);
         }
     }
