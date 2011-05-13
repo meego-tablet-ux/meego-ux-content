@@ -73,14 +73,14 @@ HEADERS += \
 
 system(sed 's/__library_version__/$${VERSION}/g' meego-ux-content.pc.in > meego-ux-content.pc)
 
-target.path = $$[QT_INSTALL_LIBS]
+target.path = $$INSTALL_ROOT/usr/lib
 INSTALLS += target
 
 headers.files += $$INSTALL_HEADERS
-headers.path += $$[QT_INSTALL_HEADERS]/meegouxcontent
+headers.path += $$INSTALL_ROOT/usr/include/meegouxcontent
 INSTALLS += headers
 
 pkgconfig.files += meego-ux-content.pc
-pkgconfig.path += $$[QT_INSTALL_LIBS]/pkgconfig
+pkgconfig.path += $$INSTALL_ROOT/usr/lib/pkgconfig
 INSTALLS += pkgconfig
 
