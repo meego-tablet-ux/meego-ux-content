@@ -7,24 +7,23 @@
  */
 
 import Qt 4.7
-import MeeGo.Labs.Components 0.1
+import MeeGo.Components 0.1
 import MeeGo.Content 0.1
 
 Window {
-    id: scene
-    showsearch: false
-    applicationPage: searchPageComponent
+    id: window
+    showToolBarSearch: false
 
-    FuzzyDateTime {
-        id: fuzzy
+    Component.onCompleted: {
+        switchBook(searchPageComponent)
     }
 
     Component {
         id: searchPageComponent
 
-        ApplicationPage {
+        AppPage {
             id: searchPage
-            title: "Search"
+            pageTitle: "Search"
 
             resources: [
                 McaSearchManager {
@@ -45,6 +44,10 @@ Window {
                             actions.performStandardAction("default", uniqueid)
                         }
                     }
+                },
+
+                FuzzyDateTime {
+                    id: fuzzy
                 }
             ]
 
@@ -67,7 +70,7 @@ Window {
                     width: parent.width
                     height: edit.height + edit.anchors.margins * 2
 
-                    TextInput {
+                    TextEntry {
                         id: edit
 
                         anchors.top: parent.top
@@ -87,7 +90,7 @@ Window {
 
                         anchors.right: parent.right
 
-                        title: "Search"
+                        text: "Search"
                         property string searchText: ""
 
                         onClicked: {

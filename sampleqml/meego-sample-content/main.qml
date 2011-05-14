@@ -1,11 +1,10 @@
 import Qt 4.7
-import MeeGo.Labs.Components 0.1
+import MeeGo.Components 0.1
 import MeeGo.Content 1.0
 
 Window {
-    id: scene
-    title: qsTr("Feed Sample")
-    applicationPage: feedPageComponent
+    id: window
+    toolBarTitle: "Feed Sample"
 
     resources: [
         McaPanelManager {
@@ -16,6 +15,8 @@ Window {
     ]
 
     Component.onCompleted: {
+        switchBook(feedPageComponent)
+
         panelManager.initialize("feed_sample")
 
         // For some rason this doesn't get properly set
@@ -26,15 +27,16 @@ Window {
 
     Component {
         id: feedPageComponent
-        ApplicationPage {
-            id: feedPage
-            
-            title: qsTr("Content Aggregator Sample")
+        AppPage {
+            id: feedPage            
+            pageTitle: "Content Aggregator Sample"
+
             Item {
                 id: buttons
-                anchors.top: parent.content.top
-                anchors.left: parent.content.left
-                anchors.right: parent.content.right
+
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
                 anchors.margins: 10
 
                 height: childrenRect.height + 10
@@ -47,8 +49,7 @@ Window {
                     
                     Button {
                         id: freezeButton
-                        title: panelManager.frozen?"Freeze":"Thaw"
-                        height: parent.height
+                        text: panelManager.frozen?"Freeze":"Thaw"
 
                         onClicked: {
                             panelManager.frozen = !panelManager.frozen
@@ -57,8 +58,7 @@ Window {
 
                     Button {
                         id: modeButton
-                        title: modeDefault?"Action: default":"Action: hide"
-                        height: parent.height
+                        text: modeDefault?"Action: default":"Action: hide"
                         property bool modeDefault: true
                         
                         onClicked: {
@@ -68,28 +68,26 @@ Window {
 
                     Button {
                         id: settingsButton
-                        title: "Settings"
-                        height: parent.height
+                        text: "Settings"
                         onClicked: {
-                            scene.addApplicationPage(settingsPageComponent)
+                            window.addPage(settingsPageComponent)
                         }
                     }
 
                     Button {
                         id: searchButton
-                        title: "Search"
-                        height: parent.height
+                        text: "Search"
                         onClicked: {
-                            scene.addApplicationPage(searchPageComponent)
+                            window.addPage(searchPageComponent)
                         }
                     }
                 }
             }
             ListView {
                 anchors.top: buttons.bottom
-                anchors.left: parent.content.left
-                anchors.right: parent.content.right
-                anchors.bottom: parent.content.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
 
                 model: panelManager.feedModel
                 delegate: panelDelegate
@@ -121,17 +119,15 @@ Window {
 
     Component {
         id: searchPageComponent
-        ApplicationPage {
+        AppPage {
             id: searchPage
-            title: qsTr("Content Aggregator Sample Search")
-
+            pageTitle: "Content Aggregator Sample Search"
 
             Item {
                 id: searchEntry
-
-                anchors.top: parent.content.top
-                anchors.left: parent.content.left
-                anchors.right: parent.content.right
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
 
                 // There's something strange about TextEntry
                 // the + 20 is to work around the problem
@@ -151,7 +147,7 @@ Window {
                     anchors.top: parent.top
                     anchors.right: parent.right
                     anchors.margins: 10
-                    title: "Search"
+                    text: "Search"
                     onClicked: {
                         searchManager.setSearchText(searchEntryText.text)
                     }
@@ -160,9 +156,9 @@ Window {
 
             ListView {
                 anchors.top: searchEntry.bottom
-                anchors.left: parent.content.left
-                anchors.right: parent.content.right
-                anchors.bottom: parent.content.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
 
                 model: searchManager.feedModel
                 delegate: searchDelegate
@@ -188,8 +184,6 @@ Window {
                 McaSearchManager {
                         id: searchManager
                 }
-
-
             ]
 
             Component.onCompleted: {
@@ -200,16 +194,16 @@ Window {
 
     Component {
         id: settingsPageComponent
-        ApplicationPage {
+        AppPage {
             id: settingsPage
-            title: qsTr("Content Aggregator Sample Settings")
+            pageTitle: "Content Aggregator Sample Settings"
 
             Item {
                 id: col
 
-                anchors.top: parent.content.top
-                anchors.left: parent.content.left
-                anchors.right: parent.content.right
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
                 anchors.margins: 10
                 height: childrenRect.height + 10
 
@@ -223,15 +217,14 @@ Window {
 
             ListView {
                 anchors.top: col.bottom
-                anchors.bottom: parent.content.bottom
-                anchors.left: parent.content.left
-                anchors.right: parent.content.right
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
 
                 model: panelManager.serviceModel
                 delegate: serviceDelegate
                 clip: true
             }
-
 
             resources: [
                 Component {
