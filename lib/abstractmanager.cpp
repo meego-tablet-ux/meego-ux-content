@@ -102,6 +102,7 @@ void McaAbstractManager::addFeed(const QModelIndex &index)
         return;
     }
 
+    m_upidToFeedInfo.insert(upid, NULL);
     m_requestIds[createFeed(model, name)] = index.row();
 }
 
