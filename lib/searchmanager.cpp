@@ -157,6 +157,9 @@ void McaSearchManager::searchDone()
 void McaSearchManager::removeFeedCleanup(const QString& upid) {
     // TODO: Assuming these are unique containers for unique feeds?
     FeedInfo *info = m_upidToFeedInfo[upid];
+    if (!info)
+        return;
+
     McaFeedAdapter *adapter = qobject_cast<McaFeedAdapter*>(info->feed);
     if (adapter) {
         foreach(McaSearchableContainer *container, m_searchableContainers) {            
