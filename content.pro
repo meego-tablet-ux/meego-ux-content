@@ -5,7 +5,7 @@ TEMPLATE = subdirs
 system("touch $$OUT_PWD/.intree_build")
 
 SUBDIRS += lib libqml
-SUBDIRS += sampleapp sampleplugin sampleqml
+SUBDIRS += sampleplugin sampleqml
 
 # Uncomment to build test app and plugin
 #SUBDIRS += testapp testplugin
