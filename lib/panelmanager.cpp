@@ -151,6 +151,14 @@ void McaPanelManager::setServiceEnabled(const QString& upid, bool enabled)
     emit serviceEnabledChanged(upid, enabled);
 }
 
+void McaPanelManager::clearAllHistory(const QDateTime &datetime)
+{
+    foreach (FeedInfo *info, m_upidToFeedInfo.values()) {
+        if (info)
+            info->filter->clearHistory(datetime);
+    }
+}
+
 void McaPanelManager::clearHistory(const QString &upid, const QDateTime &datetime)
 {
     FeedInfo *info = m_upidToFeedInfo.value(upid, NULL);
