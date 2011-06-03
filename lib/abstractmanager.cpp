@@ -14,7 +14,7 @@
 #include "memoryleak-defines.h"
 
 McaAbstractManager::McaAbstractManager(QObject *parent) :
-    QObject(parent)
+    QObject(parent), m_servicesConfigured(0), m_servicesEnabled(0)
 {
     m_feedmgr = McaFeedManager::takeManager();
     m_cache = new McaFeedCache(this);
@@ -48,6 +48,16 @@ bool McaAbstractManager::frozen()
     return m_cache->frozen();
 }
 
+int McaAbstractManager::servicesConfigured()
+{
+    return m_servicesConfigured;
+}
+
+int McaAbstractManager::servicesEnabled()
+{
+    return m_servicesEnabled;
+}
+
 QSortFilterProxyModel *McaAbstractManager::feedModel()
 {
     return m_feedProxy;
@@ -66,6 +76,8 @@ void McaAbstractManager::rowsAboutToBeRemoved(const QModelIndex &index, int star
         QModelIndex qmi = serviceModelIndex(i);
         removeFeed(qmi);
     }
+
+    updateCounts();
 }
 
 void McaAbstractManager::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight)
@@ -89,6 +101,8 @@ void McaAbstractManager::dataChanged(const QModelIndex &topLeft, const QModelInd
             }
         }
     }
+
+    updateCounts();
 }
 
 void McaAbstractManager::addFeed(const QModelIndex &index)
@@ -150,6 +164,8 @@ void McaAbstractManager::rowsInserted(const QModelIndex &index, int start, int e
         }
         addFeed(qmi);
     }
+
+    updateCounts();
 }
 
 void McaAbstractManager::createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId) {
@@ -175,5 +191,30 @@ void McaAbstractManager::createFeedError(QString serviceName, int uniqueRequestI
         qDebug() << "CREATE Feed Error " << serviceName << " with request id " << uniqueRequestId;
         m_requestIds.remove(uniqueRequestId);
         //TODO: any aditional cleanup on feed creation error
+    }
+}
+
+void McaAbstractManager::updateCounts() {
+    int count = serviceModelRowCount();
+
+    int configured = 0;
+    int enabled = 0;
+    for (int i=0; i<count; i++) {
+        QModelIndex qmi = serviceModelIndex(i);
+        if (!serviceModelData(qmi, McaServiceModel::CommonConfigErrorRole).toBool()) {
+            configured++;
+            if (dataChangedCondition(qmi))
+                enabled++;
+        }
+    }
+
+    if (m_servicesConfigured != configured) {
+        m_servicesConfigured = configured;
+        emit servicesConfiguredChanged(configured);
+    }
+
+    if (m_servicesEnabled != enabled) {
+        m_servicesEnabled = enabled;
+        emit servicesEnabledChanged(enabled);
     }
 }

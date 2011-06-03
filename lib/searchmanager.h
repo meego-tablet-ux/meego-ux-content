@@ -46,6 +46,7 @@ protected slots:
 
 private:
     virtual QModelIndex serviceModelIndex(int row);
+    virtual int serviceModelRowCount();
     virtual QVariant serviceModelData(const QModelIndex& index, int role);
     virtual bool dataChangedCondition(const QModelIndex& index);
 

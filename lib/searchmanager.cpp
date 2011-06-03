@@ -93,6 +93,11 @@ QModelIndex McaSearchManager::serviceModelIndex(int row)
     return m_serviceModel->index(row, 0);
 }
 
+int McaSearchManager::serviceModelRowCount()
+{
+    return m_serviceModel->rowCount();
+}
+
 QVariant McaSearchManager::serviceModelData(const QModelIndex& index, int role)
 {
     return m_serviceModel->data(index, role);

@@ -23,7 +23,6 @@ class McaPanelManager: public McaAbstractManager
     Q_OBJECT
     Q_PROPERTY(QSortFilterProxyModel *serviceModel READ serviceModel)
     Q_PROPERTY(QStringList categories READ categories WRITE setCategories NOTIFY categoriesChanged)
-    Q_PROPERTY(bool servicesConfigured READ servicesConfigured NOTIFY servicesConfiguredChanged)
     Q_PROPERTY(bool isEmpty READ isEmpty NOTIFY isEmptyChanged)
     Q_PROPERTY(bool servicesEnabledByDefault READ servicesEnabledByDefault WRITE setServicesEnabledByDefault)
 
@@ -35,7 +34,6 @@ public:
 
     // property functions - already accessible to QML
     virtual QStringList categories();
-    virtual bool servicesConfigured();
     virtual bool isEmpty();
     bool servicesEnabledByDefault();
     void setServicesEnabledByDefault(bool enabled);
@@ -54,7 +52,6 @@ public:
 
 signals:
     void categoriesChanged(const QStringList& categories);
-    void servicesConfiguredChanged(bool servicesConfigured);
     void serviceEnabledChanged(const QString& upid, bool enabled);
     void isEmptyChanged(bool isEmpty);
 
@@ -70,6 +67,7 @@ protected:
 
 private:
     virtual QModelIndex serviceModelIndex(int row);
+    virtual int serviceModelRowCount();
     virtual QVariant serviceModelData(const QModelIndex& index, int role);
     virtual bool dataChangedCondition(const QModelIndex& index);
 

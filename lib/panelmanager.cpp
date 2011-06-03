@@ -92,12 +92,6 @@ QStringList McaPanelManager::categories()
     return m_serviceProxy->categories();
 }
 
-bool McaPanelManager::servicesConfigured()
-{
-    // TODO: maybe need to really track just configured, not configured/enabled
-    return m_upidToFeedInfo.count() != 0;
-}
-
 bool McaPanelManager::isEmpty()
 {
     return m_isEmpty;
@@ -140,6 +134,7 @@ void McaPanelManager::setServiceEnabled(const QString& upid, bool enabled)
 {
     if (m_upidToEnabled.contains(upid) && m_upidToEnabled.value(upid) == enabled)
         return;
+
     m_upidToEnabled[upid] = enabled;
 
     // update the settings file
@@ -192,6 +187,11 @@ QModelIndex McaPanelManager::serviceModelIndex(int row)
     return m_serviceProxy->index(row, 0);
 }
 
+int McaPanelManager::serviceModelRowCount()
+{
+    return m_serviceProxy->rowCount();
+}
+
 QVariant McaPanelManager::serviceModelData(const QModelIndex& index, int role)
 {
     return m_serviceProxy->data(index, role);
@@ -201,7 +201,6 @@ bool McaPanelManager::dataChangedCondition(const QModelIndex& index)
 {
     return m_serviceProxy->data(index, McaServiceProxy::SystemEnabledRole).toBool();
 }
-
 
 void McaPanelManager::feedRowsChanged()
 {
