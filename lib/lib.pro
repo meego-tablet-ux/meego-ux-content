@@ -1,6 +1,7 @@
 include(../common.pri)
 TARGET = meegouxcontent
 TEMPLATE = lib
+QT += dbus
 CONFIG += threading
 #CONFIG += threading-debug 
 #CONFIG += memoryleak

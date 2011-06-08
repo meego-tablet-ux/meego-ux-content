@@ -17,6 +17,7 @@
 #include <QSettings>
 #include <QModelIndex>
 #include <QThread>
+#include <QDBusConnection>
 
 #include "feedmanager.h"
 //#include "feedplugin.h"
@@ -73,6 +74,9 @@ void McaFeedManager::releaseManager()
 
 McaFeedManager::McaFeedManager()
 {
+    // work around QtDBus problem in QTBUG-11413
+    QDBusConnection::sessionBus();
+
     m_requestIdCounter = 0;
     m_destroying = false;
 
