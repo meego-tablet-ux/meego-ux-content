@@ -22,7 +22,10 @@ OBJECTS_DIR = .obj
 MOC_DIR = .moc
 
 SOURCES += \
+    abstractmanager.cpp \
     actions.cpp \
+    actionsproxy.cpp \
+    adapter.cpp \
     allocator.cpp \
     aggregatedmodel.cpp \
     aggregatedservicemodel.cpp \
@@ -30,28 +33,27 @@ SOURCES += \
     feedcache.cpp \
     feedfilter.cpp \
     feedmanager.cpp \
+    feedplugincontainer.cpp \
+    feedrelevance.cpp \
     panelmanager.cpp \
     searchmanager.cpp \
     searchablecontainer.cpp \
     serviceadapter.cpp \
     serviceproxy.cpp \
-    settings.cpp \
-    feedplugincontainer.cpp \
-    abstractmanager.cpp \
-    actionsproxy.cpp \
-    adapter.cpp \
-    feedrelevance.cpp
+    settings.cpp
 
 INSTALL_HEADERS += \
+    abstractmanager.h \
     actions.h \
     feedmodel.h \
     feedplugin.h \
     panelmanager.h \
-    servicemodel.h \
     searchmanager.h \
-    abstractmanager.h 
+    servicemodel.h
 
 HEADERS += \
+    actionsproxy.h \
+    adapter.h \
     aggregatedmodel.h \
     aggregatedservicemodel.h \
     allocator.h \
@@ -59,19 +61,16 @@ HEADERS += \
     feedcache.h \
     feedfilter.h \
     feedmanager.h \
+    feedplugincontainer.h \
+    feedrelevance.h \
+    memoryleak.h \
+    memoryleak-defines.h \
     searchablecontainer.h \
     serviceadapter.h \
     serviceproxy.h \
     settings.h \
-    $$INSTALL_HEADERS \
-    feedplugincontainer.h \
-    actionsproxy.h \
     threadtest.h \
-    adapter.h \
-    threadtest.h \
-    memoryleak.h \
-    memoryleak-defines.h \
-    feedrelevance.h
+    $$INSTALL_HEADERS
 
 system(sed 's/__library_version__/$${VERSION}/g' meego-ux-content.pc.in > meego-ux-content.pc)
 
