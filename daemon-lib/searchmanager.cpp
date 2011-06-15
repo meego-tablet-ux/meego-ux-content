@@ -19,7 +19,6 @@
 #include "feedmanager.h"
 #include "servicemodel.h"
 #include "aggregatedmodel.h"
-#include "feedcache.h"
 #include "feedfilter.h"
 #include "feedmodel.h"
 #include "settings.h"

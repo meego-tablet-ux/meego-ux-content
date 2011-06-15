@@ -25,5 +25,5 @@ HEADERS += \
     contentdaemon.h \
     contentdaemoninterface.h
 
-INCLUDEPATH += ../lib
-LIBS += -L../lib -L../../content-build-meego/lib -lmeegouxcontent
+INCLUDEPATH += ../daemon-lib ../common
+LIBS += -L../daemon-lib -lmeegouxcontent-daemon

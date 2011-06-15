@@ -16,7 +16,6 @@
 #include "servicemodel.h"
 #include "aggregatedmodel.h"
 #include "panelmanager.h"
-#include "feedcache.h"
 #include "feedfilter.h"
 #include "feedmodel.h"
 #include "serviceproxy.h"

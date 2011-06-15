@@ -1,0 +1,10 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/meegouxcontent
+
+Name: meego-ux-content
+Description: MeeGo Content Aggregation library
+Version: __library_version__
+Libs: -L${libdir} -lmeegouxcontent
+Cflags: -I${includedir}
