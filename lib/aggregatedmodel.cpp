@@ -12,6 +12,7 @@
 
 #include "aggregatedmodel.h"
 #include "adapter.h"
+#include "feedmodel.h"
 
 #include "memoryleak-defines.h"
 
@@ -25,6 +26,13 @@ McaAggregatedModel::McaAggregatedModel(QObject *parent):
     QHash<int, QByteArray> hash = roleNames();
     hash.insert(SourceModelRole, "sourcemodel");
     setRoleNames(hash);
+
+    connect(this, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+            this, SLOT(dataChanged(QModelIndex,QModelIndex)));
+    connect(this, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
+            this, SLOT(rowsAboutToBeRemoved(QModelIndex,int,int)));
+    connect(this, SIGNAL(rowsInserted(QModelIndex,int,int)),
+            this, SLOT(rowsInserted(QModelIndex,int,int)));
 }
 
 McaAggregatedModel::~McaAggregatedModel()
@@ -282,7 +290,6 @@ void McaAggregatedModel::rowsInserted(const QAbstractItemModel *sourceModel,
 void McaAggregatedModel::rowsRemoved(const QAbstractItemModel *sourceModel,
                                      int start, int end)
 {
-
     if (end < start)
         return;
 
@@ -297,4 +304,61 @@ void McaAggregatedModel::rowsRemoved(const QAbstractItemModel *sourceModel,
             m_indexList.removeAt(block.first);
         endRemoveRows();
     }
+}
+
+void McaAggregatedModel::dataChanged ( const QModelIndex & topLeft, const QModelIndex & bottomRight )
+{
+    ArrayOfMcaFeedItemStruct itemsArray;
+    int topRow = topLeft.row();
+    int bottomRow = bottomRight.row();
+
+    McaFeedItemStruct item;
+    for(int row = topRow; row <= bottomRow; row++) {
+        item.type = data(index(row), McaFeedModel::RequiredTypeRole).toString();
+        item.uniqueId = data(index(row), McaFeedModel::RequiredUniqueIdRole).toString();
+        item.timestamp = data(index(row), McaFeedModel::RequiredTimestampRole).toDateTime();
+        item.uuid = data(index(row), McaFeedModel::CommonUuidRole).toString();
+        item.title = data(index(row), McaFeedModel::GenericTitleRole).toString();
+        item.content = data(index(row), McaFeedModel::GenericContentRole).toString();
+        itemsArray.append(item);
+    }
+
+    emit ItemsChanged(itemsArray);
+}
+
+void McaAggregatedModel::rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end )
+{
+    Q_UNUSED(parent);
+    QStringList itemIds;
+    int topRow = start;
+    int bottomRow = end;
+
+    QString id;
+    for(int row = topRow; row <= bottomRow; row++) {
+        id = data(index(row), McaFeedModel::CommonUuidRole).toString();
+        itemIds.append(id);
+    }
+
+    emit ItemsRemoved(itemIds);
+}
+
+void McaAggregatedModel::rowsInserted ( const QModelIndex & parent, int start, int end )
+{
+    Q_UNUSED(parent);
+    ArrayOfMcaFeedItemStruct itemsArray;
+    int topRow = start;
+    int bottomRow = end;
+
+    McaFeedItemStruct item;
+    for(int row = topRow; row <= bottomRow; row++) {
+        item.type = data(index(row), McaFeedModel::RequiredTypeRole).toString();
+        item.uniqueId = data(index(row), McaFeedModel::RequiredUniqueIdRole).toString();
+        item.timestamp = data(index(row), McaFeedModel::RequiredTimestampRole).toDateTime();
+        item.uuid = data(index(row), McaFeedModel::CommonUuidRole).toString();
+        item.title = data(index(row), McaFeedModel::GenericTitleRole).toString();
+        item.content = data(index(row), McaFeedModel::GenericContentRole).toString();
+        itemsArray.append(item);
+    }
+
+    emit ItemsAdded(itemsArray);
 }

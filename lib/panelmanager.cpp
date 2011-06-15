@@ -81,10 +81,12 @@ void McaPanelManager::initialize(const QString& managerData)
             this, SLOT(dataChanged(QModelIndex,QModelIndex)));
     connect(m_serviceProxy, SIGNAL(categoriesChanged(QStringList)),
             this, SIGNAL(categoriesChanged(QStringList)));
-    connect(m_feedProxy, SIGNAL(rowsInserted(QModelIndex,int,int)),
-            this, SLOT(feedRowsChanged()));
-    connect(m_feedProxy, SIGNAL(rowsRemoved(QModelIndex,int,int)),
-            this, SLOT(feedRowsChanged()));
+
+    qDebug() << "TODO: move this to McaPanelManagerProxy";
+//    connect(m_feedProxy, SIGNAL(rowsInserted(QModelIndex,int,int)),
+//            this, SLOT(feedRowsChanged()));
+//    connect(m_feedProxy, SIGNAL(rowsRemoved(QModelIndex,int,int)),
+//            this, SLOT(feedRowsChanged()));
 }
 
 QStringList McaPanelManager::categories()
@@ -192,24 +194,35 @@ int McaPanelManager::serviceModelRowCount()
     return m_serviceProxy->rowCount();
 }
 
-QVariant McaPanelManager::serviceModelData(const QModelIndex& index, int role)
+QVariant McaPanelManager::serviceModelData(const QModelIndex &index, int role)
 {
     return m_serviceProxy->data(index, role);
 }
 
-bool McaPanelManager::dataChangedCondition(const QModelIndex& index)
+QVariant McaPanelManager::serviceModelData(int row, int role)
+{
+    return serviceModelData(serviceModelIndex(row), role);
+}
+
+bool McaPanelManager::dataChangedCondition(const QModelIndex &index)
 {
     return m_serviceProxy->data(index, McaServiceProxy::SystemEnabledRole).toBool();
 }
 
+bool McaPanelManager::dataChangedCondition(int row)
+{
+    return dataChangedCondition(serviceModelIndex(row));
+}
+
 void McaPanelManager::feedRowsChanged()
 {
-    bool empty = m_feedProxy->rowCount() == 0;
+    qDebug() << "TODO: move this to McaPanelManagerProxy";
+//    bool empty = m_feedProxy->rowCount() == 0;
 
-    if (empty != m_isEmpty) {
-        m_isEmpty = empty;
-        emit isEmptyChanged(empty);
-    }
+//    if (empty != m_isEmpty) {
+//        m_isEmpty = empty;
+//        emit isEmptyChanged(empty);
+//    }
 }
 
 int McaPanelManager::createFeed(const QAbstractItemModel *serviceModel, const QString& name)
@@ -222,9 +235,10 @@ int McaPanelManager::createFeed(const QAbstractItemModel *serviceModel, const QS
 //
 
 void McaPanelManager::removeFeedCleanup(const QString& upid) {
-    if (m_upidToFeedInfo.count() == 0)
-        emit servicesConfiguredChanged(false);
-    m_allocator->removeFeed(upid);
+    qDebug() << "TODO: move this to McaPanelManagerProxy";
+//    if (m_upidToFeedInfo.count() == 0)
+//        emit servicesConfiguredChanged(false);
+//    m_allocator->removeFeed(upid);
 }
 
 QString McaPanelManager::fullEnabledKey()
@@ -241,8 +255,11 @@ void McaPanelManager::createFeedFinalize(QObject *containerObj, McaFeedAdapter *
     Q_UNUSED(containerObj);
     feedInfo->filter = qobject_cast<McaFeedFilter*>(feedAdapter->getSource());
     feedInfo->filter->setPanelName(m_panelName);
-    if (m_upidToFeedInfo.count() == 1) {
-        emit servicesConfiguredChanged(true);
-    }
+
+    qDebug() << "TODO: move this to McaPanelManagerProxy";
+//    if (m_upidToFeedInfo.count() == 1) {
+//        emit servicesConfiguredChanged(true);
+//    }
+
     m_allocator->addFeed(feedInfo->upid, feedAdapter);
 }

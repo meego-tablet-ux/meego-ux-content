@@ -5,7 +5,7 @@
 #include <QModelIndex>
 
 class McaFeedManager;
-class McaFeedCache;
+//class McaFeedCache;
 class McaAggregatedModel;
 class McaFeedFilter;
 class McaFeedAdapter;
@@ -23,14 +23,6 @@ struct FeedInfo
 class McaAbstractManager : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QSortFilterProxyModel *feedModel READ feedModel)
-    Q_PROPERTY(bool frozen READ frozen WRITE setFrozen NOTIFY frozenChanged)
-
-    // this is the number of services that are configured, i.e. could be instantiated
-    Q_PROPERTY(int servicesConfigured READ servicesConfigured NOTIFY servicesConfiguredChanged)
-
-    // this is the number of enabled, instantiated feeds, i.e. <= servicesConfigured
-    Q_PROPERTY(int servicesEnabled READ servicesEnabled NOTIFY servicesEnabledChanged)
 
 public:
     McaAbstractManager(QObject *parent = 0);
@@ -39,10 +31,10 @@ public:
     //managerData will be panelName for PanelManager, searchText for SearchManager
     Q_INVOKABLE virtual void initialize(const QString& managerData = QString()) = 0;
 
-    virtual QSortFilterProxyModel *feedModel();
-    virtual bool frozen();
-    virtual int servicesConfigured();
-    virtual int servicesEnabled();
+    QString dbusObjectId();
+
+public slots:
+    QString feedModelPath();
 
 protected:
     virtual void addFeed(const QModelIndex &index);
@@ -50,13 +42,10 @@ protected:
     virtual QString fullEnabledKey() { return ""; }
     void removeAllFeeds();
 
-signals:
-    void frozenChanged(bool frozen);
-    void servicesConfiguredChanged(int servicesConfigured);
-    void servicesEnabledChanged(int servicesEnabled);
+    static QString generateUniqueId();
 
-public slots:
-    virtual void setFrozen(bool frozen);
+signals:
+    void updateCounts();
 
 protected slots:
     virtual void rowsInserted(const QModelIndex &index, int start, int end);
@@ -67,26 +56,23 @@ protected slots:
     virtual void removeFeedCleanup(const QString& upid) = 0;
     void createFeedError(QString serviceName, int uniqueRequestId);
 
-    virtual void updateCounts();
-
 private:
     virtual QModelIndex serviceModelIndex(int row) = 0;
     virtual int serviceModelRowCount() = 0;
-    virtual QVariant serviceModelData(const QModelIndex& index, int role) = 0;
-    virtual bool dataChangedCondition(const QModelIndex& index) = 0;
+    virtual QVariant serviceModelData(const QModelIndex &index, int role) = 0;
+    virtual QVariant serviceModelData(int row, int role) = 0;
+    virtual bool dataChangedCondition(const QModelIndex &index) = 0;
+    virtual bool dataChangedCondition(int row) = 0;
 
     virtual int createFeed(const QAbstractItemModel *serviceModel, const QString& name) = 0;
     virtual void createFeedFinalize(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo) = 0;
 
 protected:
     McaFeedManager *m_feedmgr;
-    McaFeedCache *m_cache;
-    QSortFilterProxyModel *m_feedProxy;
     McaAggregatedModel *m_aggregator;
     QHash<QString, FeedInfo *> m_upidToFeedInfo;
     QMap<int, int> m_requestIds;
-    int m_servicesConfigured;
-    int m_servicesEnabled;
+    QString m_dbusObjectId;
 };
 
 #endif // ABSTRACTMANAGER_H

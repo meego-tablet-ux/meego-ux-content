@@ -41,7 +41,11 @@ SOURCES += \
     searchablecontainer.cpp \
     serviceadapter.cpp \
     serviceproxy.cpp \
-    settings.cpp
+    settings.cpp \
+    abstractmanagerproxy.cpp \
+    searchmanagerproxy.cpp \
+    aggregatedmodelproxy.cpp \
+    dbustypes.cpp
 
 INSTALL_HEADERS += \
     abstractmanager.h \
@@ -71,7 +75,11 @@ HEADERS += \
     serviceproxy.h \
     settings.h \
     threadtest.h \
-    $$INSTALL_HEADERS
+    $$INSTALL_HEADERS \
+    abstractmanagerproxy.h \
+    searchmanagerproxy.h \
+    aggregatedmodelproxy.h \
+    dbustypes.h
 
 system(sed 's/__library_version__/$${VERSION}/g' meego-ux-content.pc.in > meego-ux-content.pc)
 

@@ -366,6 +366,7 @@ void McaFeedCache::sendDataChanged() {
 
 void McaFeedCache::updateRow(QMap<int,QVariant> *map, int row)
 {
+    qDebug() << "McaFeedCache::updateRow " << row;
     // update all values for this row in the given cache map
     foreach (int role, m_cachedRoles)
         map->insert(role, m_source->data(m_source->index(row), role));

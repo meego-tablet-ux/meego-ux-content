@@ -250,8 +250,10 @@ void McaFeedManager::loadPlugins()
     // effects: checks plugin paths for any new plugins to load
     foreach (QString path, QCoreApplication::libraryPaths()) {
         QDir dir = QDir(path + PLUGIN_RELPATH);
+        qDebug() << dir.absolutePath();
         foreach (QString filename, dir.entryList(QStringList() << QString("*.so"))) {
             QString abspath = dir.absoluteFilePath(filename);
+            qDebug() << abspath;
             if (m_pluginToPaths.values().contains(abspath))
                 continue;
 

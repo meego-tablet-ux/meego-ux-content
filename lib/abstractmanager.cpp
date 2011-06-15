@@ -1,33 +1,39 @@
 #include "memoryleak.h"
 #include "abstractmanager.h"
 
-#include <QSortFilterProxyModel>
 #include <QDebug>
+#include <QUuid>
+#include <QRegExp>
+#include <QtDBus>
 
 #include "feedmodel.h"
 #include "servicemodel.h"
 #include "feedmanager.h"
-#include "feedcache.h"
 #include "aggregatedmodel.h"
 #include "feedadapter.h"
 
 #include "memoryleak-defines.h"
 
-McaAbstractManager::McaAbstractManager(QObject *parent) :
-    QObject(parent), m_servicesConfigured(0), m_servicesEnabled(0)
-{
-    m_feedmgr = McaFeedManager::takeManager();
-    m_cache = new McaFeedCache(this);
-    connect(m_cache, SIGNAL(frozenChanged(bool)),
-            this, SIGNAL(frozenChanged(bool)));
-    m_aggregator = new McaAggregatedModel(m_cache);
-    m_cache->setSourceModel(m_aggregator);
+#define AGREGATEDMODEL_DBUS_NAME "/AggreagatedModel"
 
-    m_feedProxy = new QSortFilterProxyModel(this);
-    m_feedProxy->setSourceModel(m_cache);
-    m_feedProxy->setSortRole(McaFeedModel::RequiredTimestampRole);
-    m_feedProxy->sort(0, Qt::DescendingOrder);
-    m_feedProxy->setDynamicSortFilter(true);
+// generates unique ids to be used as dbus object paths
+QString McaAbstractManager::generateUniqueId()
+{
+    QString id = QString("/") + QUuid::createUuid().toString();
+    id.replace(QRegExp("[{}-]"),"");
+    return id;
+}
+
+McaAbstractManager::McaAbstractManager(QObject *parent) :
+    QObject(parent)
+{
+    m_dbusObjectId = generateUniqueId();
+
+    QDBusConnection::sessionBus().registerObject(m_dbusObjectId, this, QDBusConnection::ExportAllContents);
+
+    m_feedmgr = McaFeedManager::takeManager();
+    m_aggregator = new McaAggregatedModel();
+    QDBusConnection::sessionBus().registerObject(m_dbusObjectId + AGREGATEDMODEL_DBUS_NAME, m_aggregator, QDBusConnection::ExportAllContents);
 
     connect(m_feedmgr, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)), this, SLOT(createFeedDone(QObject*,McaFeedAdapter*,int)), Qt::DirectConnection);
     connect(m_feedmgr, SIGNAL(createFeedError(QString,int)), this, SLOT(createFeedError(QString,int)));
@@ -35,37 +41,25 @@ McaAbstractManager::McaAbstractManager(QObject *parent) :
 
 McaAbstractManager::~McaAbstractManager()
 {
-    m_requestIds.clear();
-    if(0 != m_cache) {
-        delete m_cache;
-        m_cache = 0;
+    QDBusConnection::sessionBus().unregisterObject(m_dbusObjectId);
+
+    QString modelObjectPath = m_dbusObjectId + AGREGATEDMODEL_DBUS_NAME;
+    if(0 != QDBusConnection::sessionBus().objectRegisteredAt(modelObjectPath)) {
+        QDBusConnection::sessionBus().unregisterObject(modelObjectPath);
     }
+
+    m_requestIds.clear();
     McaFeedManager::releaseManager();
 }
 
-bool McaAbstractManager::frozen()
+QString McaAbstractManager::feedModelPath()
 {
-    return m_cache->frozen();
+    return m_dbusObjectId + AGREGATEDMODEL_DBUS_NAME;
 }
 
-int McaAbstractManager::servicesConfigured()
+QString McaAbstractManager::dbusObjectId()
 {
-    return m_servicesConfigured;
-}
-
-int McaAbstractManager::servicesEnabled()
-{
-    return m_servicesEnabled;
-}
-
-QSortFilterProxyModel *McaAbstractManager::feedModel()
-{
-    return m_feedProxy;
-}
-
-void McaAbstractManager::setFrozen(bool frozen)
-{
-    m_cache->setFrozen(frozen);
+    return m_dbusObjectId;
 }
 
 void McaAbstractManager::rowsAboutToBeRemoved(const QModelIndex &index, int start, int end)
@@ -77,7 +71,7 @@ void McaAbstractManager::rowsAboutToBeRemoved(const QModelIndex &index, int star
         removeFeed(qmi);
     }
 
-    updateCounts();
+    emit updateCounts();
 }
 
 void McaAbstractManager::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight)
@@ -102,7 +96,7 @@ void McaAbstractManager::dataChanged(const QModelIndex &topLeft, const QModelInd
         }
     }
 
-    updateCounts();
+    emit updateCounts();
 }
 
 void McaAbstractManager::addFeed(const QModelIndex &index)
@@ -165,7 +159,7 @@ void McaAbstractManager::rowsInserted(const QModelIndex &index, int start, int e
         addFeed(qmi);
     }
 
-    updateCounts();
+    emit updateCounts();
 }
 
 void McaAbstractManager::createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId) {
@@ -183,6 +177,7 @@ void McaAbstractManager::createFeedDone(QObject *containerObj, McaFeedAdapter *f
         m_upidToFeedInfo.insert(upid, info);
         createFeedFinalize(containerObj, feedAdapter, info);
         m_aggregator->addSourceModel(feedAdapter);
+        qDebug() << "McaAbstractManager::createFeedDone " << name;
     }
 }
 
@@ -191,30 +186,5 @@ void McaAbstractManager::createFeedError(QString serviceName, int uniqueRequestI
         qDebug() << "CREATE Feed Error " << serviceName << " with request id " << uniqueRequestId;
         m_requestIds.remove(uniqueRequestId);
         //TODO: any aditional cleanup on feed creation error
-    }
-}
-
-void McaAbstractManager::updateCounts() {
-    int count = serviceModelRowCount();
-
-    int configured = 0;
-    int enabled = 0;
-    for (int i=0; i<count; i++) {
-        QModelIndex qmi = serviceModelIndex(i);
-        if (!serviceModelData(qmi, McaServiceModel::CommonConfigErrorRole).toBool()) {
-            configured++;
-            if (dataChangedCondition(qmi))
-                enabled++;
-        }
-    }
-
-    if (m_servicesConfigured != configured) {
-        m_servicesConfigured = configured;
-        emit servicesConfiguredChanged(configured);
-    }
-
-    if (m_servicesEnabled != enabled) {
-        m_servicesEnabled = enabled;
-        emit servicesEnabledChanged(enabled);
     }
 }

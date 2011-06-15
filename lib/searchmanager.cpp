@@ -98,15 +98,25 @@ int McaSearchManager::serviceModelRowCount()
     return m_serviceModel->rowCount();
 }
 
-QVariant McaSearchManager::serviceModelData(const QModelIndex& index, int role)
+QVariant McaSearchManager::serviceModelData(const QModelIndex &index, int role)
 {
     return m_serviceModel->data(index, role);
 }
 
-bool McaSearchManager::dataChangedCondition(const QModelIndex& index)
+QVariant McaSearchManager::serviceModelData(int row, int role)
+{
+    return serviceModelData(serviceModelIndex(row), role);
+}
+
+bool McaSearchManager::dataChangedCondition(const QModelIndex &index)
 {
     Q_UNUSED(index);
     return true;
+}
+
+bool McaSearchManager::dataChangedCondition(int row)
+{
+    return dataChangedCondition( serviceModelIndex(row));
 }
 
 int McaSearchManager::createFeed(const QAbstractItemModel *serviceModel, const QString& name)
