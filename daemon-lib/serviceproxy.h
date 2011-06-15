@@ -12,7 +12,7 @@
 #include <QSortFilterProxyModel>
 #include <QStringList>
 
-class McaPanelManager;
+class McaPanelManagerDBus;
 
 class McaServiceProxy: public QSortFilterProxyModel
 {
@@ -32,7 +32,7 @@ public:
         FilterLast  // leave this in the last position
     };
 
-    McaServiceProxy(McaPanelManager *panelmgr, QAbstractItemModel *source, QObject *parent = NULL);
+    McaServiceProxy(McaPanelManagerDBus *panelmgr, QAbstractItemModel *source, QObject *parent = NULL);
     virtual ~McaServiceProxy();
 
     int filter();
@@ -52,7 +52,7 @@ protected slots:
     void setServiceEnabled(const QString& upid, bool enabled);
 
 private:
-    McaPanelManager *m_panelmgr;
+    McaPanelManagerDBus *m_panelmgr;
     QAbstractItemModel *m_source;
     int m_filter;
     QStringList m_categories;

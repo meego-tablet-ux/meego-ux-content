@@ -20,15 +20,15 @@ struct FeedInfo
     McaFeedFilter *filter;
 };
 
-class McaAbstractManager : public QObject
+class McaAbstractManagerDBus : public QObject
 {
     Q_OBJECT
 
 public:
-    McaAbstractManager(QObject *parent = 0);
-    virtual ~McaAbstractManager();
+    McaAbstractManagerDBus(QObject *parent = 0);
+    virtual ~McaAbstractManagerDBus();
 
-    //managerData will be panelName for PanelManager, searchText for SearchManager
+    //managerData will be panelName for PanelManagerDBus, searchText for SearchManagerDBus
     Q_INVOKABLE virtual void initialize(const QString& managerData = QString()) = 0;
 
     QString dbusObjectId();

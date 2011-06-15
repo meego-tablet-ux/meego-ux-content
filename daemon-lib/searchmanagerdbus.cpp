@@ -14,7 +14,7 @@
 #include <QStandardItemModel>
 #include <QSortFilterProxyModel>
 
-#include "searchmanager.h"
+#include "searchmanagerdbus.h"
 #include "allocator.h"
 #include "feedmanager.h"
 #include "servicemodel.h"
@@ -33,13 +33,13 @@ const int TemporaryFeedLimit = 100;
 // public methods
 //
 
-McaSearchManager::McaSearchManager(QObject *parent):
-        McaAbstractManager(parent)
+McaSearchManagerDBus::McaSearchManagerDBus(QObject *parent):
+        McaAbstractManagerDBus(parent)
 {
     m_serviceModel = m_feedmgr->serviceModel();
 }
 
-McaSearchManager::~McaSearchManager()        
+McaSearchManagerDBus::~McaSearchManagerDBus()
 {
     removeAllFeeds();
 
@@ -50,7 +50,7 @@ McaSearchManager::~McaSearchManager()
     }
 }
 
-void McaSearchManager::initialize(const QString& managerData)
+void McaSearchManagerDBus::initialize(const QString& managerData)
 {
     m_searchText = managerData;
 
@@ -64,7 +64,7 @@ void McaSearchManager::initialize(const QString& managerData)
             this, SLOT(dataChanged(QModelIndex,QModelIndex)));
 }
 
-QString McaSearchManager::searchText()
+QString McaSearchManagerDBus::searchText()
 {
     return m_searchText;
 }
@@ -73,7 +73,7 @@ QString McaSearchManager::searchText()
 // public slots
 //
 
-void McaSearchManager::setSearchText(const QString& searchText)
+void McaSearchManagerDBus::setSearchText(const QString& searchText)
 {
     if (searchText == m_searchText)
         return;
@@ -87,38 +87,38 @@ void McaSearchManager::setSearchText(const QString& searchText)
     }
 }
 
-QModelIndex McaSearchManager::serviceModelIndex(int row)
+QModelIndex McaSearchManagerDBus::serviceModelIndex(int row)
 {
     return m_serviceModel->index(row, 0);
 }
 
-int McaSearchManager::serviceModelRowCount()
+int McaSearchManagerDBus::serviceModelRowCount()
 {
     return m_serviceModel->rowCount();
 }
 
-QVariant McaSearchManager::serviceModelData(const QModelIndex &index, int role)
+QVariant McaSearchManagerDBus::serviceModelData(const QModelIndex &index, int role)
 {
     return m_serviceModel->data(index, role);
 }
 
-QVariant McaSearchManager::serviceModelData(int row, int role)
+QVariant McaSearchManagerDBus::serviceModelData(int row, int role)
 {
     return serviceModelData(serviceModelIndex(row), role);
 }
 
-bool McaSearchManager::dataChangedCondition(const QModelIndex &index)
+bool McaSearchManagerDBus::dataChangedCondition(const QModelIndex &index)
 {
     Q_UNUSED(index);
     return true;
 }
 
-bool McaSearchManager::dataChangedCondition(int row)
+bool McaSearchManagerDBus::dataChangedCondition(int row)
 {
     return dataChangedCondition( serviceModelIndex(row));
 }
 
-int McaSearchManager::createFeed(const QAbstractItemModel *serviceModel, const QString& name)
+int McaSearchManagerDBus::createFeed(const QAbstractItemModel *serviceModel, const QString& name)
 {
     return m_feedmgr->createSearchFeed(serviceModel, name, m_searchText);
 }
@@ -127,7 +127,7 @@ int McaSearchManager::createFeed(const QAbstractItemModel *serviceModel, const Q
 // protected methods
 //
 
-void McaSearchManager::createFeedFinalize(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo)
+void McaSearchManagerDBus::createFeedFinalize(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo)
 {
     Q_UNUSED(feedInfo);
 
@@ -145,7 +145,7 @@ void McaSearchManager::createFeedFinalize(QObject *containerObj, McaFeedAdapter 
     feedAdapter->setLimit(TemporaryFeedLimit);
 }
 
-void McaSearchManager::searchDone()
+void McaSearchManagerDBus::searchDone()
 {
     McaSearchableContainer *container = qobject_cast<McaSearchableContainer*>(sender());
     if (!container) {
@@ -168,7 +168,7 @@ void McaSearchManager::searchDone()
     }
 }
 
-void McaSearchManager::removeFeedCleanup(const QString& upid) {
+void McaSearchManagerDBus::removeFeedCleanup(const QString& upid) {
     // TODO: Assuming these are unique containers for unique feeds?
     FeedInfo *info = m_upidToFeedInfo[upid];
     if (!info)
@@ -176,7 +176,7 @@ void McaSearchManager::removeFeedCleanup(const QString& upid) {
 
     McaFeedAdapter *adapter = qobject_cast<McaFeedAdapter*>(info->feed);
     if (adapter) {
-        foreach(McaSearchableContainer *container, m_searchableContainers) {            
+        foreach(McaSearchableContainer *container, m_searchableContainers) {
             if( container->feedModel() == adapter->getSource() ) {
                 m_searchableContainers.removeOne( container );
 
@@ -200,11 +200,11 @@ void McaSearchManager::removeFeedCleanup(const QString& upid) {
         }
     }
     else {
-        qWarning() << "McaSearchManager::removeFeedCleanup: Requesting removal of non-McaFeedAdapter in search";
+        qWarning() << "McaSearchManagerDBus::removeFeedCleanup: Requesting removal of non-McaFeedAdapter in search";
     }
 }
 
-void McaSearchManager::addSearchRequest(McaSearchableContainer *container, const QString &searchText)
+void McaSearchManagerDBus::addSearchRequest(McaSearchableContainer *container, const QString &searchText)
 {
     QThread *containerThread = container->thread();
     if (m_processingRequests.contains(containerThread)) {
@@ -212,7 +212,7 @@ void McaSearchManager::addSearchRequest(McaSearchableContainer *container, const
         t_SearchRequestEntry *requestEntry = 0;
         for(int index =0; index < threadQueue->count(); index++) {
             requestEntry = threadQueue->at(index);
-            if(requestEntry->first == container) {                
+            if(requestEntry->first == container) {
                 threadQueue->removeOne(requestEntry);
                 delete requestEntry;
             }

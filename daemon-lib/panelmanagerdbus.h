@@ -13,13 +13,12 @@
 #include <QStringList>
 #include <QDateTime>
 
-#include "searchmanager.h"
-#include "panelmanager.h"
+#include "searchmanagerdbus.h"
 
 class McaAllocator;
 class McaServiceProxy;
 
-class McaPanelManager: public McaAbstractManager
+class McaPanelManagerDBus: public McaAbstractManagerDBus
 {
     Q_OBJECT
     Q_PROPERTY(QSortFilterProxyModel *serviceModel READ serviceModel)
@@ -28,8 +27,8 @@ class McaPanelManager: public McaAbstractManager
     Q_PROPERTY(bool servicesEnabledByDefault READ servicesEnabledByDefault WRITE setServicesEnabledByDefault)
 
 public:
-    McaPanelManager(QObject *parent = NULL);
-    virtual ~McaPanelManager();
+    McaPanelManagerDBus(QObject *parent = NULL);
+    virtual ~McaPanelManagerDBus();
 
     Q_INVOKABLE void initialize(const QString& managerData);
 

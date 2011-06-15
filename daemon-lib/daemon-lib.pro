@@ -23,7 +23,7 @@ OBJECTS_DIR = .obj
 MOC_DIR = .moc
 
 SOURCES += \
-    abstractmanager.cpp \
+    abstractmanagerdbus.cpp \
     actions.cpp \
     actionsproxy.cpp \
     adapter.cpp \
@@ -35,8 +35,8 @@ SOURCES += \
     feedmanager.cpp \
     feedplugincontainer.cpp \
     feedrelevance.cpp \
-    panelmanager.cpp \
-    searchmanager.cpp \
+    panelmanagerdbus.cpp \
+    searchmanagerdbus.cpp \
     searchablecontainer.cpp \
     serviceadapter.cpp \
     serviceproxy.cpp \
@@ -44,12 +44,12 @@ SOURCES += \
     ../common/dbustypes.cpp
 
 INSTALL_HEADERS += \
-    abstractmanager.h \
+    abstractmanagerdbus.h \
     actions.h \
     ../common/feedmodel.h \
     ../common/feedplugin.h \
-    panelmanager.h \
-    searchmanager.h \
+    panelmanagerdbus.h \
+    searchmanagerdbus.h \
     ../common/servicemodel.h
 
 HEADERS += \
@@ -58,7 +58,7 @@ HEADERS += \
     aggregatedmodel.h \
     aggregatedservicemodel.h \
     allocator.h \
-    feedadapter.h \
+    ../common/feedadapter.h \
     feedfilter.h \
     feedmanager.h \
     feedplugincontainer.h \

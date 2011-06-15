@@ -13,7 +13,7 @@
 #include "serviceproxy.h"
 #include "servicemodel.h"
 #include "serviceadapter.h"
-#include "panelmanager.h"
+#include "panelmanagerdbus.h"
 
 #include "memoryleak-defines.h"
 
@@ -27,7 +27,7 @@
 // public methods
 //
 
-McaServiceProxy::McaServiceProxy(McaPanelManager *panelmgr, QAbstractItemModel *source,
+McaServiceProxy::McaServiceProxy(McaPanelManagerDBus *panelmgr, QAbstractItemModel *source,
                                  QObject *parent):
         QSortFilterProxyModel(parent)
 {

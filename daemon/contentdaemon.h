@@ -7,8 +7,8 @@
 #include <QModelIndex>
 
 #include "contentdaemoninterface.h"
-#include "searchmanager.h"
-#include "panelmanager.h"
+#include "searchmanagerdbus.h"
+#include "panelmanagerdbus.h"
 
 class McaSearchManagerAdaptor;
 
@@ -30,8 +30,8 @@ private:
     static QString uniqueId();
 
 private:
-    QMap<QString, McaPanelManager*> m_panelManagers;
-    QMap<QString, McaSearchManager*> m_searchManagers;
+    QMap<QString, McaPanelManagerDBus*> m_panelManagers;
+    QMap<QString, McaSearchManagerDBus*> m_searchManagers;
 };
 
 #endif // CONTENTDAEMON_H

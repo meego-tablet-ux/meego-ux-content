@@ -1,7 +1,7 @@
 #include <QDebug>
 
 #include "contentdaemon.h"
-#include "searchmanager.h"
+#include "searchmanagerdbus.h"
 #include "dbustypes.h"
 
 ContentDaemon::ContentDaemon(QCoreApplication *application)
@@ -12,8 +12,8 @@ ContentDaemon::ContentDaemon(QCoreApplication *application)
 
 QString ContentDaemon::newSearchManager()
 {
-    qDebug() << "ContentDaemon::newSearchManager called";    
-    McaSearchManager *searchManager = new McaSearchManager(this);
+    qDebug() << "ContentDaemon::newSearchManager called";
+    McaSearchManagerDBus *searchManager = new McaSearchManagerDBus(this);
     QString objectPath = searchManager->dbusObjectId();
     m_searchManagers[objectPath] = searchManager;
     qDebug() << "registered new SearchManager object at path " << objectPath;
@@ -25,7 +25,7 @@ QString ContentDaemon::newSearchManager()
 //{
 //    qDebug() << "ContentDaemon::newPanelManager called";
 //    QString objectPath = QString(CONTENT_DBUS_OBJECT) + "/PanelManager_" + uniqueId();
-//    McaPanelManager *panelManager = new McaPanelManager(this);
+//    McaPanelManagerDBus *panelManager = new McaPanelManagerDBus(this);
 
 //    m_panelManagers[objectPath] = panelManager;
 //    QDBusConnection::sessionBus().registerObject(objectPath, panelManager, QDBusConnection::ExportAllContents);
@@ -38,14 +38,14 @@ QString ContentDaemon::newSearchManager()
 bool ContentDaemon::release(const QString &objectPath)
 {
     if(m_searchManagers.contains(objectPath)) {
-        McaSearchManager *searchManager = m_searchManagers[objectPath];
+        McaSearchManagerDBus *searchManager = m_searchManagers[objectPath];
         m_searchManagers.remove(objectPath);
         delete searchManager;
         return true;
     }
 
     if(m_panelManagers.contains(objectPath)) {
-        McaPanelManager *panelManager = m_panelManagers[objectPath];
+        McaPanelManagerDBus *panelManager = m_panelManagers[objectPath];
         m_panelManagers.remove(objectPath);
         QDBusConnection::sessionBus().unregisterObject(objectPath);
         delete panelManager;

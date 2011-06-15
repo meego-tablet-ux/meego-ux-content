@@ -14,12 +14,12 @@
 #include <QQueue>
 #include <QPair>
 
-#include "abstractmanager.h"
+#include "abstractmanagerdbus.h"
 
 class McaSearchableContainer;
 
 
-class McaSearchManager: public McaAbstractManager
+class McaSearchManagerDBus: public McaAbstractManagerDBus
 {
     Q_OBJECT
     Q_PROPERTY(QString searchText READ searchText WRITE setSearchText NOTIFY searchTextChanged)
@@ -27,8 +27,8 @@ class McaSearchManager: public McaAbstractManager
     typedef QPair<McaSearchableContainer*, QString> t_SearchRequestEntry;
     typedef QQueue<t_SearchRequestEntry*> t_SearchRequestQueue;
 public:
-    McaSearchManager(QObject *parent = NULL);
-    virtual ~McaSearchManager();
+    McaSearchManagerDBus(QObject *parent = NULL);
+    virtual ~McaSearchManagerDBus();
 
     Q_INVOKABLE void initialize(const QString& managerData);
 
