@@ -10,7 +10,7 @@
 #include "servicemodel.h"
 #include "dbustypes.h"
 
-McaAbstractManagerProxy::McaAbstractManagerProxy(const QString &createMethodName, QObject *parent) :
+McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject *parent) :
     QObject(parent), m_servicesConfigured(0), m_servicesEnabled(0)
 {
     registerDataTypes();
@@ -38,12 +38,12 @@ McaAbstractManagerProxy::McaAbstractManagerProxy(const QString &createMethodName
 
 }
 
-McaAbstractManagerProxy::~McaAbstractManagerProxy()
+McaAbstractManager::~McaAbstractManager()
 {
     if(0 == m_dbusDaemonInterface) return;
 
     QDBusReply<bool> reply = m_dbusDaemonInterface->call("release", QVariant(m_dbusManagerInterface->path()));
-    qDebug() << "McaAbstractManagerProxy::~McaAbstractManagerProxy release " << m_dbusManagerInterface->path() << reply.value();
+    qDebug() << "McaAbstractManager::~McaAbstractManager release " << m_dbusManagerInterface->path() << reply.value();
 
     if(0 != m_cache) {
         delete m_cache;
@@ -58,38 +58,38 @@ McaAbstractManagerProxy::~McaAbstractManagerProxy()
     m_dbusDaemonInterface = 0;
 }
 
-void McaAbstractManagerProxy::initialize(const QString& managerData)
+void McaAbstractManager::initialize(const QString& managerData)
 {
     if(0 == m_dbusManagerInterface) return;
     m_dbusManagerInterface->call("initialize", QVariant(managerData));
 }
 
-bool McaAbstractManagerProxy::frozen()
+bool McaAbstractManager::frozen()
 {
     return m_cache->frozen();
 }
 
-int McaAbstractManagerProxy::servicesConfigured()
+int McaAbstractManager::servicesConfigured()
 {
     return m_servicesConfigured;
 }
 
-int McaAbstractManagerProxy::servicesEnabled()
+int McaAbstractManager::servicesEnabled()
 {
     return m_servicesEnabled;
 }
 
-void McaAbstractManagerProxy::setFrozen(bool frozen)
+void McaAbstractManager::setFrozen(bool frozen)
 {
     m_cache->setFrozen(frozen);
 }
 
-QSortFilterProxyModel * McaAbstractManagerProxy::feedModel()
+QSortFilterProxyModel * McaAbstractManager::feedModel()
 {
     return m_feedProxy;
 }
 
-void McaAbstractManagerProxy::updateCounts() {
+void McaAbstractManager::updateCounts() {
     int count = serviceModelRowCount();
 
     int configured = 0;
@@ -114,21 +114,21 @@ void McaAbstractManagerProxy::updateCounts() {
     }
 }
 
-int McaAbstractManagerProxy::serviceModelRowCount()
+int McaAbstractManager::serviceModelRowCount()
 {
     if(0 == m_dbusManagerInterface) return 0;
     QDBusReply<int> reply = m_dbusManagerInterface->call("serviceModelRowCount");
     return reply.value();
 }
 
-QVariant McaAbstractManagerProxy::serviceModelData(int row, int role)
+QVariant McaAbstractManager::serviceModelData(int row, int role)
 {
     if(0 == m_dbusManagerInterface) return QVariant();
     QDBusReply<QVariant> reply = m_dbusManagerInterface->call("serviceModelData", QVariant(row), QVariant(role));
     return reply.value();
 }
 
-bool McaAbstractManagerProxy::dataChangedCondition(int row)
+bool McaAbstractManager::dataChangedCondition(int row)
 {
     if(0 == m_dbusManagerInterface) return false;
     QDBusReply<bool> reply = m_dbusManagerInterface->call("dataChangedCondition", QVariant(row));

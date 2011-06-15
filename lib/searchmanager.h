@@ -3,11 +3,11 @@
 
 #include "abstractmanagerproxy.h"
 
-class McaSearchManagerProxy : public McaAbstractManagerProxy
+class McaSearchManager : public McaAbstractManager
 {
     Q_OBJECT
 public:
-    McaSearchManagerProxy(QObject *parent = 0);
+    McaSearchManager(QObject *parent = 0);
 
 signals:
 

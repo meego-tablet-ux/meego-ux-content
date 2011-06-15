@@ -8,7 +8,7 @@
 class McaFeedCache;
 class McaAggregatedModelProxy;
 
-class McaAbstractManagerProxy : public QObject
+class McaAbstractManager : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QSortFilterProxyModel *feedModel READ feedModel)
@@ -21,8 +21,8 @@ class McaAbstractManagerProxy : public QObject
     Q_PROPERTY(int servicesEnabled READ servicesEnabled NOTIFY servicesEnabledChanged)
 
 protected:
-    McaAbstractManagerProxy(const QString &createMethodName, QObject *parent = 0);
-    virtual ~McaAbstractManagerProxy();
+    McaAbstractManager(const QString &createMethodName, QObject *parent = 0);
+    virtual ~McaAbstractManager();
 
 signals:
     void frozenChanged(bool frozen);
