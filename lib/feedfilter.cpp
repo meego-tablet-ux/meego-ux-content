@@ -294,7 +294,7 @@ void McaFeedFilter::performStandardAction(QString action, QString uniqueid)
     if(sender()) {
         McaActions *realActions = qobject_cast<McaActions*>(sender()->parent());
         if(0 != realActions) {
-            realActions->performCustomAction(action, uniqueid);
+            realActions->performStandardAction(action, uniqueid);
         }
     }
 }
