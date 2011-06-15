@@ -53,7 +53,7 @@ QVariant McaAggregatedModelProxy::data(const QModelIndex& index, int role) const
         result = QVariant::fromValue<QString>(feedItem->content);
         break;
     default:
-//        qDebug() << "McaAggregatedModelProxy::data: Unhandled data role requested " << role << " for row " << row;
+        qDebug() << "McaAggregatedModelProxy::data: Unhandled data role requested " << role << " for row " << row;
         result = QVariant();
         break;
     }

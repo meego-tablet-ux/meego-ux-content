@@ -20,18 +20,15 @@ public:
     ContentDaemon(QCoreApplication *application);
 
 public slots:
-//    QString newPanelManager();
+    QString newPanelManager();
     QString newSearchManager();
-
     bool release(const QString &objectPath);
 
+private:
+    QString addObjectToList(McaAbstractManagerDBus *dbusObject);
 
 private:
-    static QString uniqueId();
-
-private:
-    QMap<QString, McaPanelManagerDBus*> m_panelManagers;
-    QMap<QString, McaSearchManagerDBus*> m_searchManagers;
+    QMap<QString, McaAbstractManagerDBus*> m_managerList;
 };
 
 #endif // CONTENTDAEMON_H
