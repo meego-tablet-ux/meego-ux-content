@@ -49,13 +49,16 @@ McaPanelManagerDBus::McaPanelManagerDBus(QObject *parent):
         McaAbstractManagerDBus(parent)
 {
     m_allocator = new McaAllocator;
-    m_isEmpty = false;
     m_serviceProxy = new McaServiceProxy(this, m_feedmgr->serviceModel(), this);
+
+    QDBusConnection::sessionBus().registerObject(serviceModelPath() , m_serviceProxy, QDBusConnection::ExportAllContents);
+
     m_servicesEnabledByDefault = true;
 }
 
 McaPanelManagerDBus::~McaPanelManagerDBus()
 {
+
     removeAllFeeds();
 
     if(m_allocator) {
@@ -69,8 +72,7 @@ void McaPanelManagerDBus::initialize(const QString& managerData)
     m_allocator->setPanelName(m_panelName);
 
     // proxy model should be empty, but seem to need to call rowCount to wake it up
-    rowsInserted(QModelIndex(), 0, m_serviceProxy->rowCount() - 1);
-    feedRowsChanged();
+    rowsInserted(QModelIndex(), 0, m_serviceProxy->rowCount() - 1);    
 
     connect(m_serviceProxy, SIGNAL(rowsInserted(QModelIndex,int,int)),
             this, SLOT(rowsInserted(QModelIndex,int,int)));
@@ -78,29 +80,6 @@ void McaPanelManagerDBus::initialize(const QString& managerData)
             this, SLOT(rowsAboutToBeRemoved(QModelIndex,int,int)));
     connect(m_serviceProxy, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
             this, SLOT(dataChanged(QModelIndex,QModelIndex)));
-    connect(m_serviceProxy, SIGNAL(categoriesChanged(QStringList)),
-            this, SIGNAL(categoriesChanged(QStringList)));
-
-    qDebug() << "TODO: caPanelManagerDBus::initialize move this to McaPanelManager";
-//    connect(m_feedProxy, SIGNAL(rowsInserted(QModelIndex,int,int)),
-//            this, SLOT(feedRowsChanged()));
-//    connect(m_feedProxy, SIGNAL(rowsRemoved(QModelIndex,int,int)),
-//            this, SLOT(feedRowsChanged()));
-}
-
-QStringList McaPanelManagerDBus::categories()
-{
-    return m_serviceProxy->categories();
-}
-
-bool McaPanelManagerDBus::isEmpty()
-{
-    return m_isEmpty;
-}
-
-bool McaPanelManagerDBus::servicesEnabledByDefault()
-{
-    return m_servicesEnabledByDefault;
 }
 
 void McaPanelManagerDBus::setServicesEnabledByDefault(bool enabled)
@@ -111,6 +90,11 @@ void McaPanelManagerDBus::setServicesEnabledByDefault(bool enabled)
 QSortFilterProxyModel *McaPanelManagerDBus::serviceModel()
 {
     return m_serviceProxy;
+}
+
+QString McaPanelManagerDBus::serviceModelPath()
+{
+    return m_dbusObjectId + SERVICEMODELPROXY_DBUS_NAME;
 }
 
 bool McaPanelManagerDBus::isServiceEnabled(const QString& upid)
@@ -213,17 +197,6 @@ bool McaPanelManagerDBus::dataChangedCondition(int row)
     return dataChangedCondition(serviceModelIndex(row));
 }
 
-void McaPanelManagerDBus::feedRowsChanged()
-{
-    qDebug() << "TODO: McaPanelManagerDBus::feedRowsChanged() move this to McaPanelManager";
-//    bool empty = m_feedProxy->rowCount() == 0;
-
-//    if (empty != m_isEmpty) {
-//        m_isEmpty = empty;
-//        emit isEmptyChanged(empty);
-//    }
-}
-
 int McaPanelManagerDBus::createFeed(const QAbstractItemModel *serviceModel, const QString& name)
 {
     return m_feedmgr->createFeed(serviceModel, name);
@@ -237,7 +210,7 @@ void McaPanelManagerDBus::removeFeedCleanup(const QString& upid) {
     qDebug() << "TODO: McaPanelManagerDBus::removeFeedCleanup move this to McaPanelManager";
 //    if (m_upidToFeedInfo.count() == 0)
 //        emit servicesConfiguredChanged(false);
-//    m_allocator->removeFeed(upid);
+    m_allocator->removeFeed(upid);
 }
 
 QString McaPanelManagerDBus::fullEnabledKey()

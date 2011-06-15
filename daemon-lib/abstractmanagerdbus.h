@@ -5,11 +5,13 @@
 #include <QModelIndex>
 
 class McaFeedManager;
-//class McaFeedCache;
 class McaAggregatedModel;
 class McaFeedFilter;
 class McaFeedAdapter;
 class McaAdapter;
+
+#define AGREGATEDMODEL_DBUS_NAME "/AggreagatedModel"
+#define SERVICEMODELPROXY_DBUS_NAME "/ServiceModelProxy"
 
 class QSortFilterProxyModel;
 

@@ -21,10 +21,6 @@ class McaServiceProxy;
 class McaPanelManagerDBus: public McaAbstractManagerDBus
 {
     Q_OBJECT
-    Q_PROPERTY(QSortFilterProxyModel *serviceModel READ serviceModel)
-    Q_PROPERTY(QStringList categories READ categories WRITE setCategories NOTIFY categoriesChanged)
-    Q_PROPERTY(bool isEmpty READ isEmpty NOTIFY isEmptyChanged)
-    Q_PROPERTY(bool servicesEnabledByDefault READ servicesEnabledByDefault WRITE setServicesEnabledByDefault)
 
 public:
     McaPanelManagerDBus(QObject *parent = NULL);
@@ -33,9 +29,6 @@ public:
     Q_INVOKABLE void initialize(const QString& managerData);
 
     // property functions - already accessible to QML
-    virtual QStringList categories();
-    virtual bool isEmpty();
-    bool servicesEnabledByDefault();
     void setServicesEnabledByDefault(bool enabled);
     virtual QSortFilterProxyModel *serviceModel();
 
@@ -51,16 +44,11 @@ public:
     virtual void removeDirectFeed(QAbstractItemModel *feed);
 
 signals:
-    void categoriesChanged(const QStringList& categories);
     void serviceEnabledChanged(const QString& upid, bool enabled);
-    void isEmptyChanged(bool isEmpty);
 
 public slots:
     void setCategories(const QStringList& categories);
-
-protected slots:
-    void feedRowsChanged();
-    //void createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
+    virtual QString serviceModelPath();
 
 protected:
     QString fullEnabledKey();
@@ -80,7 +68,6 @@ private:
 private:
     McaAllocator *m_allocator;
     McaServiceProxy *m_serviceProxy;
-    bool m_isEmpty;
 
     QString m_panelName;
     bool m_servicesEnabledByDefault;

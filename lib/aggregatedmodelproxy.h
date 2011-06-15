@@ -13,7 +13,7 @@ class McaAggregatedModelProxy : public QAbstractListModel
 public:
     McaAggregatedModelProxy(const QString &service, const QString &objectPath);
 
-    int rowCount(const QModelIndex& parent) const;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const;
     QVariant data(const QModelIndex& index, int role) const;
 
 private slots:

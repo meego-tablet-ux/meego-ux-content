@@ -14,8 +14,6 @@
 
 #include "memoryleak-defines.h"
 
-#define AGREGATEDMODEL_DBUS_NAME "/AggreagatedModel"
-
 // generates unique ids to be used as dbus object paths
 QString McaAbstractManagerDBus::generateUniqueId()
 {

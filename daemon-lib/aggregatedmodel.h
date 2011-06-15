@@ -50,12 +50,12 @@ protected:
     void rowsInserted(const QAbstractItemModel *model, int start, int end);
     void rowsRemoved(const QAbstractItemModel *model, int start, int end);
 
-signals: // dbus
+signals: // for dbus
     void ItemsAdded(ArrayOfMcaFeedItemStruct items);
     void ItemsChanged(ArrayOfMcaFeedItemStruct items);
     void ItemsRemoved(QStringList items);
 
-public slots:
+public slots: // for dbus
     void dataChanged ( const QModelIndex & topLeft, const QModelIndex & bottomRight );
     void rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end );
     void rowsInserted ( const QModelIndex & parent, int start, int end );

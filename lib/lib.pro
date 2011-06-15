@@ -12,7 +12,8 @@ SOURCES += \
     searchmanager.cpp \
     aggregatedmodelproxy.cpp \
     ../common/dbustypes.cpp \
-    panelmanager.cpp
+    panelmanager.cpp \
+    servicemodeldbusproxy.cpp
 
 INSTALL_HEADERS += \
     abstractmanager.h \
@@ -29,7 +30,8 @@ HEADERS += \
     searchmanager.h \
     aggregatedmodelproxy.h \
     ../common/dbustypes.h \ 
-    panelmanager.h
+    panelmanager.h \
+    servicemodeldbusproxy.h
 
 # Fix me, theres a few role refinition files in daemon-lib
 INCLUDEPATH += ../common

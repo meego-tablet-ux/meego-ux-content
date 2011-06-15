@@ -44,6 +44,13 @@ McaServiceProxy::McaServiceProxy(McaPanelManagerDBus *panelmgr, QAbstractItemMod
 
     connect(m_panelmgr, SIGNAL(serviceEnabledChanged(QString,bool)),
             this, SLOT(setServiceEnabled(QString,bool)));
+
+    connect(this, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+            this, SLOT(dataChanged(QModelIndex,QModelIndex)));
+    connect(this, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
+            this, SLOT(rowsAboutToBeRemoved(QModelIndex,int,int)));
+    connect(this, SIGNAL(rowsInserted(QModelIndex,int,int)),
+            this, SLOT(rowsInserted(QModelIndex,int,int)));
 }
 
 McaServiceProxy::~McaServiceProxy()
@@ -126,3 +133,64 @@ void McaServiceProxy::setServiceEnabled(const QString &upid, bool enabled)
     if (list.count() > 0)
         emit dataChanged(list[0], list[0]);
 }
+
+void McaServiceProxy::dataChanged ( const QModelIndex & topLeft, const QModelIndex & bottomRight )
+{
+    qDebug() << "McaServiceProxy::rowsInserted";
+    ArrayOfMcaServiceItemStruct itemsArray;
+    int topRow = topLeft.row();
+    int bottomRow = bottomRight.row();
+
+    McaServiceItemStruct item;
+    for(int row = topRow; row <= bottomRow; row++) {
+        item.name = data(index(row, 0), McaServiceModel::RequiredNameRole).toString();
+        item.category = data(index(row, 0), McaServiceModel::RequiredCategoryRole).toString();
+        item.displayName = data(index(row, 0), McaServiceModel::CommonDisplayNameRole).toString();
+        item.iconUrl = data(index(row, 0), McaServiceModel::CommonIconUrlRole).toString();
+        item.configError = data(index(row, 0), McaServiceModel::CommonConfigErrorRole).toBool();
+        item.upid = data(index(row, 0), McaServiceAdapter::SystemUpidRole).toString();
+        itemsArray.append(item);
+    }
+
+    emit ItemsChanged(itemsArray);
+}
+
+void McaServiceProxy::rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end )
+{
+    qDebug() << "McaServiceProxy::rowsAboutToBeRemoved ";
+    Q_UNUSED(parent);
+    QStringList itemIds;
+    int topRow = start;
+    int bottomRow = end;
+
+    QString id;
+    for(int row = topRow; row <= bottomRow; row++) {
+        id = data(index(row, 0), McaServiceModel::RequiredNameRole).toString();
+        itemIds.append(id);
+    }
+
+    emit ItemsRemoved(itemIds);
+}
+
+void McaServiceProxy::rowsInserted ( const QModelIndex & parent, int start, int end )
+{
+    qDebug() << "McaServiceProxy::rowsInserted ";
+    Q_UNUSED(parent);
+    ArrayOfMcaServiceItemStruct itemsArray;
+    int topRow = start;
+    int bottomRow = end;
+
+    McaServiceItemStruct item;
+    for(int row = topRow; row <= bottomRow; row++) {
+        item.name = data(index(row, 0), McaServiceModel::RequiredNameRole).toString();
+        item.category = data(index(row, 0), McaServiceModel::RequiredCategoryRole).toString();
+        item.displayName = data(index(row, 0), McaServiceModel::CommonDisplayNameRole).toString();
+        item.iconUrl = data(index(row, 0), McaServiceModel::CommonIconUrlRole).toString();
+        item.configError = data(index(row, 0), McaServiceModel::CommonConfigErrorRole).toBool();
+        item.upid = data(index(row, 0), McaServiceAdapter::SystemUpidRole).toString();
+        itemsArray.append(item);
+    }
+
+    emit ItemsAdded(itemsArray);
+}
+

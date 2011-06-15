@@ -12,6 +12,8 @@
 #include <QSortFilterProxyModel>
 #include <QStringList>
 
+#include "dbustypes.h"
+
 class McaPanelManagerDBus;
 
 class McaServiceProxy: public QSortFilterProxyModel
@@ -50,6 +52,17 @@ signals:
 
 protected slots:
     void setServiceEnabled(const QString& upid, bool enabled);
+
+
+signals: // for dbus
+    void ItemsAdded(ArrayOfMcaServiceItemStruct items);
+    void ItemsChanged(ArrayOfMcaServiceItemStruct items);
+    void ItemsRemoved(QStringList items);
+
+public slots: // for dbus
+    void dataChanged ( const QModelIndex & topLeft, const QModelIndex & bottomRight );
+    void rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end );
+    void rowsInserted ( const QModelIndex & parent, int start, int end );
 
 private:
     McaPanelManagerDBus *m_panelmgr;

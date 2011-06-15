@@ -66,12 +66,12 @@ HEADERS += \
     ../common/memoryleak.h \
     ../common/memoryleak-defines.h \
     searchablecontainer.h \
-    serviceadapter.h \
     serviceproxy.h \
     settings.h \
     ../common/threadtest.h \
     $$INSTALL_HEADERS \
-    ../common/dbustypes.h
+    ../common/dbustypes.h \
+    ../common/serviceadapter.h
 
 INCLUDEPATH += ../common
 
