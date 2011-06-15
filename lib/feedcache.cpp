@@ -13,9 +13,6 @@
 #include "feedcache.h"
 #include "feedadapter.h"
 #include "feedmodel.h"
-#include "actions.h"
-#include "actionsproxy.h"
-
 #include "memoryleak-defines.h"
 
 static void connectToSource(McaFeedCache *cache, QAbstractListModel *model)

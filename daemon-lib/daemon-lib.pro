@@ -10,13 +10,13 @@ threading {
     DEFINES *= THREADING
     threading-debug {
         DEFINES *= THREADING_DEBUG
-        SOURCES += threadtest.cpp
+        SOURCES += ../common/threadtest.cpp
     }
 }
 
 memoryleak {
     DEFINES *= MEMORY_LEAK_DETECTOR
-    SOURCES += memoryleak.cpp
+    SOURCES += ../common/memoryleak.cpp
 }
 
 OBJECTS_DIR = .obj
@@ -46,15 +46,15 @@ SOURCES += \
 INSTALL_HEADERS += \
     abstractmanager.h \
     actions.h \
-    feedmodel.h \
-    feedplugin.h \
+    ../common/feedmodel.h \
+    ../common/feedplugin.h \
     panelmanager.h \
     searchmanager.h \
-    servicemodel.h
+    ../common/servicemodel.h
 
 HEADERS += \
     actionsproxy.h \
-    adapter.h \
+    ../common/adapter.h \
     aggregatedmodel.h \
     aggregatedservicemodel.h \
     allocator.h \
@@ -63,13 +63,13 @@ HEADERS += \
     feedmanager.h \
     feedplugincontainer.h \
     feedrelevance.h \
-    memoryleak.h \
-    memoryleak-defines.h \
+    ../common/memoryleak.h \
+    ../common/memoryleak-defines.h \
     searchablecontainer.h \
     serviceadapter.h \
     serviceproxy.h \
     settings.h \
-    threadtest.h \
+    ../common/threadtest.h \
     $$INSTALL_HEADERS \
     ../common/dbustypes.h
 

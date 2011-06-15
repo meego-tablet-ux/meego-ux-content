@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QSortFilterProxyModel>
 
-#include "abstractmanagerproxy.h"
+#include "abstractmanager.h"
 #include "aggregatedmodelproxy.h"
 #include "feedcache.h"
 #include "feedmodel.h"

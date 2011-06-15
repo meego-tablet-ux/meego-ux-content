@@ -1,5 +1,5 @@
 #include <QDBusPendingCall>
-#include "searchmanagerproxy.h"
+#include "searchmanager.h"
 
 McaSearchManager::McaSearchManager(QObject *parent) :
     McaAbstractManager("newSearchManager", parent)

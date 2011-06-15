@@ -8,8 +8,8 @@ MOC_DIR = .moc
 
 SOURCES += \
     feedcache.cpp \
-    abstractmanagerproxy.cpp \
-    searchmanagerproxy.cpp \
+    abstractmanager.cpp \
+    searchmanager.cpp \
     aggregatedmodelproxy.cpp \
     ../common/dbustypes.cpp
 
@@ -24,13 +24,13 @@ INSTALL_HEADERS += \
 
 HEADERS += \
     feedcache.h \
-    abstractmanagerproxy.h \
-    searchmanagerproxy.h \
+    abstractmanager.h \
+    searchmanager.h \
     aggregatedmodelproxy.h \
     ../common/dbustypes.h 
 
 # Fix me, theres a few role refinition files in daemon-lib
-INCLUDEPATH += ../daemon-lib ../common
+INCLUDEPATH += ../common
 
 system(sed 's/__library_version__/$${VERSION}/g' meego-ux-content.pc.in > meego-ux-content.pc)
 

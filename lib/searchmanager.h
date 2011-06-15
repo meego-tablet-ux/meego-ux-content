@@ -1,7 +1,7 @@
 #ifndef SEARCHMANAGERPROXY_H
 #define SEARCHMANAGERPROXY_H
 
-#include "abstractmanagerproxy.h"
+#include "abstractmanager.h"
 
 class McaSearchManager : public McaAbstractManager
 {

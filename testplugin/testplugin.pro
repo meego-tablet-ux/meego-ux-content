@@ -13,7 +13,7 @@ CONFIG += plugin
 exists($$OUT_PWD/../.intree_build) {
     include(../common.pri)
 
-    INCLUDEPATH += ../daemon-lib
+    INCLUDEPATH += ../daemon-lib ../common
     LIBS += -L../daemon-lib -lmeegouxcontent-daemon
 } else {
     CONFIG += link_pkgconfig
