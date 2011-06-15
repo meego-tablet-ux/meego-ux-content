@@ -13,8 +13,10 @@
 #include <QSet>
 #include <QMap>
 
+#if 0
 class McaActions;
 class McaActionsProxy;
+#endif
 
 class McaFeedCache: public QAbstractListModel
 {
@@ -67,7 +69,9 @@ private:
     int m_updateEnd;
     QList<QMap<int,QVariant> *> m_cache;
     QList<int> m_cachedRoles;
+#if 0
     QMap<QObject*,McaActionsProxy*> m_safeActions;
+#endif
 };
 
 #endif  // __mcafeedcache_h

@@ -91,12 +91,14 @@ McaFeedCache::~McaFeedCache()
     if (m_source)
         disconnectFromSource(this, m_source);
 
+#if 0
     qDebug() << "Removing proxies: " << m_safeActions.count();
 
     foreach(McaActionsProxy *proxy, m_safeActions) {
         delete proxy;        
     }
     m_safeActions.clear();
+#endif
 
     rowsRemoved(0, m_cache.count() - 1);
 }
@@ -133,6 +135,7 @@ QVariant McaFeedCache::data(const QModelIndex &index, int role) const
     int row = index.row();
     if (m_source) {
         QVariant variant = m_cache.at(row)->value(role);
+#if 0
         if (role == McaFeedModel::CommonActionsRole) {
             if (!m_safeActions.contains(variant.value<McaActions*>())) {
                 qWarning() << "warning: ignoring action (target destroyed)";
@@ -142,6 +145,7 @@ QVariant McaFeedCache::data(const QModelIndex &index, int role) const
             McaActionsProxy *proxy = m_safeActions.value(variant.value<McaActions*>());
             return QVariant::fromValue(qobject_cast<McaActions*>(proxy));
         }
+#endif
         return variant;
     }
     return QVariant();
@@ -313,10 +317,12 @@ void McaFeedCache::sourceDataChanged(const QModelIndex& topLeft,
 }
 
 void McaFeedCache::actionsDestroyed(QObject *object)
-{    
+{
+#if 0
     McaActionsProxy *proxy = m_safeActions.value(object);
     delete proxy;
     m_safeActions.remove(object);
+#endif
 }
 
 //
@@ -370,7 +376,7 @@ void McaFeedCache::updateRow(QMap<int,QVariant> *map, int row)
     // update all values for this row in the given cache map
     foreach (int role, m_cachedRoles)
         map->insert(role, m_source->data(m_source->index(row), role));
-
+#if 0
     McaActions *actions = map->value(McaFeedModel::CommonActionsRole).value<McaActions*>();
     if( actions && !m_safeActions.contains(actions) ) {
        McaActionsProxy *proxy = new McaActionsProxy(actions);
@@ -378,4 +384,5 @@ void McaFeedCache::updateRow(QMap<int,QVariant> *map, int row)
        connect(actions, SIGNAL(destroyed(QObject*)),
                 this, SLOT(actionsDestroyed(QObject*)));
     }
+#endif
 }
