@@ -54,6 +54,7 @@ McaFeedManager *McaFeedManager::takeManager()
     if (!s_manager)
         s_manager = new McaFeedManager;
     s_refCount++;
+
     return s_manager;
 }
 
@@ -103,7 +104,7 @@ McaFeedManager::~McaFeedManager()
     m_destroying = true;
     delete m_watcher;
     delete m_services;
-    
+
     foreach (McaFeedPluginContainer *plugin, m_pluginToPaths.keys())
     {
         removePlugin(plugin);
@@ -121,8 +122,8 @@ void McaFeedManager::removePlugin(McaFeedPluginContainer *plugin)
     disconnect(plugin, SIGNAL(createFeedError(QString,int)),
             this, SIGNAL(createFeedError(QString,int)));
 
-    // allow remaining signals from threads to be dispatched
-    QCoreApplication::instance()->processEvents(QEventLoop::ExcludeUserInputEvents);
+    // allow remaining signals from threads to be dispatched to the feedmanager
+    QCoreApplication::sendPostedEvents(qobject_cast<QObject*>(this), 0);
 
     qDebug() << "Terminating plugin " << m_pluginToPaths.value(plugin);
     QThread *plugin_thread = plugin->thread();
@@ -144,8 +145,6 @@ void McaFeedManager::removePlugin(McaFeedPluginContainer *plugin)
     }
 
     plugin->deleteLater();
-    QCoreApplication::instance()->processEvents(QEventLoop::ExcludeUserInputEvents);
-
     plugin_thread->quit();
     if (!plugin_thread->wait(3000)) {
         qWarning() << "Plugin thread is not responding";

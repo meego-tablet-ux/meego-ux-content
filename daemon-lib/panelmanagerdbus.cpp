@@ -81,7 +81,7 @@ void McaPanelManagerDBus::initialize(const QString& managerData)
     connect(m_serviceProxy, SIGNAL(categoriesChanged(QStringList)),
             this, SIGNAL(categoriesChanged(QStringList)));
 
-    qDebug() << "TODO: move this to McaPanelManager";
+    qDebug() << "TODO: caPanelManagerDBus::initialize move this to McaPanelManager";
 //    connect(m_feedProxy, SIGNAL(rowsInserted(QModelIndex,int,int)),
 //            this, SLOT(feedRowsChanged()));
 //    connect(m_feedProxy, SIGNAL(rowsRemoved(QModelIndex,int,int)),
@@ -215,7 +215,7 @@ bool McaPanelManagerDBus::dataChangedCondition(int row)
 
 void McaPanelManagerDBus::feedRowsChanged()
 {
-    qDebug() << "TODO: move this to McaPanelManager";
+    qDebug() << "TODO: McaPanelManagerDBus::feedRowsChanged() move this to McaPanelManager";
 //    bool empty = m_feedProxy->rowCount() == 0;
 
 //    if (empty != m_isEmpty) {
@@ -234,7 +234,7 @@ int McaPanelManagerDBus::createFeed(const QAbstractItemModel *serviceModel, cons
 //
 
 void McaPanelManagerDBus::removeFeedCleanup(const QString& upid) {
-    qDebug() << "TODO: move this to McaPanelManager";
+    qDebug() << "TODO: McaPanelManagerDBus::removeFeedCleanup move this to McaPanelManager";
 //    if (m_upidToFeedInfo.count() == 0)
 //        emit servicesConfiguredChanged(false);
 //    m_allocator->removeFeed(upid);
@@ -255,7 +255,7 @@ void McaPanelManagerDBus::createFeedFinalize(QObject *containerObj, McaFeedAdapt
     feedInfo->filter = qobject_cast<McaFeedFilter*>(feedAdapter->getSource());
     feedInfo->filter->setPanelName(m_panelName);
 
-    qDebug() << "TODO: move this to McaPanelManager";
+    qDebug() << "TODO: McaPanelManagerDBus::createFeedFinalize move this to McaPanelManager";
 //    if (m_upidToFeedInfo.count() == 1) {
 //        emit servicesConfiguredChanged(true);
 //    }

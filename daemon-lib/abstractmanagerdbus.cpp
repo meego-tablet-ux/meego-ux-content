@@ -32,6 +32,7 @@ McaAbstractManagerDBus::McaAbstractManagerDBus(QObject *parent) :
     QDBusConnection::sessionBus().registerObject(m_dbusObjectId, this, QDBusConnection::ExportAllContents);
 
     m_feedmgr = McaFeedManager::takeManager();
+
     m_aggregator = new McaAggregatedModel();
     QDBusConnection::sessionBus().registerObject(m_dbusObjectId + AGREGATEDMODEL_DBUS_NAME, m_aggregator, QDBusConnection::ExportAllContents);
 
@@ -49,6 +50,11 @@ McaAbstractManagerDBus::~McaAbstractManagerDBus()
     }
 
     m_requestIds.clear();
+
+    // delete the feed aggregator
+    delete m_aggregator;
+    m_aggregator = 0;
+
     McaFeedManager::releaseManager();
 }
 

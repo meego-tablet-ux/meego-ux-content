@@ -37,6 +37,8 @@ McaAggregatedModel::McaAggregatedModel(QObject *parent):
 
 McaAggregatedModel::~McaAggregatedModel()
 {
+    // allow remaining signals from threads to be dispatched to the aggregator
+    QCoreApplication::sendPostedEvents(qobject_cast<QObject*>(this), 0);
 }
 
 void McaAggregatedModel::addSourceModel(QAbstractItemModel *model)

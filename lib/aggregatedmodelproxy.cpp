@@ -74,7 +74,18 @@ void McaAggregatedModelProxy::onItemsAdded(ArrayOfMcaFeedItemStruct items)
 
 void McaAggregatedModelProxy::onItemsChanged(ArrayOfMcaFeedItemStruct items)
 {
-    qDebug() << "TODO: implement data change - McaAggregatedModelProxy::onItemsChanged";
+    int row;
+    foreach (McaFeedItemStruct feedItem, items) {
+        for (row = 0; row < m_feedItems.count(); ++row) {
+            if (feedItem.uuid == m_feedItems.at(row)->uuid) {
+                McaFeedItemStruct *oldItem = m_feedItems.at(row);
+                *oldItem = feedItem;
+                QModelIndex qmi = createIndex(row, 0, 0);
+                emit dataChanged(qmi, qmi);
+                break;
+            }
+        }
+    }
 }
 
 void McaAggregatedModelProxy::onItemsRemoved(QStringList items)

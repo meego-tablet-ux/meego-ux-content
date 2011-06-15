@@ -3,7 +3,7 @@ TARGET = Content
 TEMPLATE = lib
 
 CONFIG += plugin
-QT += declarative
+QT += declarative dbus
 
 INCLUDEPATH += ../lib
 LIBS += -L../lib -lmeegouxcontent
