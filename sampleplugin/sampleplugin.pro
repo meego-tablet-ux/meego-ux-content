@@ -12,8 +12,8 @@ CONFIG += plugin
 exists($$OUT_PWD/../.intree_build) {
     include(../common.pri)
 
-    INCLUDEPATH += ../lib
-    LIBS += -L../lib -lmeegouxcontent
+    INCLUDEPATH += ../daemon-lib
+    LIBS += -L../daemon-lib -lmeegouxcontent-daemon
 } else {
     CONFIG += link_pkgconfig
     PKGCONFIG += meego-ux-content
