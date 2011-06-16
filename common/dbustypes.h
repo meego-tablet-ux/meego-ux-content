@@ -24,6 +24,7 @@ struct McaServiceItemStruct {
     QString iconUrl;        // McaServiceModel::CommonIconUrlRole
     bool configError;       // McaServiceModel::CommonConfigErrorRole
     QString upid;           // McaServiceAdapter::SystemUpidRole
+    bool enabled;           // McaServiceProxy::SystemEnabledRole
 };
 typedef QList<McaServiceItemStruct> ArrayOfMcaServiceItemStruct;
 

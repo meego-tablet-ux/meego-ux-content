@@ -24,6 +24,9 @@ public:
     void setServicesEnabledByDefault(bool enabled);
     virtual QSortFilterProxyModel *serviceModel();
 
+    Q_INVOKABLE bool isServiceEnabled(const QString& upid);
+    Q_INVOKABLE void setServiceEnabled(const QString& upid, bool enabled);
+
 signals:
     void isEmptyChanged(bool isEmpty);
     void categoriesChanged(const QStringList& categories);

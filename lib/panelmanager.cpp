@@ -71,3 +71,13 @@ QSortFilterProxyModel *McaPanelManager::serviceModel()
 {
     return m_dbusServiceModel;
 }
+
+bool McaPanelManager::isServiceEnabled(const QString& upid)
+{
+    return m_dbusServiceModel->isServiceEnabled(upid);
+}
+
+void McaPanelManager::setServiceEnabled(const QString& upid, bool enabled)
+{
+    qDebug() << "TODO: implement ServiceModelDbusProxy::setServiceEnabled";
+}

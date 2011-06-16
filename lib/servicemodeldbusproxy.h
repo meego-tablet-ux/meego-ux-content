@@ -16,6 +16,9 @@ public:
     int rowCount(const QModelIndex& parent = QModelIndex()) const;
     QVariant data(const QModelIndex& index, int role) const;
 
+    bool isServiceEnabled(const QString& upid);
+    void setServiceEnabled(const QString& upid, bool enabled);
+
 private slots:
     void onItemsAdded(ArrayOfMcaServiceItemStruct items);
     void onItemsChanged(ArrayOfMcaServiceItemStruct items);

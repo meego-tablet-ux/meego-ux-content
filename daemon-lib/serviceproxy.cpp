@@ -149,6 +149,7 @@ void McaServiceProxy::dataChanged ( const QModelIndex & topLeft, const QModelInd
         item.iconUrl = data(index(row, 0), McaServiceModel::CommonIconUrlRole).toString();
         item.configError = data(index(row, 0), McaServiceModel::CommonConfigErrorRole).toBool();
         item.upid = data(index(row, 0), McaServiceAdapter::SystemUpidRole).toString();
+        item.enabled = data(index(row, 0), McaServiceProxy::SystemEnabledRole).toBool();
         itemsArray.append(item);
     }
 
@@ -165,7 +166,7 @@ void McaServiceProxy::rowsAboutToBeRemoved ( const QModelIndex & parent, int sta
 
     QString id;
     for(int row = topRow; row <= bottomRow; row++) {
-        id = data(index(row, 0), McaServiceModel::RequiredNameRole).toString();
+        id = data(index(row, 0), McaServiceAdapter::SystemUpidRole).toString();
         itemIds.append(id);
     }
 
@@ -188,9 +189,9 @@ void McaServiceProxy::rowsInserted ( const QModelIndex & parent, int start, int 
         item.iconUrl = data(index(row, 0), McaServiceModel::CommonIconUrlRole).toString();
         item.configError = data(index(row, 0), McaServiceModel::CommonConfigErrorRole).toBool();
         item.upid = data(index(row, 0), McaServiceAdapter::SystemUpidRole).toString();
+        item.enabled = data(index(row, 0), McaServiceProxy::SystemEnabledRole).toBool();
         itemsArray.append(item);
     }
 
     emit ItemsAdded(itemsArray);
 }
-

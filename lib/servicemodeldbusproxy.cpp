@@ -78,7 +78,7 @@ void ServiceModelDbusProxy::onItemsChanged(ArrayOfMcaServiceItemStruct items)
     int row;
     foreach (McaServiceItemStruct feedItem, items) {
         for (row = 0; row < m_feedItems.count(); ++row) {
-            if (feedItem.name == m_feedItems.at(row)->name) {
+            if (feedItem.upid == m_feedItems.at(row)->upid) {
                 McaServiceItemStruct *oldItem = m_feedItems.at(row);
                 *oldItem = feedItem;
                 QModelIndex qmi = createIndex(row, 0, 0);
@@ -96,7 +96,7 @@ void ServiceModelDbusProxy::onItemsRemoved(QStringList items)
     foreach (QString itemId, items) {
         for (i = 0; i < m_feedItems.count(); i++) {
             struct McaServiceItemStruct *item = m_feedItems.at(i);
-            if (itemId == item->name) {
+            if (itemId == item->upid) {
                 beginRemoveRows(QModelIndex(), i, i);
                 m_feedItems.removeAt(i);
                 endRemoveRows();
@@ -105,4 +105,13 @@ void ServiceModelDbusProxy::onItemsRemoved(QStringList items)
             }
         }
     }
+}
+
+bool ServiceModelDbusProxy::isServiceEnabled(const QString& upid)
+{
+    for (int i = 0; i < m_feedItems.count(); i++) {
+        struct McaServiceItemStruct *item = m_feedItems.at(i);
+        if(upid == item->upid) return item->enabled;
+    }
+    return false;
 }
