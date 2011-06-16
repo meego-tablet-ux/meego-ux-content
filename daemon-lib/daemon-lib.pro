@@ -16,7 +16,7 @@ threading {
 
 memoryleak {
     DEFINES *= MEMORY_LEAK_DETECTOR
-    SOURCES += ../common/memoryleak.cpp
+    SOURCES += memoryleak.cpp
 }
 
 OBJECTS_DIR = .obj
@@ -63,8 +63,8 @@ HEADERS += \
     feedmanager.h \
     feedplugincontainer.h \
     feedrelevance.h \
-    ../common/memoryleak.h \
-    ../common/memoryleak-defines.h \
+    memoryleak.h \
+    memoryleak-defines.h \
     searchablecontainer.h \
     serviceproxy.h \
     settings.h \
