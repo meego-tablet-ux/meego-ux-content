@@ -5,7 +5,7 @@
 #include <QModelIndex>
 #include <QSortFilterProxyModel>
 
-class McaFeedCache;
+//class McaFeedCache;
 class McaAggregatedModelProxy;
 
 class McaAbstractManager : public QObject
@@ -50,7 +50,7 @@ protected:
     QDBusInterface *m_dbusManagerInterface;
     QDBusInterface *m_dbusDaemonInterface;
 
-    McaFeedCache *m_cache;
+//    McaFeedCache *m_cache;
     QSortFilterProxyModel *m_feedProxy;
     McaAggregatedModelProxy *m_dbusModelProxy;
 

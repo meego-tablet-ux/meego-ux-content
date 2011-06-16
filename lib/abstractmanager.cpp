@@ -5,7 +5,6 @@
 
 #include "abstractmanager.h"
 #include "aggregatedmodelproxy.h"
-#include "feedcache.h"
 #include "feedmodel.h"
 #include "servicemodel.h"
 #include "dbustypes.h"
@@ -17,21 +16,17 @@ McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject 
 
     m_dbusDaemonInterface = new QDBusInterface("com.meego.content", "/meegouxcontent");
     QDBusReply<QString> reply = m_dbusDaemonInterface->call(createMethodName);
-
-    m_cache = new McaFeedCache(this);
-    connect(m_cache, SIGNAL(frozenChanged(bool)),
-            this, SIGNAL(frozenChanged(bool)));
-
     m_dbusManagerInterface = new QDBusInterface("com.meego.content", reply.value());
     connect(m_dbusManagerInterface, SIGNAL(updateCounts()), this, SLOT(updateCounts()));
 
     reply = m_dbusManagerInterface->call("feedModelPath");
     qDebug() << "AgreagatedModel dbus path: " << reply.value() << reply.error().message();
     m_dbusModelProxy = new McaAggregatedModelProxy("com.meego.content", reply.value());
-    m_cache->setSourceModel(m_dbusModelProxy);
+    connect(m_dbusModelProxy, SIGNAL(frozenChanged(bool)),
+            this, SIGNAL(frozenChanged(bool)));
 
     m_feedProxy = new QSortFilterProxyModel(this);
-    m_feedProxy->setSourceModel(m_cache);
+    m_feedProxy->setSourceModel(m_dbusModelProxy);
     m_feedProxy->setSortRole(McaFeedModel::RequiredTimestampRole);
     m_feedProxy->sort(0, Qt::DescendingOrder);
     m_feedProxy->setDynamicSortFilter(true);
@@ -44,11 +39,6 @@ McaAbstractManager::~McaAbstractManager()
 
     QDBusReply<bool> reply = m_dbusDaemonInterface->call("release", QVariant(m_dbusManagerInterface->path()));
     qDebug() << "McaAbstractManager::~McaAbstractManager release " << m_dbusManagerInterface->path() << reply.value();
-
-    if(0 != m_cache) {
-        delete m_cache;
-        m_cache = 0;
-    }
 
     delete m_dbusModelProxy;
     m_dbusModelProxy = 0;
@@ -66,7 +56,7 @@ void McaAbstractManager::initialize(const QString& managerData)
 
 bool McaAbstractManager::frozen()
 {
-    return m_cache->frozen();
+    return m_dbusModelProxy->frozen();
 }
 
 int McaAbstractManager::servicesConfigured()
@@ -81,7 +71,7 @@ int McaAbstractManager::servicesEnabled()
 
 void McaAbstractManager::setFrozen(bool frozen)
 {
-    m_cache->setFrozen(frozen);
+    m_dbusModelProxy->setFrozen(frozen);
 }
 
 QSortFilterProxyModel * McaAbstractManager::feedModel()

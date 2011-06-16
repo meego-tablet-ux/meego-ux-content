@@ -7,7 +7,6 @@ OBJECTS_DIR = .obj
 MOC_DIR = .moc
 
 SOURCES += \
-    feedcache.cpp \
     abstractmanager.cpp \
     searchmanager.cpp \
     aggregatedmodelproxy.cpp \
@@ -25,7 +24,6 @@ INSTALL_HEADERS += \
     servicemodel.h
 
 HEADERS += \
-    feedcache.h \
     abstractmanager.h \
     searchmanager.h \
     aggregatedmodelproxy.h \

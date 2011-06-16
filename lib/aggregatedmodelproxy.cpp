@@ -6,6 +6,7 @@
 
 McaAggregatedModelProxy::McaAggregatedModelProxy(const QString &service, const QString &objectPath)
 {
+    m_frozen = false;
     m_dbusModel  = new QDBusInterface(service, objectPath);
 
     connect(m_dbusModel, SIGNAL(ItemsAdded(ArrayOfMcaFeedItemStruct)),
@@ -61,21 +62,104 @@ QVariant McaAggregatedModelProxy::data(const QModelIndex& index, int role) const
     return result;
 }
 
+bool McaAggregatedModelProxy::frozen()
+{
+    return m_frozen;
+}
+
+void McaAggregatedModelProxy::setFrozen(bool frozen)
+{
+    if(m_frozen == frozen) return;
+
+    if(!frozen) {
+        // Thaw
+        m_frozen = frozen;
+        while(!m_frozenQueue.isEmpty()) {
+            struct feeditem_event_s *item = m_frozenQueue.dequeue();
+            switch(item->type) {
+            case FEEDITEM_ADD:
+                onItemsAddedInternal(item->u.addchange_items);
+                delete item->u.addchange_items;
+                break;
+            case FEEDITEM_CHANGE:
+                onItemsChangedInternal(item->u.addchange_items);
+                delete item->u.addchange_items;
+                break;
+            case FEEDITEM_REMOVE:
+                onItemsRemovedInternal(item->u.remove_list);
+                delete item->u.remove_list;
+                break;
+            default:
+                break;
+            }
+            delete item;
+        }
+        emit frozenChanged(m_frozen);
+    } else {
+        m_frozen = frozen;
+        emit frozenChanged(m_frozen);
+    }
+}
+
 void McaAggregatedModelProxy::onItemsAdded(ArrayOfMcaFeedItemStruct items)
 {
     qDebug() << "McaAggregatedModelProxy::onItemsAdded " << items.count();
-    beginInsertRows(QModelIndex(), m_feedItems.count(), m_feedItems.count() + items.count() - 1);
-    for(int row = 0; row < items.count(); row++) {
-        McaFeedItemStruct *newItem = new McaFeedItemStruct(items.at(row));
+
+    if(m_frozen) {
+        struct feeditem_event_s *item = new struct feeditem_event_s;
+        ArrayOfMcaFeedItemStruct *payload = new ArrayOfMcaFeedItemStruct(items);
+        item->type = FEEDITEM_ADD;
+        item->u.addchange_items = payload;
+        m_frozenQueue.enqueue(item);
+    } else {
+        onItemsAddedInternal(&items);
+    }
+}
+
+void McaAggregatedModelProxy::onItemsChanged(ArrayOfMcaFeedItemStruct items)
+{
+    if(m_frozen) {
+        struct feeditem_event_s *item = new struct feeditem_event_s;
+        ArrayOfMcaFeedItemStruct *payload = new ArrayOfMcaFeedItemStruct(items);
+        item->type = FEEDITEM_CHANGE;
+        item->u.addchange_items = payload;
+        m_frozenQueue.enqueue(item);
+    } else {
+        onItemsChangedInternal(&items);
+    }
+}
+
+void McaAggregatedModelProxy::onItemsRemoved(QStringList items)
+{
+    qDebug() << "McaAggregatedModelProxy::onItemsRemoved " << items.count();
+
+    if(m_frozen) {
+        struct feeditem_event_s *item = new struct feeditem_event_s;
+        QStringList *payload = new QStringList(items);
+        item->type = FEEDITEM_REMOVE;
+        item->u.remove_list = payload;
+        m_frozenQueue.enqueue(item);
+    } else {
+        onItemsRemovedInternal(&items);
+    }
+}
+
+void McaAggregatedModelProxy::onItemsAddedInternal(ArrayOfMcaFeedItemStruct *items)
+{
+    qDebug() << "McaAggregatedModelProxy::onItemsAdded " << items->count();
+
+    beginInsertRows(QModelIndex(), m_feedItems.count(), m_feedItems.count() + items->count() - 1);
+    for(int row = 0; row < items->count(); row++) {
+        McaFeedItemStruct *newItem = new McaFeedItemStruct(items->at(row));
         m_feedItems.append(newItem);
     }
     endInsertRows();
 }
 
-void McaAggregatedModelProxy::onItemsChanged(ArrayOfMcaFeedItemStruct items)
+void McaAggregatedModelProxy::onItemsChangedInternal(ArrayOfMcaFeedItemStruct *items)
 {
     int row;
-    foreach (McaFeedItemStruct feedItem, items) {
+    foreach (McaFeedItemStruct feedItem, *items) {
         for (row = 0; row < m_feedItems.count(); ++row) {
             if (feedItem.uuid == m_feedItems.at(row)->uuid) {
                 McaFeedItemStruct *oldItem = m_feedItems.at(row);
@@ -88,11 +172,11 @@ void McaAggregatedModelProxy::onItemsChanged(ArrayOfMcaFeedItemStruct items)
     }
 }
 
-void McaAggregatedModelProxy::onItemsRemoved(QStringList items)
+void McaAggregatedModelProxy::onItemsRemovedInternal(QStringList *items)
 {
-    qDebug() << "McaAggregatedModelProxy::onItemsRemoved " << items.count();
+    qDebug() << "McaAggregatedModelProxy::onItemsRemoved " << items->count();
     int i;
-    foreach (QString itemId, items) {
+    foreach (QString itemId, *items) {
         for (i = 0; i < m_feedItems.count(); i++) {
             struct McaFeedItemStruct *item = m_feedItems.at(i);
             if (itemId == item->uuid) {
