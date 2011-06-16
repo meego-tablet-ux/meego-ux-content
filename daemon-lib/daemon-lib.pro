@@ -25,7 +25,6 @@ MOC_DIR = .moc
 SOURCES += \
     abstractmanagerdbus.cpp \
     actions.cpp \
-    actionsproxy.cpp \
     adapter.cpp \
     allocator.cpp \
     aggregatedmodel.cpp \
@@ -53,7 +52,6 @@ INSTALL_HEADERS += \
     ../common/servicemodel.h
 
 HEADERS += \
-    actionsproxy.h \
     ../common/adapter.h \
     aggregatedmodel.h \
     aggregatedservicemodel.h \
