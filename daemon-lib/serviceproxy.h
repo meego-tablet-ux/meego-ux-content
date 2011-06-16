@@ -19,14 +19,10 @@ class McaPanelManagerDBus;
 class McaServiceProxy: public QSortFilterProxyModel
 {
     Q_OBJECT
-    Q_PROPERTY(int filter READ filter WRITE setFilter NOTIFY filterChanged)
-    Q_PROPERTY(QStringList categories READ categories WRITE setCategories NOTIFY categoriesChanged)
+//    Q_PROPERTY(int filter READ filter WRITE setFilter NOTIFY filterChanged)
+//    Q_PROPERTY(QStringList categories READ categories WRITE setCategories NOTIFY categoriesChanged)
 
 public:
-    enum Roles {
-        // provided by system
-        SystemEnabledRole = Qt::UserRole + 2,  // bool
-    };
 
     enum {
         FilterCategories,
@@ -60,9 +56,9 @@ signals: // for dbus
     void ItemsRemoved(QStringList items);
 
 public slots: // for dbus
-    void dataChanged ( const QModelIndex & topLeft, const QModelIndex & bottomRight );
-    void rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end );
-    void rowsInserted ( const QModelIndex & parent, int start, int end );
+    void dataChangedProxy ( const QModelIndex & topLeft, const QModelIndex & bottomRight );
+    void rowsAboutToBeRemovedProxy ( const QModelIndex & parent, int start, int end );
+    void rowsInsertedProxy ( const QModelIndex & parent, int start, int end );
 
 private:
     McaPanelManagerDBus *m_panelmgr;

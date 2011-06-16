@@ -33,10 +33,10 @@ McaServiceProxy::McaServiceProxy(McaPanelManagerDBus *panelmgr, QAbstractItemMod
 {
     m_panelmgr = panelmgr;
 
-    QHash<int, QByteArray> roles = source->roleNames();
-    roles.insert(SystemEnabledRole, "enabled");
-    // TODO: probably could eliminate aggregatedservicemodel now, move roles here?
-    setRoleNames(roles);
+//    QHash<int, QByteArray> roles = source->roleNames();
+//    roles.insert(SystemEnabledRole, "enabled");
+//    // TODO: probably could eliminate aggregatedservicemodel now, move roles here?
+//    setRoleNames(roles);
 
     setSourceModel(source);
     m_source = source;
@@ -46,11 +46,11 @@ McaServiceProxy::McaServiceProxy(McaPanelManagerDBus *panelmgr, QAbstractItemMod
             this, SLOT(setServiceEnabled(QString,bool)));
 
     connect(this, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-            this, SLOT(dataChanged(QModelIndex,QModelIndex)));
+            this, SLOT(dataChangedProxy(QModelIndex,QModelIndex)));
     connect(this, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
-            this, SLOT(rowsAboutToBeRemoved(QModelIndex,int,int)));
+            this, SLOT(rowsAboutToBeRemovedProxy(QModelIndex,int,int)));
     connect(this, SIGNAL(rowsInserted(QModelIndex,int,int)),
-            this, SLOT(rowsInserted(QModelIndex,int,int)));
+            this, SLOT(rowsInsertedProxy(QModelIndex,int,int)));
 }
 
 McaServiceProxy::~McaServiceProxy()
@@ -97,11 +97,11 @@ void McaServiceProxy::setCategories(const QStringList &categories)
 
 QVariant McaServiceProxy::data(const QModelIndex &index, int role) const
 {
-    if (role == SystemEnabledRole) {
-        QString upid = data(index, McaServiceAdapter::SystemUpidRole).toString();
+//    if (role == SystemEnabledRole) {
+//        QString upid = data(index, McaServiceAdapter::SystemUpidRole).toString();
 
-        return m_panelmgr->isServiceEnabled(upid);
-    }
+//        return m_panelmgr->isServiceEnabled(upid);
+//    }
     return QSortFilterProxyModel::data(index, role);
 }
 
@@ -134,9 +134,9 @@ void McaServiceProxy::setServiceEnabled(const QString &upid, bool enabled)
         emit dataChanged(list[0], list[0]);
 }
 
-void McaServiceProxy::dataChanged ( const QModelIndex & topLeft, const QModelIndex & bottomRight )
+void McaServiceProxy::dataChangedProxy ( const QModelIndex & topLeft, const QModelIndex & bottomRight )
 {
-    qDebug() << "McaServiceProxy::rowsInserted";
+    qDebug() << "McaServiceProxy::dataChangedProxy ";
     ArrayOfMcaServiceItemStruct itemsArray;
     int topRow = topLeft.row();
     int bottomRow = bottomRight.row();
@@ -149,16 +149,16 @@ void McaServiceProxy::dataChanged ( const QModelIndex & topLeft, const QModelInd
         item.iconUrl = data(index(row, 0), McaServiceModel::CommonIconUrlRole).toString();
         item.configError = data(index(row, 0), McaServiceModel::CommonConfigErrorRole).toBool();
         item.upid = data(index(row, 0), McaServiceAdapter::SystemUpidRole).toString();
-        item.enabled = data(index(row, 0), McaServiceProxy::SystemEnabledRole).toBool();
+        item.enabled = m_panelmgr->isServiceEnabled(item.upid);
         itemsArray.append(item);
     }
 
     emit ItemsChanged(itemsArray);
 }
 
-void McaServiceProxy::rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end )
+void McaServiceProxy::rowsAboutToBeRemovedProxy ( const QModelIndex & parent, int start, int end )
 {
-    qDebug() << "McaServiceProxy::rowsAboutToBeRemoved ";
+    qDebug() << "McaServiceProxy::rowsAboutToBeRemovedProxy ";
     Q_UNUSED(parent);
     QStringList itemIds;
     int topRow = start;
@@ -173,9 +173,9 @@ void McaServiceProxy::rowsAboutToBeRemoved ( const QModelIndex & parent, int sta
     emit ItemsRemoved(itemIds);
 }
 
-void McaServiceProxy::rowsInserted ( const QModelIndex & parent, int start, int end )
+void McaServiceProxy::rowsInsertedProxy ( const QModelIndex & parent, int start, int end )
 {
-    qDebug() << "McaServiceProxy::rowsInserted ";
+    qDebug() << "McaServiceProxy::rowsInsertedProxy ";
     Q_UNUSED(parent);
     ArrayOfMcaServiceItemStruct itemsArray;
     int topRow = start;
@@ -189,7 +189,7 @@ void McaServiceProxy::rowsInserted ( const QModelIndex & parent, int start, int 
         item.iconUrl = data(index(row, 0), McaServiceModel::CommonIconUrlRole).toString();
         item.configError = data(index(row, 0), McaServiceModel::CommonConfigErrorRole).toBool();
         item.upid = data(index(row, 0), McaServiceAdapter::SystemUpidRole).toString();
-        item.enabled = data(index(row, 0), McaServiceProxy::SystemEnabledRole).toBool();
+        item.enabled = m_panelmgr->isServiceEnabled(item.upid);
         itemsArray.append(item);
     }
 

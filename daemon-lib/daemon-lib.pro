@@ -28,7 +28,6 @@ SOURCES += \
     adapter.cpp \
     allocator.cpp \
     aggregatedmodel.cpp \
-    aggregatedservicemodel.cpp \
     feedadapter.cpp \
     feedfilter.cpp \
     feedmanager.cpp \
@@ -54,7 +53,6 @@ INSTALL_HEADERS += \
 HEADERS += \
     ../common/adapter.h \
     aggregatedmodel.h \
-    aggregatedservicemodel.h \
     allocator.h \
     ../common/feedadapter.h \
     feedfilter.h \

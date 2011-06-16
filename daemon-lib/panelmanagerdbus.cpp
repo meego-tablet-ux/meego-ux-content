@@ -20,6 +20,7 @@
 #include "feedmodel.h"
 #include "serviceproxy.h"
 #include "settings.h"
+#include "serviceadapter.h"
 
 #include "memoryleak-defines.h"
 
@@ -189,7 +190,8 @@ QVariant McaPanelManagerDBus::serviceModelData(int row, int role)
 
 bool McaPanelManagerDBus::dataChangedCondition(const QModelIndex &index)
 {
-    return m_serviceProxy->data(index, McaServiceProxy::SystemEnabledRole).toBool();
+    QString upid = m_serviceProxy->data(index, McaServiceAdapter::SystemUpidRole).toString();
+    return isServiceEnabled(upid);
 }
 
 bool McaPanelManagerDBus::dataChangedCondition(int row)

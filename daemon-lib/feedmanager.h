@@ -16,7 +16,7 @@ class QAbstractItemModel;
 class QSettings;
 //class McaFeedPlugin;
 class McaFeedPluginContainer;
-class McaAggregatedServiceModel;
+class McaAggregatedModel;
 class McaSearchableContainer;
 class McaSearchableFeed;
 class McaFeedAdapter;
@@ -61,7 +61,7 @@ protected:
 
 private:
     QHash<McaFeedPluginContainer *, QString> m_pluginToPaths;
-    McaAggregatedServiceModel *m_services;
+    McaAggregatedModel *m_services;
     QFileSystemWatcher* m_watcher;
     QHash<const QAbstractItemModel*, McaFeedPluginContainer*> m_modelToPlugin;
 

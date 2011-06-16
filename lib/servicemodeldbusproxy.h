@@ -7,10 +7,15 @@
 
 class QDBusInterface;
 
-class ServiceModelDbusProxy : public QSortFilterProxyModel
+class ServiceModelDbusProxy : public QAbstractListModel
 {
     Q_OBJECT
 public:
+    enum Roles {
+        // provided by system
+        SystemEnabledRole = Qt::UserRole + 2,  // bool
+    };
+
     ServiceModelDbusProxy(const QString &service, const QString &objectPath);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const;

@@ -7,6 +7,19 @@
 
 ServiceModelDbusProxy::ServiceModelDbusProxy(const QString &service, const QString &objectPath)
 {
+    QHash<int, QByteArray> roles = roleNames();
+    roles.insert(ServiceModelDbusProxy::SystemEnabledRole, "enabled");
+
+    roles.insert(McaServiceModel::RequiredNameRole,      "name");
+    roles.insert(McaServiceModel::RequiredCategoryRole,  "category");
+    roles.insert(McaServiceModel::CommonActionsRole,     "actions");
+    roles.insert(McaServiceModel::CommonDisplayNameRole, "displayname");
+    roles.insert(McaServiceModel::CommonIconUrlRole,     "icon");
+    roles.insert(McaServiceModel::CommonConfigErrorRole, "configerror");
+    roles.insert(McaServiceAdapter::SystemUpidRole,      "upid");
+
+    setRoleNames(roles);
+
     m_dbusModel  = new QDBusInterface(service, objectPath);
 
     connect(m_dbusModel, SIGNAL(ItemsAdded(ArrayOfMcaServiceItemStruct)),
@@ -53,8 +66,16 @@ QVariant ServiceModelDbusProxy::data(const QModelIndex& index, int role) const
     case McaServiceAdapter::SystemUpidRole:
         result = QVariant::fromValue<QString>(feedItem->upid);
         break;
+    case ServiceModelDbusProxy::SystemEnabledRole:
+        result = QVariant::fromValue<bool>(feedItem->enabled);
+        break;
+    case Qt::DisplayRole:
+        result = QVariant::fromValue<QString>(feedItem->displayName + " - " + (feedItem->enabled ? "enabled" : "disabled"));
+        break;
     default:
-        qDebug() << "ServiceModelDbusProxy::data: Unhandled data role requested " << role << " for row " << row;
+        if(role > Qt::UserRole) {
+            qDebug() << "ServiceModelDbusProxy::data: Unhandled data role requested " << role << " for row " << row;
+        }
         result = QVariant();
         break;
     }
@@ -75,6 +96,7 @@ void ServiceModelDbusProxy::onItemsAdded(ArrayOfMcaServiceItemStruct items)
 
 void ServiceModelDbusProxy::onItemsChanged(ArrayOfMcaServiceItemStruct items)
 {
+    qDebug() << "ServiceModelDbusProxy::onItemsChanged " << items.count();
     int row;
     foreach (McaServiceItemStruct feedItem, items) {
         for (row = 0; row < m_feedItems.count(); ++row) {

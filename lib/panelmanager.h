@@ -9,7 +9,7 @@ class ServiceModelDbusProxy;
 class McaPanelManager : public McaAbstractManager
 {
     Q_OBJECT
-    Q_PROPERTY(QSortFilterProxyModel *serviceModel READ serviceModel)
+    Q_PROPERTY(QAbstractListModel *serviceModel READ serviceModel)
     Q_PROPERTY(bool isEmpty READ isEmpty NOTIFY isEmptyChanged)
     Q_PROPERTY(QStringList categories READ categories WRITE setCategories NOTIFY categoriesChanged)
     Q_PROPERTY(bool servicesEnabledByDefault READ servicesEnabledByDefault WRITE setServicesEnabledByDefault)
@@ -22,7 +22,7 @@ public:
     virtual QStringList categories();
     bool servicesEnabledByDefault();
     void setServicesEnabledByDefault(bool enabled);
-    virtual QSortFilterProxyModel *serviceModel();
+    virtual QAbstractListModel *serviceModel();
 
     Q_INVOKABLE bool isServiceEnabled(const QString& upid);
     Q_INVOKABLE void setServiceEnabled(const QString& upid, bool enabled);

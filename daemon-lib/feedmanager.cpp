@@ -22,7 +22,7 @@
 #include "feedmanager.h"
 //#include "feedplugin.h"
 #include "feedplugincontainer.h"
-#include "aggregatedservicemodel.h"
+#include "aggregatedmodel.h"
 #include "settings.h"
 #include "serviceadapter.h"
 #include "searchablecontainer.h"
@@ -84,7 +84,7 @@ McaFeedManager::McaFeedManager()
     qRegisterMetaType<QModelIndex>("QModelIndex");
 
     m_watcher = new QFileSystemWatcher;
-    m_services = new McaAggregatedServiceModel;
+    m_services = new McaAggregatedModel;
 
     loadPlugins();
 

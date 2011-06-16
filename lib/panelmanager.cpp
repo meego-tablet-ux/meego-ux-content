@@ -67,8 +67,9 @@ void McaPanelManager::setServicesEnabledByDefault(bool enabled)
     m_dbusManagerInterface->call("setServicesEnabledByDefault", QVariant(enabled));
 }
 
-QSortFilterProxyModel *McaPanelManager::serviceModel()
+QAbstractListModel *McaPanelManager::serviceModel()
 {
+    qDebug() << "McaPanelManager::serviceModel";
     return m_dbusServiceModel;
 }
 
@@ -79,5 +80,5 @@ bool McaPanelManager::isServiceEnabled(const QString& upid)
 
 void McaPanelManager::setServiceEnabled(const QString& upid, bool enabled)
 {
-    qDebug() << "TODO: implement ServiceModelDbusProxy::setServiceEnabled";
+   m_dbusManagerInterface->call("setServiceEnabled", QVariant(upid), QVariant(enabled));
 }
