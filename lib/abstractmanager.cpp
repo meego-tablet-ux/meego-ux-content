@@ -8,20 +8,21 @@
 #include "feedmodel.h"
 #include "servicemodel.h"
 #include "dbustypes.h"
+#include "dbusdefines.h"
 
 McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject *parent) :
     QObject(parent), m_servicesConfigured(0), m_servicesEnabled(0)
 {
     registerDataTypes();
 
-    m_dbusDaemonInterface = new QDBusInterface("com.meego.content", "/meegouxcontent");
+    m_dbusDaemonInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, CONTENT_DBUS_OBJECT);
     QDBusReply<QString> reply = m_dbusDaemonInterface->call(createMethodName);
-    m_dbusManagerInterface = new QDBusInterface("com.meego.content", reply.value());
+    m_dbusManagerInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, reply.value());
     connect(m_dbusManagerInterface, SIGNAL(updateCounts()), this, SLOT(updateCounts()));
 
     reply = m_dbusManagerInterface->call("feedModelPath");
     qDebug() << "AgreagatedModel dbus path: " << reply.value() << reply.error().message();
-    m_dbusModelProxy = new McaAggregatedModelProxy("com.meego.content", reply.value());
+    m_dbusModelProxy = new McaAggregatedModelProxy(CONTENT_DBUS_SERVICE, reply.value());
     connect(m_dbusModelProxy, SIGNAL(frozenChanged(bool)),
             this, SIGNAL(frozenChanged(bool)));
 

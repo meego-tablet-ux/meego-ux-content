@@ -3,9 +3,6 @@
 
 #include <QDBusAbstractInterface>
 
-#define CONTENT_DBUS_SERVICE "com.meego.content"
-#define CONTENT_DBUS_OBJECT "/meegouxcontent"
-
 class ContentDaemonInterface : public QDBusAbstractInterface
 {
     Q_OBJECT

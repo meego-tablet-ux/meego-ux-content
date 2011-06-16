@@ -3,6 +3,7 @@
 #include "dbustypes.h"
 #include "aggregatedmodelproxy.h"
 #include "servicemodeldbusproxy.h"
+#include "dbusdefines.h"
 
 McaPanelManager::McaPanelManager(QObject *parent) :
     McaAbstractManager("newPanelManager", parent)
@@ -17,7 +18,7 @@ McaPanelManager::McaPanelManager(QObject *parent) :
 
     QDBusReply<QString> reply = m_dbusManagerInterface->call("serviceModelPath");
     qDebug() << "ServiceModel dbus path: " << reply.value() << reply.error().message();
-    m_dbusServiceModel = new ServiceModelDbusProxy("com.meego.content", reply.value());
+    m_dbusServiceModel = new ServiceModelDbusProxy(CONTENT_DBUS_SERVICE, reply.value());
 }
 
 void McaPanelManager::initialize(const QString& managerData)

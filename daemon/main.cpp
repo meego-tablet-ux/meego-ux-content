@@ -3,7 +3,7 @@
 #include <QtDBus>
 
 #include "contentdaemon.h"
-
+#include "dbusdefines.h"
 
 int main(int argc, char *argv[])
 {

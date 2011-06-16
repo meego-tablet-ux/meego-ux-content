@@ -67,7 +67,8 @@ HEADERS += \
     ../common/threadtest.h \
     $$INSTALL_HEADERS \
     ../common/dbustypes.h \
-    ../common/serviceadapter.h
+    ../common/serviceadapter.h \
+    ../common/dbusdefines.h
 
 INCLUDEPATH += ../common
 

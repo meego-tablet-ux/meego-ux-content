@@ -29,7 +29,8 @@ HEADERS += \
     aggregatedmodelproxy.h \
     ../common/dbustypes.h \ 
     panelmanager.h \
-    servicemodeldbusproxy.h
+    servicemodeldbusproxy.h \
+    ../common/dbusdefines.h
 
 # Fix me, theres a few role refinition files in daemon-lib
 INCLUDEPATH += ../common
