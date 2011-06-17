@@ -2,6 +2,7 @@ include(../common.pri)
 TARGET = meegouxcontent
 TEMPLATE = lib
 QT += dbus
+CONFIG += debug
 
 OBJECTS_DIR = .obj
 MOC_DIR = .moc

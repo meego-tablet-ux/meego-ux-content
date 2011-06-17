@@ -96,10 +96,14 @@ void McaPanelManager::serviceStateChanged(bool offline)
                this, SLOT(feedRowsChanged()));
         connect(m_dbusModelProxy, SIGNAL(rowsRemoved(QModelIndex,int,int)),
                 this, SLOT(feedRowsChanged()));
-
+        if(!m_dbusManagerInterface) {
+            return; // Error state, handle me
+        }
+        if(!m_dbusServiceModel) {
+            return; // Another error state
+        }
         QDBusReply<QString> reply = m_dbusManagerInterface->call("serviceModelPath");
         qDebug() << "ServiceModel dbus path: " << reply.value() << reply.error().message();
-
         m_dbusServiceModel->setObjectPath(reply.value());
         m_dbusServiceModel->setOffline(offline);
 

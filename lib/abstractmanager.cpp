@@ -15,6 +15,8 @@ McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject 
     m_servicesConfigured(0),
     m_servicesEnabled(0),
     m_createMethodName(createMethodName),
+    m_dbusDaemonInterface(0),
+    m_dbusManagerInterface(0),
     m_dbusServiceWatcher(CONTENT_DBUS_SERVICE, QDBusConnection::sessionBus(),
         QDBusServiceWatcher::WatchForUnregistration | QDBusServiceWatcher::WatchForRegistration)
 {
@@ -172,9 +174,29 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
 
     if(!offline) {
         if(0 == m_dbusDaemonInterface) {
+            qDebug() << "DBUS: Creating daemon interface";
             m_dbusDaemonInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, CONTENT_DBUS_OBJECT);
+            if(0 == m_dbusManagerInterface) {
+                qDebug() << "DBUS: Failed to connect to daemon";
+                serviceStateChangedBase(true);
+                return;
+            } else {
+                qDebug() << "DBUS: Daemon interface created";
+            }
             QDBusReply<QString> reply = m_dbusDaemonInterface->call(m_createMethodName);
+            // TODO: Error check
+
+            qDebug() << "DBUS: Creating manager interface";
             m_dbusManagerInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, reply.value());
+            if(0 == m_dbusManagerInterface) {
+                qDebug() << "DBUS: Failed to connect to manager";
+                delete m_dbusDaemonInterface;
+                m_dbusDaemonInterface = 0;
+                serviceStateChangedBase(true);
+                return;
+            } else {
+                qDebug() << "DBUS: Manager interface created";
+            }
             connect(m_dbusManagerInterface, SIGNAL(updateCounts()), this, SLOT(updateCounts()));
 
             reply = m_dbusManagerInterface->call("feedModelPath");

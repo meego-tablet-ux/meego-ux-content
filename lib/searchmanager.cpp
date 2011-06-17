@@ -1,4 +1,5 @@
 #include <QDBusPendingCall>
+#include <QDebug>
 #include "searchmanager.h"
 
 McaSearchManager::McaSearchManager(QObject *parent) :
@@ -10,7 +11,11 @@ McaSearchManager::McaSearchManager(QObject *parent) :
 
 void McaSearchManager::setSearchText(const QString &searchText)
 {
-    m_dbusManagerInterface->asyncCall("setSearchText", QVariant(searchText));
+    if(m_dbusManagerInterface) {
+        m_dbusManagerInterface->asyncCall("setSearchText", QVariant(searchText));
+    } else {
+        qDebug() << "Offline search triggered?";
+    }
 }
 
 void McaSearchManager::initialize(const QString& managerData)
