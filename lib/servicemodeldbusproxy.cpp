@@ -5,7 +5,8 @@
 #include "servicemodel.h"
 #include "serviceadapter.h"
 
-ServiceModelDbusProxy::ServiceModelDbusProxy(const QString &service, const QString &objectPath)
+ServiceModelDbusProxy::ServiceModelDbusProxy(const QString &service)
+    : ModelDBusInterface(service)
 {
     QHash<int, QByteArray> roles = roleNames();
     roles.insert(ServiceModelDbusProxy::SystemEnabledRole, "enabled");
@@ -19,15 +20,6 @@ ServiceModelDbusProxy::ServiceModelDbusProxy(const QString &service, const QStri
     roles.insert(McaServiceAdapter::SystemUpidRole,      "upid");
 
     setRoleNames(roles);
-
-    m_dbusModel  = new QDBusInterface(service, objectPath);
-
-    connect(m_dbusModel, SIGNAL(ItemsAdded(ArrayOfMcaServiceItemStruct)),
-            this, SLOT(onItemsAdded(ArrayOfMcaServiceItemStruct)));
-    connect(m_dbusModel, SIGNAL(ItemsChanged(ArrayOfMcaServiceItemStruct)),
-            this, SLOT(onItemsChanged(ArrayOfMcaServiceItemStruct)));
-    connect(m_dbusModel, SIGNAL(ItemsRemoved(QStringList)),
-            this, SLOT(onItemsRemoved(QStringList)));
 }
 
 int ServiceModelDbusProxy::rowCount(const QModelIndex& parent) const
@@ -136,4 +128,24 @@ bool ServiceModelDbusProxy::isServiceEnabled(const QString& upid)
         if(upid == item->upid) return item->enabled;
     }
     return false;
+}
+
+void ServiceModelDbusProxy::doOfflineChanged()
+{
+    if(!isOffline()) {
+        beginRemoveRows(QModelIndex(), 0, m_feedItems.count() - 1);
+        while(m_feedItems.count()) {
+            struct McaServiceItemStruct *item = m_feedItems.at(0);
+            m_feedItems.removeFirst();
+            delete item;
+        }
+        endRemoveRows();
+
+        connect(m_dbusModel, SIGNAL(ItemsAdded(ArrayOfMcaServiceItemStruct)),
+                this, SLOT(onItemsAdded(ArrayOfMcaServiceItemStruct)));
+        connect(m_dbusModel, SIGNAL(ItemsChanged(ArrayOfMcaServiceItemStruct)),
+                this, SLOT(onItemsChanged(ArrayOfMcaServiceItemStruct)));
+        connect(m_dbusModel, SIGNAL(ItemsRemoved(QStringList)),
+                this, SLOT(onItemsRemoved(QStringList)));
+    }
 }

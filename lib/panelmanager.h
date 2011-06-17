@@ -16,6 +16,7 @@ class McaPanelManager : public McaAbstractManager
 
 public:
     McaPanelManager(QObject *parent = 0);
+    ~McaPanelManager();
 
     // property functions - already accessible to QML
     virtual bool isEmpty();
@@ -44,7 +45,6 @@ private slots:
 private:
     QString m_panelName;
     QStringList m_categories;
-
     bool m_isEmpty;
     bool m_servicesEnabledByDefault;
 

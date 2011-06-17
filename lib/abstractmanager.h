@@ -71,6 +71,8 @@ protected:
     bool m_isOffline;
     QString m_createMethodName;
     QDBusServiceWatcher m_dbusServiceWatcher;
+
+    bool m_firstTimeinitialized;
 };
 
 #endif // ABSTRACTMANAGERPROXY_H

@@ -4,17 +4,10 @@
 #include "aggregatedmodelproxy.h"
 #include "feedmodel.h"
 
-McaAggregatedModelProxy::McaAggregatedModelProxy(const QString &service, const QString &objectPath)
+McaAggregatedModelProxy::McaAggregatedModelProxy(const QString &service)
+    : ModelDBusInterface(service)
 {
     m_frozen = false;
-    m_dbusModel  = new QDBusInterface(service, objectPath);
-
-    connect(m_dbusModel, SIGNAL(ItemsAdded(ArrayOfMcaFeedItemStruct)),
-            this, SLOT(onItemsAdded(ArrayOfMcaFeedItemStruct)));
-    connect(m_dbusModel, SIGNAL(ItemsChanged(ArrayOfMcaFeedItemStruct)),
-            this, SLOT(onItemsChanged(ArrayOfMcaFeedItemStruct)));
-    connect(m_dbusModel, SIGNAL(ItemsRemoved(QStringList)),
-            this, SLOT(onItemsRemoved(QStringList)));
 }
 
 int McaAggregatedModelProxy::rowCount(const QModelIndex& parent) const
@@ -187,5 +180,26 @@ void McaAggregatedModelProxy::onItemsRemovedInternal(QStringList *items)
                 break;
             }
         }
+    }
+}
+
+void McaAggregatedModelProxy::doOfflineChanged()
+{
+    if(!isOffline()) {
+        //TODO: figure out what to do if state frozen
+        beginRemoveRows(QModelIndex(), 0, m_feedItems.count() - 1);
+        while(m_feedItems.count()) {
+            struct McaFeedItemStruct *item = m_feedItems.at(0);
+            m_feedItems.removeFirst();
+            delete item;
+        }
+        endRemoveRows();
+
+        connect(m_dbusModel, SIGNAL(ItemsAdded(ArrayOfMcaFeedItemStruct)),
+                this, SLOT(onItemsAdded(ArrayOfMcaFeedItemStruct)));
+        connect(m_dbusModel, SIGNAL(ItemsChanged(ArrayOfMcaFeedItemStruct)),
+                this, SLOT(onItemsChanged(ArrayOfMcaFeedItemStruct)));
+        connect(m_dbusModel, SIGNAL(ItemsRemoved(QStringList)),
+                this, SLOT(onItemsRemoved(QStringList)));
     }
 }

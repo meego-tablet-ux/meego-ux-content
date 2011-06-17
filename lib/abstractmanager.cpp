@@ -18,6 +18,7 @@ McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject 
     m_dbusServiceWatcher(CONTENT_DBUS_SERVICE, QDBusConnection::sessionBus(),
         QDBusServiceWatcher::WatchForUnregistration | QDBusServiceWatcher::WatchForRegistration)
 {
+    m_firstTimeinitialized = false;
     registerDataTypes();
 
     connect(&m_dbusServiceWatcher, SIGNAL(serviceRegistered(QString)),
@@ -26,6 +27,16 @@ McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject 
             this, SLOT(serviceUnregistered(QString)));
 
     connect(this, SIGNAL(offlineChanged(bool)), this, SLOT(serviceStateChangedBase(bool)));
+
+    m_dbusModelProxy = new McaAggregatedModelProxy(CONTENT_DBUS_SERVICE);
+    connect(m_dbusModelProxy, SIGNAL(frozenChanged(bool)),
+            this, SIGNAL(frozenChanged(bool)));
+
+    m_feedProxy = new QSortFilterProxyModel(this);
+    m_feedProxy->setSourceModel(m_dbusModelProxy);
+    m_feedProxy->setSortRole(McaFeedModel::RequiredTimestampRole);
+    m_feedProxy->sort(0, Qt::DescendingOrder);
+    m_feedProxy->setDynamicSortFilter(true);
 }
 
 McaAbstractManager::~McaAbstractManager()
@@ -37,16 +48,25 @@ McaAbstractManager::~McaAbstractManager()
 
     delete m_dbusModelProxy;
     m_dbusModelProxy = 0;
-    delete m_dbusManagerInterface;
-    m_dbusManagerInterface = 0;
-    delete m_dbusDaemonInterface;
-    m_dbusDaemonInterface = 0;
+
+    if(0 != m_dbusManagerInterface) {
+        delete m_dbusManagerInterface;
+        m_dbusManagerInterface = 0;
+    }
+
+    if(0 != m_dbusDaemonInterface) {
+        delete m_dbusDaemonInterface;
+        m_dbusDaemonInterface = 0;
+    }
 }
 
 void McaAbstractManager::initialize(const QString& managerData)
 {
-    m_isOffline = QDBusConnection::sessionBus().interface()->isServiceRegistered(CONTENT_DBUS_SERVICE);
-    setOffline(!m_isOffline);
+    if(!m_firstTimeinitialized) {
+        m_firstTimeinitialized = true;
+        m_isOffline = !QDBusConnection::sessionBus().interface()->isServiceRegistered(CONTENT_DBUS_SERVICE);
+        setOffline(m_isOffline);
+    }
 
     if(0 == m_dbusManagerInterface) return;
     m_dbusManagerInterface->call("initialize", QVariant(managerData));
@@ -125,18 +145,18 @@ bool McaAbstractManager::dataChangedCondition(int row)
 
 void McaAbstractManager::serviceRegistered(const QString & serviceName)
 {
+    Q_UNUSED(serviceName);
     setOffline(false);
 }
 
 void McaAbstractManager::serviceUnregistered(const QString & serviceName)
 {
+    Q_UNUSED(serviceName);
     setOffline(true);
 }
 
 void McaAbstractManager::setOffline(bool offline)
 {
-    if(m_isOffline == offline) return;
-
     m_isOffline = offline;
     emit offlineChanged(m_isOffline);
 }
@@ -148,27 +168,28 @@ bool McaAbstractManager::isOffline()
 
 void McaAbstractManager::serviceStateChangedBase(bool offline)
 {
-    qDebug() << "McaAbstractManager::serviceStateChangedBase " << offline;
+    qDebug() << "McaAbstractManager::serviceStateChangedBase offline =" << offline;
 
     if(!offline) {
-        m_dbusDaemonInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, CONTENT_DBUS_OBJECT);
-        QDBusReply<QString> reply = m_dbusDaemonInterface->call(m_createMethodName);
-        m_dbusManagerInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, reply.value());
-        connect(m_dbusManagerInterface, SIGNAL(updateCounts()), this, SLOT(updateCounts()));
+        if(0 == m_dbusDaemonInterface) {
+            m_dbusDaemonInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, CONTENT_DBUS_OBJECT);
+            QDBusReply<QString> reply = m_dbusDaemonInterface->call(m_createMethodName);
+            m_dbusManagerInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, reply.value());
+            connect(m_dbusManagerInterface, SIGNAL(updateCounts()), this, SLOT(updateCounts()));
 
-        reply = m_dbusManagerInterface->call("feedModelPath");
-        qDebug() << "AgreagatedModel dbus path: " << reply.value() << reply.error().message();
-        m_dbusModelProxy = new McaAggregatedModelProxy(CONTENT_DBUS_SERVICE, reply.value());
-        connect(m_dbusModelProxy, SIGNAL(frozenChanged(bool)),
-                this, SIGNAL(frozenChanged(bool)));
-
-        m_feedProxy = new QSortFilterProxyModel(this);
-        m_feedProxy->setSourceModel(m_dbusModelProxy);
-        m_feedProxy->setSortRole(McaFeedModel::RequiredTimestampRole);
-        m_feedProxy->sort(0, Qt::DescendingOrder);
-        m_feedProxy->setDynamicSortFilter(true);
+            reply = m_dbusManagerInterface->call("feedModelPath");
+            qDebug() << "AgreagatedModel dbus path: " << reply.value() << reply.error().message();
+            m_dbusModelProxy->setObjectPath(reply.value());
+            m_dbusModelProxy->setOffline(offline);
+        }
     } else {
-        //TODO
+        if(0 != m_dbusDaemonInterface) {
+            m_dbusModelProxy->setOffline(offline);
+            delete m_dbusDaemonInterface;
+            m_dbusDaemonInterface = 0;
+            delete m_dbusManagerInterface;
+            m_dbusManagerInterface = 0;
+        }
     }
 
     serviceStateChanged(offline);

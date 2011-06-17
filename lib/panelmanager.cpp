@@ -10,25 +10,39 @@ McaPanelManager::McaPanelManager(QObject *parent) :
 {
     m_isEmpty = false;
     m_servicesEnabledByDefault = true;
+    m_dbusServiceModel = new ServiceModelDbusProxy(CONTENT_DBUS_SERVICE);
+}
+
+McaPanelManager::~McaPanelManager()
+{
+    if(0 != m_dbusServiceModel) {
+        delete m_dbusServiceModel;
+        m_dbusServiceModel = 0;
+    }
 }
 
 void McaPanelManager::initialize(const QString& managerData)
 {
     m_panelName = managerData;
-    McaAbstractManager::initialize(managerData);
     feedRowsChanged();
+    McaAbstractManager::initialize(managerData);
 }
 
 void McaPanelManager::setCategories(const QStringList& categories)
 {
+    if(isOffline()) {
+        m_localCategories = categories;
+        return;
+    }
+    bool changed = m_categories != categories;
+
     m_categories = categories;
     m_dbusManagerInterface->call("setCategories", QVariant(categories));
-    emit categoriesChanged(categories);
+    if(changed) emit categoriesChanged(categories);
 }
 
 void McaPanelManager::feedRowsChanged()
 {
-    if(isOffline()) return;
     bool empty = m_dbusModelProxy->rowCount() == 0;
 
     if (empty != m_isEmpty) {
@@ -76,7 +90,7 @@ void McaPanelManager::setServiceEnabled(const QString& upid, bool enabled)
 
 void McaPanelManager::serviceStateChanged(bool offline)
 {
-    qDebug() << "McaPanelManager::serviceStateChanged " << offline;
+    qDebug() << "McaPanelManager::serviceStateChanged offline=" << offline;
     if(!offline) {
         connect(m_dbusModelProxy, SIGNAL(rowsInserted(QModelIndex,int,int)),
                this, SLOT(feedRowsChanged()));
@@ -85,9 +99,19 @@ void McaPanelManager::serviceStateChanged(bool offline)
 
         QDBusReply<QString> reply = m_dbusManagerInterface->call("serviceModelPath");
         qDebug() << "ServiceModel dbus path: " << reply.value() << reply.error().message();
-        m_dbusServiceModel = new ServiceModelDbusProxy(CONTENT_DBUS_SERVICE, reply.value());
+
+        m_dbusServiceModel->setObjectPath(reply.value());
+        m_dbusServiceModel->setOffline(offline);
+
+        if(m_localCategories.count()) {
+            initialize(m_panelName);
+            QStringList categories = m_localCategories;
+            m_localCategories.clear();
+            setCategories(categories);
+        }
     } else {
-        //TODO
+        m_dbusServiceModel->setOffline(offline);
+        m_localCategories = m_categories;
     }
 
     // TODO: send any local changes while offline to server

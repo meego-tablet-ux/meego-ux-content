@@ -4,10 +4,11 @@
 #include <QObject>
 #include <QSortFilterProxyModel>
 #include "dbustypes.h"
+#include "modeldbusinterface.h"
 
 class QDBusInterface;
 
-class ServiceModelDbusProxy : public QAbstractListModel
+class ServiceModelDbusProxy : public ModelDBusInterface
 {
     Q_OBJECT
 public:
@@ -16,7 +17,7 @@ public:
         SystemEnabledRole = Qt::UserRole + 2,  // bool
     };
 
-    ServiceModelDbusProxy(const QString &service, const QString &objectPath);
+    ServiceModelDbusProxy(const QString &service);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const;
     QVariant data(const QModelIndex& index, int role) const;
@@ -24,13 +25,16 @@ public:
     bool isServiceEnabled(const QString& upid);
     void setServiceEnabled(const QString& upid, bool enabled);
 
+protected:
+    void doOfflineChanged();
+
 private slots:
     void onItemsAdded(ArrayOfMcaServiceItemStruct items);
     void onItemsChanged(ArrayOfMcaServiceItemStruct items);
     void onItemsRemoved(QStringList items);
 
 private:
-    QDBusInterface *m_dbusModel;
+//    QDBusInterface *m_dbusModel;
     QList<McaServiceItemStruct*> m_feedItems;
 };
 

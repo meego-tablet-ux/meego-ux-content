@@ -4,16 +4,17 @@
 #include <QObject>
 #include <QAbstractListModel>
 #include "dbustypes.h"
+#include "modeldbusinterface.h"
 
 class QDBusInterface;
 
-class McaAggregatedModelProxy : public QAbstractListModel
+class McaAggregatedModelProxy : public ModelDBusInterface
 {
     Q_OBJECT
     Q_PROPERTY(bool frozen READ frozen WRITE setFrozen NOTIFY frozenChanged);
 
 public:
-    McaAggregatedModelProxy(const QString &service, const QString &objectPath);
+    McaAggregatedModelProxy(const QString &service);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const;
     QVariant data(const QModelIndex& index, int role) const;
@@ -29,6 +30,9 @@ private slots:
     void onItemsAdded(ArrayOfMcaFeedItemStruct items);
     void onItemsChanged(ArrayOfMcaFeedItemStruct items);
     void onItemsRemoved(QStringList items);
+
+protected:
+    void doOfflineChanged();
 
 private:
     void onItemsAddedInternal(ArrayOfMcaFeedItemStruct *items);
@@ -50,7 +54,7 @@ private:
     };
 
     bool m_frozen;
-    QDBusInterface *m_dbusModel;
+//    QDBusInterface *m_dbusModel;
     QQueue<struct feeditem_event_s *> m_frozenQueue;
     QList<McaFeedItemStruct*> m_feedItems;
 };
