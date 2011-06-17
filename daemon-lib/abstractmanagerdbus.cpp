@@ -110,7 +110,7 @@ void McaAbstractManagerDBus::addFeed(const QModelIndex &index)
     QString upid = m_feedmgr->serviceId(model, name);
 
     if (m_upidToFeedInfo.contains(upid)) {
-        qWarning() << "warning: search manager: unexpected duplicate add feed request";
+        qWarning() << "warning: abstract manager: unexpected duplicate add feed request";
         return;
     }
 
