@@ -4,6 +4,7 @@
 #include <QDBusInterface>
 #include <QModelIndex>
 #include <QSortFilterProxyModel>
+#include <QDBusServiceWatcher>
 
 //class McaFeedCache;
 class McaAggregatedModelProxy;
@@ -28,6 +29,7 @@ signals:
     void frozenChanged(bool frozen);
     void servicesConfiguredChanged(int servicesConfigured);
     void servicesEnabledChanged(int servicesEnabled);
+    void offlineChanged(bool offline);
 
 public slots:
     virtual void initialize(const QString& managerData = QString());
@@ -41,21 +43,34 @@ public slots:
 protected slots:
     virtual void updateCounts();
 
+    void serviceRegistered(const QString & serviceName);
+    void serviceUnregistered(const QString & serviceName);
+
+    virtual void serviceStateChangedBase(bool offline);
+
 protected:
     int serviceModelRowCount();
     QVariant serviceModelData(int row, int role);
     bool dataChangedCondition(int row);
+    bool isOffline();
+    virtual void serviceStateChanged(bool offline) = 0;
+
+private:
+    void setOffline(bool offline);
 
 protected:
     QDBusInterface *m_dbusManagerInterface;
     QDBusInterface *m_dbusDaemonInterface;
 
-//    McaFeedCache *m_cache;
     QSortFilterProxyModel *m_feedProxy;
     McaAggregatedModelProxy *m_dbusModelProxy;
 
     int m_servicesConfigured;
     int m_servicesEnabled;
+
+    bool m_isOffline;
+    QString m_createMethodName;
+    QDBusServiceWatcher m_dbusServiceWatcher;
 };
 
 #endif // ABSTRACTMANAGERPROXY_H

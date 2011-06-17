@@ -20,15 +20,20 @@ int main(int argc, char *argv[])
 
     ContentDaemonInterface contentDaemonInterface(sessionBus, &app);
 
-    if (!sessionBus.registerService(CONTENT_DBUS_SERVICE)) {
+    if (sessionBus.interface()->isServiceRegistered(CONTENT_DBUS_SERVICE)) {
         qDebug() << "registerService for " << CONTENT_DBUS_SERVICE << " failed!";
-        qDebug() << "Is the daemon already running?";
+        qDebug() << CONTENT_DBUS_SERVICE << " service already registered. Is the daemon already running?";
         return 0;
+    }
+
+    if(!sessionBus.registerService(CONTENT_DBUS_SERVICE)) {
+        qDebug() << "registerService for " << CONTENT_DBUS_SERVICE << " failed!";
+        return 2;
     }
 
     if (!sessionBus.registerObject(CONTENT_DBUS_OBJECT, &app)) {
         qDebug() << "Failed to register D-Bus object " << CONTENT_DBUS_OBJECT;
-        return 2;
+        return 3;
     }
 
     return app.exec();

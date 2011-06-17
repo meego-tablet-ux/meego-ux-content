@@ -35,6 +35,9 @@ public slots:
     virtual void initialize(const QString& managerData = QString());
     void setCategories(const QStringList& categories);
 
+protected:
+    void serviceStateChanged(bool offline);
+
 private slots:
     void feedRowsChanged();
 

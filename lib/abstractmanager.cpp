@@ -11,27 +11,21 @@
 #include "dbusdefines.h"
 
 McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject *parent) :
-    QObject(parent), m_servicesConfigured(0), m_servicesEnabled(0)
+    QObject(parent),
+    m_servicesConfigured(0),
+    m_servicesEnabled(0),
+    m_createMethodName(createMethodName),
+    m_dbusServiceWatcher(CONTENT_DBUS_SERVICE, QDBusConnection::sessionBus(),
+        QDBusServiceWatcher::WatchForUnregistration | QDBusServiceWatcher::WatchForRegistration)
 {
     registerDataTypes();
 
-    m_dbusDaemonInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, CONTENT_DBUS_OBJECT);
-    QDBusReply<QString> reply = m_dbusDaemonInterface->call(createMethodName);
-    m_dbusManagerInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, reply.value());
-    connect(m_dbusManagerInterface, SIGNAL(updateCounts()), this, SLOT(updateCounts()));
+    connect(&m_dbusServiceWatcher, SIGNAL(serviceRegistered(QString)),
+            this, SLOT(serviceRegistered(QString)));
+    connect(&m_dbusServiceWatcher, SIGNAL(serviceUnregistered(QString)),
+            this, SLOT(serviceUnregistered(QString)));
 
-    reply = m_dbusManagerInterface->call("feedModelPath");
-    qDebug() << "AgreagatedModel dbus path: " << reply.value() << reply.error().message();
-    m_dbusModelProxy = new McaAggregatedModelProxy(CONTENT_DBUS_SERVICE, reply.value());
-    connect(m_dbusModelProxy, SIGNAL(frozenChanged(bool)),
-            this, SIGNAL(frozenChanged(bool)));
-
-    m_feedProxy = new QSortFilterProxyModel(this);
-    m_feedProxy->setSourceModel(m_dbusModelProxy);
-    m_feedProxy->setSortRole(McaFeedModel::RequiredTimestampRole);
-    m_feedProxy->sort(0, Qt::DescendingOrder);
-    m_feedProxy->setDynamicSortFilter(true);
-
+    connect(this, SIGNAL(offlineChanged(bool)), this, SLOT(serviceStateChangedBase(bool)));
 }
 
 McaAbstractManager::~McaAbstractManager()
@@ -51,6 +45,9 @@ McaAbstractManager::~McaAbstractManager()
 
 void McaAbstractManager::initialize(const QString& managerData)
 {
+    m_isOffline = QDBusConnection::sessionBus().interface()->isServiceRegistered(CONTENT_DBUS_SERVICE);
+    setOffline(!m_isOffline);
+
     if(0 == m_dbusManagerInterface) return;
     m_dbusManagerInterface->call("initialize", QVariant(managerData));
 }
@@ -124,4 +121,55 @@ bool McaAbstractManager::dataChangedCondition(int row)
     if(0 == m_dbusManagerInterface) return false;
     QDBusReply<bool> reply = m_dbusManagerInterface->call("dataChangedCondition", QVariant(row));
     return reply.value();
+}
+
+void McaAbstractManager::serviceRegistered(const QString & serviceName)
+{
+    setOffline(false);
+}
+
+void McaAbstractManager::serviceUnregistered(const QString & serviceName)
+{
+    setOffline(true);
+}
+
+void McaAbstractManager::setOffline(bool offline)
+{
+    if(m_isOffline == offline) return;
+
+    m_isOffline = offline;
+    emit offlineChanged(m_isOffline);
+}
+
+bool McaAbstractManager::isOffline()
+{
+    return m_isOffline;
+}
+
+void McaAbstractManager::serviceStateChangedBase(bool offline)
+{
+    qDebug() << "McaAbstractManager::serviceStateChangedBase " << offline;
+
+    if(!offline) {
+        m_dbusDaemonInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, CONTENT_DBUS_OBJECT);
+        QDBusReply<QString> reply = m_dbusDaemonInterface->call(m_createMethodName);
+        m_dbusManagerInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, reply.value());
+        connect(m_dbusManagerInterface, SIGNAL(updateCounts()), this, SLOT(updateCounts()));
+
+        reply = m_dbusManagerInterface->call("feedModelPath");
+        qDebug() << "AgreagatedModel dbus path: " << reply.value() << reply.error().message();
+        m_dbusModelProxy = new McaAggregatedModelProxy(CONTENT_DBUS_SERVICE, reply.value());
+        connect(m_dbusModelProxy, SIGNAL(frozenChanged(bool)),
+                this, SIGNAL(frozenChanged(bool)));
+
+        m_feedProxy = new QSortFilterProxyModel(this);
+        m_feedProxy->setSourceModel(m_dbusModelProxy);
+        m_feedProxy->setSortRole(McaFeedModel::RequiredTimestampRole);
+        m_feedProxy->sort(0, Qt::DescendingOrder);
+        m_feedProxy->setDynamicSortFilter(true);
+    } else {
+        //TODO
+    }
+
+    serviceStateChanged(offline);
 }

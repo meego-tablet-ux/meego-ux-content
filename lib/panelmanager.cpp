@@ -10,27 +10,17 @@ McaPanelManager::McaPanelManager(QObject *parent) :
 {
     m_isEmpty = false;
     m_servicesEnabledByDefault = true;
-
-    connect(m_dbusModelProxy, SIGNAL(rowsInserted(QModelIndex,int,int)),
-           this, SLOT(feedRowsChanged()));
-    connect(m_dbusModelProxy, SIGNAL(rowsRemoved(QModelIndex,int,int)),
-            this, SLOT(feedRowsChanged()));
-
-    QDBusReply<QString> reply = m_dbusManagerInterface->call("serviceModelPath");
-    qDebug() << "ServiceModel dbus path: " << reply.value() << reply.error().message();
-    m_dbusServiceModel = new ServiceModelDbusProxy(CONTENT_DBUS_SERVICE, reply.value());
 }
 
 void McaPanelManager::initialize(const QString& managerData)
 {
     m_panelName = managerData;
-    feedRowsChanged();
     McaAbstractManager::initialize(managerData);
+    feedRowsChanged();
 }
 
 void McaPanelManager::setCategories(const QStringList& categories)
 {
-    //TODO: store m_categories locally in local McaServiceProxy and return them from there
     m_categories = categories;
     m_dbusManagerInterface->call("setCategories", QVariant(categories));
     emit categoriesChanged(categories);
@@ -38,6 +28,7 @@ void McaPanelManager::setCategories(const QStringList& categories)
 
 void McaPanelManager::feedRowsChanged()
 {
+    if(isOffline()) return;
     bool empty = m_dbusModelProxy->rowCount() == 0;
 
     if (empty != m_isEmpty) {
@@ -53,7 +44,6 @@ bool McaPanelManager::isEmpty()
 
 QStringList McaPanelManager::categories()
 {
-    //TODO: store m_categories locally in local McaServiceProxy and return them from there
     return m_categories;
 }
 
@@ -82,4 +72,23 @@ bool McaPanelManager::isServiceEnabled(const QString& upid)
 void McaPanelManager::setServiceEnabled(const QString& upid, bool enabled)
 {
    m_dbusManagerInterface->call("setServiceEnabled", QVariant(upid), QVariant(enabled));
+}
+
+void McaPanelManager::serviceStateChanged(bool offline)
+{
+    qDebug() << "McaPanelManager::serviceStateChanged " << offline;
+    if(!offline) {
+        connect(m_dbusModelProxy, SIGNAL(rowsInserted(QModelIndex,int,int)),
+               this, SLOT(feedRowsChanged()));
+        connect(m_dbusModelProxy, SIGNAL(rowsRemoved(QModelIndex,int,int)),
+                this, SLOT(feedRowsChanged()));
+
+        QDBusReply<QString> reply = m_dbusManagerInterface->call("serviceModelPath");
+        qDebug() << "ServiceModel dbus path: " << reply.value() << reply.error().message();
+        m_dbusServiceModel = new ServiceModelDbusProxy(CONTENT_DBUS_SERVICE, reply.value());
+    } else {
+        //TODO
+    }
+
+    // TODO: send any local changes while offline to server
 }

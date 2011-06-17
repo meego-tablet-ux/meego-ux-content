@@ -15,6 +15,9 @@ public slots:
     void setSearchText(const QString &searchText);
     virtual void initialize(const QString& managerData = QString());
 
+protected:
+    void serviceStateChanged(bool offline);
+
 private:
     QString m_searchText;
 };
