@@ -12,11 +12,11 @@
 
 McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject *parent) :
     QObject(parent),
+    m_dbusManagerInterface(0),
+    m_dbusDaemonInterface(0),
     m_servicesConfigured(0),
     m_servicesEnabled(0),
     m_createMethodName(createMethodName),
-    m_dbusDaemonInterface(0),
-    m_dbusManagerInterface(0),
     m_dbusServiceWatcher(CONTENT_DBUS_SERVICE, QDBusConnection::sessionBus(),
         QDBusServiceWatcher::WatchForUnregistration | QDBusServiceWatcher::WatchForRegistration)
 {
@@ -176,8 +176,10 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
         if(0 == m_dbusDaemonInterface) {
             qDebug() << "DBUS: Creating daemon interface";
             m_dbusDaemonInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, CONTENT_DBUS_OBJECT);
-            if(0 == m_dbusManagerInterface) {
+            if(!m_dbusDaemonInterface->isValid()) {
                 qDebug() << "DBUS: Failed to connect to daemon";
+                delete m_dbusDaemonInterface;
+                m_dbusDaemonInterface = 0;
                 serviceStateChangedBase(true);
                 return;
             } else {
@@ -188,10 +190,12 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
 
             qDebug() << "DBUS: Creating manager interface";
             m_dbusManagerInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, reply.value());
-            if(0 == m_dbusManagerInterface) {
+            if(!m_dbusManagerInterface->isValid()) {
                 qDebug() << "DBUS: Failed to connect to manager";
                 delete m_dbusDaemonInterface;
                 m_dbusDaemonInterface = 0;
+                delete m_dbusManagerInterface;
+                m_dbusManagerInterface = 0;
                 serviceStateChangedBase(true);
                 return;
             } else {

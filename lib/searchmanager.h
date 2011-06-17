@@ -20,6 +20,7 @@ protected:
 
 private:
     QString m_searchText;
+    QString m_localSearchText;
 };
 
 #endif // SEARCHMANAGERPROXY_H
