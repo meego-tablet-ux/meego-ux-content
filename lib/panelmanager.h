@@ -45,6 +45,7 @@ private slots:
 private:
     QString m_panelName;
     QStringList m_categories;
+    QStringList m_localCategories;
     bool m_isEmpty;
     bool m_servicesEnabledByDefault;
 
