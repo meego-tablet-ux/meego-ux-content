@@ -11,6 +11,7 @@
 
 #include <QAbstractListModel>
 #include "adapter.h"
+#include "contentroles.h"
 
 class McaFeedAdapter: public McaAdapter
 {
@@ -30,10 +31,10 @@ public:
     //   The roles in servicemodel.h should probably be renamed sometime.
     enum Roles {
         // provided by system, from the service model
-        SystemServiceIdRole =       Qt::UserRole + 1,  // QString
-        SystemServiceNameRole =     Qt::UserRole + 2,  // QString
-        SystemServiceIconRole =     Qt::UserRole + 3,  // QString
-        SystemServiceCategoryRole = Qt::UserRole + 4,  // QString
+        SystemServiceIdRole =       McaContentRoles::SystemServiceIdRole,  // QString
+        SystemServiceNameRole =     McaContentRoles::SystemServiceNameRole,  // QString
+        SystemServiceIconRole =     McaContentRoles::SystemServiceIconRole,  // QString
+        SystemServiceCategoryRole = McaContentRoles::SystemServiceCategoryRole,  // QString
     };
 
     virtual int limit();

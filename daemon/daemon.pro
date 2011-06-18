@@ -13,9 +13,8 @@ CONFIG   += console
 CONFIG   -= app_bundle
 
 TEMPLATE = app
-target.path=/usr/local/bin
+target.path=$$INSTALL_ROOT/usr/bin
 INSTALLS=target
-
 
 SOURCES += main.cpp \
     contentdaemon.cpp \

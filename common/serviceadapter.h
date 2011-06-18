@@ -12,6 +12,7 @@
 #include <QAbstractListModel>
 #include <QStringList>
 #include "adapter.h"
+#include "contentroles.h"
 
 class McaActions;
 class McaFeedManager;
@@ -24,7 +25,7 @@ class McaServiceAdapter: public McaAdapter
 public:
     enum Roles {
         // provided by system
-        SystemUpidRole = Qt::UserRole + 1,  // QString
+        SystemUpidRole = McaContentRoles::SystemUpidRole,  // QString
     };
 
     McaServiceAdapter(McaFeedManager *feedmgr, QObject *parent = NULL);

@@ -11,31 +11,25 @@ SOURCES += \
     abstractmanager.cpp \
     searchmanager.cpp \
     aggregatedmodelproxy.cpp \
-    ../common/dbustypes.cpp \
     panelmanager.cpp \
     servicemodeldbusproxy.cpp \
-    modeldbusinterface.cpp
+    modeldbusinterface.cpp \
+    ../common/dbustypes.cpp
 
 INSTALL_HEADERS += \
     abstractmanager.h \
-    actions.h \
-    feedmodel.h \
-    feedplugin.h \
     panelmanager.h \
-    searchmanager.h \
-    servicemodel.h
+    searchmanager.h
 
 HEADERS += \
-    abstractmanager.h \
-    searchmanager.h \
+    $$INSTALL_HEADERS \
     aggregatedmodelproxy.h \
-    ../common/dbustypes.h \ 
-    panelmanager.h \
     servicemodeldbusproxy.h \
+    modeldbusinterface.h \
     ../common/dbusdefines.h \
-    modeldbusinterface.h
+    ../common/dbustypes.h
 
-# Fix me, theres a few role refinition files in daemon-lib
+# Fix me, theres a few role definitions files in daemon-lib
 INCLUDEPATH += ../common
 
 system(sed 's/__library_version__/$${VERSION}/g' meego-ux-content.pc.in > meego-ux-content.pc)

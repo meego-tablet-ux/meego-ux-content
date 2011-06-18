@@ -42,19 +42,19 @@ SOURCES += \
     ../common/dbustypes.cpp
 
 INSTALL_HEADERS += \
-    abstractmanagerdbus.h \
     actions.h \
+    ../common/servicemodel.h \
     ../common/feedmodel.h \
     ../common/feedplugin.h \
-    panelmanagerdbus.h \
-    searchmanagerdbus.h \
-    ../common/servicemodel.h
+    ../common/contentroles.h
 
 HEADERS += \
-    ../common/adapter.h \
+    $$INSTALL_HEADERS \
+    abstractmanagerdbus.h \
+    panelmanagerdbus.h \
+    searchmanagerdbus.h \
     aggregatedmodel.h \
     allocator.h \
-    ../common/feedadapter.h \
     feedfilter.h \
     feedmanager.h \
     feedplugincontainer.h \
@@ -65,14 +65,16 @@ HEADERS += \
     serviceproxy.h \
     settings.h \
     ../common/threadtest.h \
-    $$INSTALL_HEADERS \
     ../common/dbustypes.h \
     ../common/serviceadapter.h \
-    ../common/dbusdefines.h
+    ../common/adapter.h \
+    ../common/dbusdefines.h \
+    ../common/feedadapter.h \
+    ../common/contentroles.h
 
 INCLUDEPATH += ../common
 
-system(sed 's/__library_version__/$${VERSION}/g' meego-ux-content.pc.in > meego-ux-content.pc)
+#system(sed 's/__library_version__/$${VERSION}/g' meego-ux-content.pc.in > meego-ux-content.pc)
 
 target.path = $$INSTALL_ROOT/usr/lib
 INSTALLS += target
@@ -81,6 +83,6 @@ headers.files += $$INSTALL_HEADERS
 headers.path += $$INSTALL_ROOT/usr/include/meegouxcontent
 INSTALLS += headers
 
-pkgconfig.files += meego-ux-content.pc
-pkgconfig.path += $$INSTALL_ROOT/usr/lib/pkgconfig
-INSTALLS += pkgconfig
+#pkgconfig.files += meego-ux-content.pc
+#pkgconfig.path += $$INSTALL_ROOT/usr/lib/pkgconfig
+#INSTALLS += pkgconfig

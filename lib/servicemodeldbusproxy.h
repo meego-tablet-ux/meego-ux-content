@@ -5,6 +5,7 @@
 #include <QSortFilterProxyModel>
 #include "dbustypes.h"
 #include "modeldbusinterface.h"
+#include "contentroles.h"
 
 class QDBusInterface;
 
@@ -14,7 +15,7 @@ class ServiceModelDbusProxy : public ModelDBusInterface
 public:
     enum Roles {
         // provided by system
-        SystemEnabledRole = Qt::UserRole + 2,  // bool
+        SystemEnabledRole = McaContentRoles::SystemEnabledRole,  // bool
     };
 
     ServiceModelDbusProxy(const QString &service);
