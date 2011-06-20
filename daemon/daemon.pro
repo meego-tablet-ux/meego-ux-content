@@ -13,8 +13,6 @@ CONFIG   += console
 CONFIG   -= app_bundle
 
 TEMPLATE = app
-target.path=$$INSTALL_ROOT/usr/bin
-INSTALLS=target
 
 SOURCES += main.cpp \
     contentdaemon.cpp \
@@ -26,3 +24,10 @@ HEADERS += \
 
 INCLUDEPATH += ../daemon-lib ../common
 LIBS += -L../daemon-lib -lmeegouxcontent-daemon
+
+dbusservice.path=$$INSTALL_ROOT/usr/share/dbus-1/services
+dbusservice.files=com.meego.content.service
+
+target.path=$$INSTALL_ROOT/usr/bin
+
+INSTALLS=target dbusservice

@@ -220,4 +220,9 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
     }
 
     serviceStateChanged(offline);
+
+    if(offline) {
+        // restart meego-ux-daemon
+        QDBusConnection::sessionBus().interface()->startService(CONTENT_DBUS_SERVICE);
+    }
 }
