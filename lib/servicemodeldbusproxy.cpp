@@ -11,6 +11,12 @@ ServiceModelDbusProxy::ServiceModelDbusProxy(const QString &service)
     QHash<int, QByteArray> roles = roleNames();
     roles.insert(ServiceModelDbusProxy::SystemEnabledRole, "enabled");
 
+
+    roles.insert(McaContentRoles::SystemServiceIdRole, "serviceid");
+    roles.insert(McaContentRoles::SystemServiceNameRole, "servicename");
+    roles.insert(McaContentRoles::SystemServiceIconRole, "serviceicon");
+    roles.insert(McaContentRoles::SystemServiceCategoryRole, "servicecategory");
+
     roles.insert(McaServiceModel::RequiredNameRole,      "name");
     roles.insert(McaServiceModel::RequiredCategoryRole,  "category");
     roles.insert(McaServiceModel::CommonActionsRole,     "actions");

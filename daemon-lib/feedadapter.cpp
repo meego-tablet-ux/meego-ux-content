@@ -45,6 +45,7 @@ McaFeedAdapter::McaFeedAdapter(QAbstractItemModel *source, const QString &servic
     m_lastRowCount = 0;
     m_updating = false;
 
+    qDebug() << "TODO: McaFeedAdapter::McaFeedAdapter roles not needed anymore";
     QHash<int, QByteArray> roles = source->roleNames();
     roles.insert(SystemServiceIdRole, "serviceid");
     roles.insert(SystemServiceNameRole, "servicename");

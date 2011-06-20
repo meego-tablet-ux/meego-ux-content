@@ -68,8 +68,12 @@ bool McaPanelManager::servicesEnabledByDefault()
 
 void McaPanelManager::setServicesEnabledByDefault(bool enabled)
 {
-    m_servicesEnabledByDefault = enabled;
-    m_dbusManagerInterface->call("setServicesEnabledByDefault", QVariant(enabled));
+    if(!isOffline()) {
+        m_servicesEnabledByDefault = enabled;
+        m_dbusManagerInterface->call("setServicesEnabledByDefault", QVariant(enabled));
+    } else {
+        qDebug() << "TODO: McaPanelManager::setServicesEnabledByDefault";
+    }
 }
 
 QAbstractListModel *McaPanelManager::serviceModel()
@@ -85,7 +89,11 @@ bool McaPanelManager::isServiceEnabled(const QString& upid)
 
 void McaPanelManager::setServiceEnabled(const QString& upid, bool enabled)
 {
-   m_dbusManagerInterface->call("setServiceEnabled", QVariant(upid), QVariant(enabled));
+    if(!isOffline()) {
+        m_dbusManagerInterface->call("setServiceEnabled", QVariant(upid), QVariant(enabled));
+    } else {
+        qDebug() << "TODO: McaPanelManager::setServiceEnabled";
+    }
 }
 
 void McaPanelManager::serviceStateChanged(bool offline)

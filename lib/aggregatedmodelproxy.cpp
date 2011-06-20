@@ -3,11 +3,29 @@
 #include <QDebug>
 #include "aggregatedmodelproxy.h"
 #include "feedmodel.h"
+#include "contentroles.h"
 
 McaAggregatedModelProxy::McaAggregatedModelProxy(const QString &service)
     : ModelDBusInterface(service)
 {
     m_frozen = false;
+
+    QHash<int, QByteArray> roles = roleNames();
+    roles.insert(McaFeedModel::RequiredTypeRole,      "type");
+    roles.insert(McaFeedModel::RequiredUniqueIdRole,  "id");
+    roles.insert(McaFeedModel::RequiredTimestampRole, "timestamp");
+    roles.insert(McaFeedModel::CommonActionsRole,     "actions");
+    roles.insert(McaFeedModel::CommonUuidRole,        "uuid");
+    roles.insert(McaFeedModel::GenericTitleRole,      "title");
+    roles.insert(McaFeedModel::GenericContentRole,    "content");
+    roles.insert(McaFeedModel::GenericRelevanceRole,  "relevance");
+    roles.insert(McaFeedModel::GenericAvatarUrlRole,  "avatar");
+    roles.insert(McaFeedModel::GenericPictureUrlRole, "picture");
+    roles.insert(McaFeedModel::GenericAcceptTextRole, "accept");
+    roles.insert(McaFeedModel::GenericRejectTextRole, "reject");
+    roles.insert(McaContentRoles::SystemServiceNameRole, "servicename");
+    roles.insert(McaContentRoles::SystemServiceIconRole, "serviceicon");
+    setRoleNames(roles);
 }
 
 int McaAggregatedModelProxy::rowCount(const QModelIndex& parent) const

@@ -20,6 +20,7 @@ McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject 
     m_dbusServiceWatcher(CONTENT_DBUS_SERVICE, QDBusConnection::sessionBus(),
         QDBusServiceWatcher::WatchForUnregistration | QDBusServiceWatcher::WatchForRegistration)
 {
+    m_isOffline = true;
     m_firstTimeinitialized = false;
     registerDataTypes();
 
