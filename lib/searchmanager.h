@@ -6,10 +6,15 @@
 class McaSearchManager : public McaAbstractManager
 {
     Q_OBJECT
+    Q_PROPERTY(QString searchText READ searchText WRITE setSearchText NOTIFY searchTextChanged)
+
 public:
     McaSearchManager(QObject *parent = 0);
 
+    QString searchText();
+
 signals:
+    void searchTextChanged(const QString& searchText);
 
 public slots:
     void setSearchText(const QString &searchText);

@@ -64,6 +64,14 @@ QVariant McaAggregatedModelProxy::data(const QModelIndex& index, int role) const
     case McaFeedModel::GenericContentRole:
         result = QVariant::fromValue<QString>(feedItem->content);
         break;
+    case McaContentRoles::SystemServiceNameRole:
+        qDebug() << "TODO: McaAggregatedModelProxy::data McaContentRoles::SystemServiceNameRole was requested";
+        result = QVariant::fromValue<QString>("item service name"/*feedItem->servicename*/);
+        break;
+    case McaContentRoles::SystemServiceIconRole:
+        qDebug() << "TODO: McaAggregatedModelProxy::data McaContentRoles::SystemServiceIconRole was requested";
+        result = QVariant::fromValue<QString>("item service icon"/*feedItem->serviceicon*/);
+        break;
     default:
 //        qDebug() << "McaAggregatedModelProxy::data: Unhandled data role requested " << role << " for row " << row;
         result = QVariant();

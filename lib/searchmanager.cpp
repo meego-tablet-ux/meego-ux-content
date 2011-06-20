@@ -10,12 +10,14 @@ McaSearchManager::McaSearchManager(QObject *parent) :
 
 void McaSearchManager::setSearchText(const QString &searchText)
 {
+    bool changed = m_searchText != searchText;
     m_searchText = searchText;
     if(isOffline()) {
         m_localSearchText = searchText;
     } else {
         m_dbusManagerInterface->asyncCall("setSearchText", QVariant(searchText));
     }
+    emit searchTextChanged(searchText);
 }
 
 void McaSearchManager::initialize(const QString& managerData)
@@ -37,4 +39,8 @@ void McaSearchManager::serviceStateChanged(bool offline)
         m_localSearchText = "";
         initialize(text);
     }
+}
+
+QString McaSearchManager::searchText() {
+    return isOffline() ? m_localSearchText : m_searchText;
 }

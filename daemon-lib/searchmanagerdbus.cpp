@@ -79,7 +79,7 @@ void McaSearchManagerDBus::setSearchText(const QString& searchText)
         return;
     m_searchText = searchText;
 
-    emit searchTextChanged(searchText);
+//    emit searchTextChanged(searchText);
 
     foreach(McaSearchableContainer* container, m_searchableContainers) {
         container->searchable()->haltSearch();

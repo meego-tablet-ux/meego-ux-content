@@ -22,7 +22,6 @@ class McaSearchableContainer;
 class McaSearchManagerDBus: public McaAbstractManagerDBus
 {
     Q_OBJECT
-    Q_PROPERTY(QString searchText READ searchText WRITE setSearchText NOTIFY searchTextChanged)
 
     typedef QPair<McaSearchableContainer*, QString> t_SearchRequestEntry;
     typedef QQueue<t_SearchRequestEntry*> t_SearchRequestQueue;
@@ -33,9 +32,6 @@ public:
     Q_INVOKABLE void initialize(const QString& managerData);
 
     virtual QString searchText();
-
-signals:
-    void searchTextChanged(const QString& searchText);
 
 public slots:
     void setSearchText(const QString& searchText);
