@@ -8,14 +8,14 @@
 
 #include <QSortFilterProxyModel>
 
-//#include "actions.h"
+#include "actionsproxy.h"
 #include "contentqml.h"
 #include "panelmanager.h"
 #include "searchmanager.h"
 
 void McaContent::registerTypes(const char *uri)
 {
-//      qmlRegisterType<McaActions>(uri, 0, 0, "McaActions");
+    qmlRegisterType<McaActionsProxy>(uri, 0, 0, "McaActions");
     qmlRegisterType<McaPanelManager>(uri, 0, 0, "McaPanelManager");
     qmlRegisterType<McaSearchManager>(uri, 0, 0, "McaSearchManager");
     qmlRegisterType<QSortFilterProxyModel>(uri, 0, 0, "QSortFilterProxyModel");

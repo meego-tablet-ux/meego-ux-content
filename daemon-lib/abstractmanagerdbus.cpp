@@ -172,6 +172,7 @@ void McaAbstractManagerDBus::createFeedDone(QObject *containerObj, McaFeedAdapte
         QString name = serviceModelData(index, McaServiceModel::RequiredNameRole).toString();
         QAbstractListModel *model = qobject_cast<QAbstractListModel*>(serviceModelData(index, McaAggregatedModel::SourceModelRole).value<QObject*>());
         QString upid = m_feedmgr->serviceId(model, name);
+        feedAdapter->setSystemUpid(upid);
 
         m_requestIds.remove(uniqueRequestId);
 

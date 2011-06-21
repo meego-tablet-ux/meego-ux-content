@@ -137,6 +137,8 @@ QVariant McaFeedAdapter::data(const QModelIndex &index, int role) const
         return m_serviceIcon;
     if (role == SystemServiceCategoryRole)
         return m_serviceCategory;
+    if(role == McaContentRoles::SystemUpidRole)
+        return m_systemUpid;
 
     QVariant var = m_source->data(m_source->index(index.row(), 0), role);
 

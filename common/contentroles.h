@@ -5,8 +5,8 @@ class McaContentRoles
 {
 public:
     enum Roles {
-        SystemUpidRole = Qt::UserRole + 1,
-        SystemEnabledRole = Qt::UserRole + 2
+        SystemUpidRole = Qt::UserRole + 5,
+        SystemEnabledRole = Qt::UserRole + 6
     };
 
     enum ServiceRoles {

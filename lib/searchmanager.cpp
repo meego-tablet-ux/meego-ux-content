@@ -17,7 +17,9 @@ void McaSearchManager::setSearchText(const QString &searchText)
     } else {
         m_dbusManagerInterface->asyncCall("setSearchText", QVariant(searchText));
     }
-    emit searchTextChanged(searchText);
+    if(changed) {
+        emit searchTextChanged(searchText);
+    }
 }
 
 void McaSearchManager::initialize(const QString& managerData)

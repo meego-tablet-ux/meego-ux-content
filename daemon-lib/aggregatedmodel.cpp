@@ -13,6 +13,8 @@
 #include "aggregatedmodel.h"
 #include "adapter.h"
 #include "feedmodel.h"
+#include "actions.h"
+#include "contentroles.h"
 
 #include "memoryleak-defines.h"
 
@@ -285,6 +287,11 @@ void McaAggregatedModel::rowsInserted(const QAbstractItemModel *sourceModel,
     for (int i=start; i<=end; i++) {
         QModelIndex sourceIndex = sourceModel->index(i, 0);
         m_indexList.append(sourceIndex);
+
+        QString itemId = sourceIndex.data(McaFeedModel::RequiredUniqueIdRole).toString() +
+                sourceIndex.data(McaContentRoles::SystemUpidRole).toString();
+        qDebug() << "INSERTED: " << itemId;
+        m_itemIdToIndex[itemId] = sourceIndex;
     }
     endInsertRows();
 }
@@ -302,8 +309,16 @@ void McaAggregatedModel::rowsRemoved(const QAbstractItemModel *sourceModel,
     for (int i = affectedRows.count() - 1; i >= 0; i--) {
         QPair<int,int> block = affectedRows[i];
         beginRemoveRows(QModelIndex(), block.first, block.second);
-        for (int j = block.first; j <= block.second; j++)
-            m_indexList.removeAt(block.first);
+        for (int j = block.first; j <= block.second; j++) {
+            QPersistentModelIndex sourceIndex = m_indexList.at(block.first);
+            QString itemId = sourceIndex.data(McaFeedModel::RequiredUniqueIdRole).toString() +
+                    sourceIndex.data(McaContentRoles::SystemUpidRole).toString();
+            qDebug() << "REMOVED: " << itemId;
+            m_itemIdToIndex.remove(itemId);
+            m_indexList.removeAt(block.first);            
+        }
+
+
         endRemoveRows();
     }
 }
@@ -322,6 +337,13 @@ void McaAggregatedModel::dataChanged ( const QModelIndex & topLeft, const QModel
         item.uuid = data(index(row), McaFeedModel::CommonUuidRole).toString();
         item.title = data(index(row), McaFeedModel::GenericTitleRole).toString();
         item.content = data(index(row), McaFeedModel::GenericContentRole).toString();
+
+        McaActions *actions = data(index(row), McaFeedModel::CommonActionsRole).value<McaActions*>();
+        if(0 != actions) {
+            item.customActions = actions->customActions();
+            item.customDisplayActions = actions->customDisplayActions();
+        }
+
         itemsArray.append(item);
     }
 
@@ -331,13 +353,14 @@ void McaAggregatedModel::dataChanged ( const QModelIndex & topLeft, const QModel
 void McaAggregatedModel::rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end )
 {
     Q_UNUSED(parent);
-    QStringList itemIds;
+    ArrayOfMcaFeedItemId itemIds;
     int topRow = start;
     int bottomRow = end;
 
-    QString id;
+    McaFeedItemId id;
     for(int row = topRow; row <= bottomRow; row++) {
-        id = data(index(row), McaFeedModel::CommonUuidRole).toString();
+        id.itemId = data(index(row), McaFeedModel::CommonUuidRole).toString();
+        id.serviceId = data(index(row), McaContentRoles::SystemUpidRole).toString();
         itemIds.append(id);
     }
 
@@ -359,8 +382,40 @@ void McaAggregatedModel::rowsInserted ( const QModelIndex & parent, int start, i
         item.uuid = data(index(row), McaFeedModel::CommonUuidRole).toString();
         item.title = data(index(row), McaFeedModel::GenericTitleRole).toString();
         item.content = data(index(row), McaFeedModel::GenericContentRole).toString();
+        item.serviceName = data(index(row), McaContentRoles::SystemServiceNameRole).toString();
+        item.serviceIcon = data(index(row), McaContentRoles::SystemServiceIconRole).toString();
+        item.serviceUpid = data(index(row), McaContentRoles::SystemUpidRole).toString();
+
+        McaActions *actions = data(index(row), McaFeedModel::CommonActionsRole).value<McaActions*>();
+        if(0 != actions) {
+            item.customActions = actions->customActions();
+            item.customDisplayActions = actions->customDisplayActions();
+        }
+
         itemsArray.append(item);
     }
 
     emit ItemsAdded(itemsArray);
+}
+
+void McaAggregatedModel::doStandardAction(const QString &action, const QString &itemId, const QString &serviceId)
+{
+    QString id = itemId + serviceId;
+    if(m_itemIdToIndex.contains(id)) {
+        McaActions *actions = m_itemIdToIndex[id].data(McaFeedModel::CommonActionsRole).value<McaActions*>();
+        if(actions) {
+            actions->performStandardAction(action, itemId);
+        }
+    }
+}
+
+void McaAggregatedModel::doCustomAction(const QString &action, const QString &itemId, const QString &serviceId)
+{
+    QString id = itemId + serviceId;
+    if(m_itemIdToIndex.contains(id)) {
+        McaActions *actions = m_itemIdToIndex[id].data(McaFeedModel::CommonActionsRole).value<McaActions*>();
+        if(actions) {
+            actions->performCustomAction(action, itemId);
+        }
+    }
 }

@@ -4,6 +4,7 @@
 #include "aggregatedmodelproxy.h"
 #include "feedmodel.h"
 #include "contentroles.h"
+#include "actionsproxy.h"
 
 McaAggregatedModelProxy::McaAggregatedModelProxy(const QString &service)
     : ModelDBusInterface(service)
@@ -65,12 +66,13 @@ QVariant McaAggregatedModelProxy::data(const QModelIndex& index, int role) const
         result = QVariant::fromValue<QString>(feedItem->content);
         break;
     case McaContentRoles::SystemServiceNameRole:
-        qDebug() << "TODO: McaAggregatedModelProxy::data McaContentRoles::SystemServiceNameRole was requested";
-        result = QVariant::fromValue<QString>("item service name"/*feedItem->servicename*/);
+        result = QVariant::fromValue<QString>(feedItem->serviceName);
         break;
     case McaContentRoles::SystemServiceIconRole:
-        qDebug() << "TODO: McaAggregatedModelProxy::data McaContentRoles::SystemServiceIconRole was requested";
-        result = QVariant::fromValue<QString>("item service icon"/*feedItem->serviceicon*/);
+        result = QVariant::fromValue<QString>(feedItem->serviceIcon);
+        break;
+    case McaFeedModel::CommonActionsRole:
+        result = QVariant::fromValue<McaActionsProxy*>(m_feedActions.at(row));
         break;
     default:
 //        qDebug() << "McaAggregatedModelProxy::data: Unhandled data role requested " << role << " for row " << row;
@@ -148,13 +150,13 @@ void McaAggregatedModelProxy::onItemsChanged(ArrayOfMcaFeedItemStruct items)
     }
 }
 
-void McaAggregatedModelProxy::onItemsRemoved(QStringList items)
+void McaAggregatedModelProxy::onItemsRemoved(ArrayOfMcaFeedItemId items)
 {
     qDebug() << "McaAggregatedModelProxy::onItemsRemoved " << items.count();
 
     if(m_frozen) {
         struct feeditem_event_s *item = new struct feeditem_event_s;
-        QStringList *payload = new QStringList(items);
+        ArrayOfMcaFeedItemId *payload = new ArrayOfMcaFeedItemId(items);
         item->type = FEEDITEM_REMOVE;
         item->u.remove_list = payload;
         m_frozenQueue.enqueue(item);
@@ -171,6 +173,14 @@ void McaAggregatedModelProxy::onItemsAddedInternal(ArrayOfMcaFeedItemStruct *ite
     for(int row = 0; row < items->count(); row++) {
         McaFeedItemStruct *newItem = new McaFeedItemStruct(items->at(row));
         m_feedItems.append(newItem);
+
+        McaActionsProxy *actions = new McaActionsProxy();
+        actions->setServiceUpid(newItem->serviceUpid);
+        actions->setCustomActions(newItem->customActions, newItem->customDisplayActions);
+        m_feedActions.append(actions);
+
+        connect(actions, SIGNAL(standardAction(QString,QString)), this, SLOT(doStandardAction(QString, QString)));
+        connect(actions, SIGNAL(customAction(QString,QString)), this, SLOT(doCustomAction(QString, QString)));
     }
     endInsertRows();
 }
@@ -180,9 +190,11 @@ void McaAggregatedModelProxy::onItemsChangedInternal(ArrayOfMcaFeedItemStruct *i
     int row;
     foreach (McaFeedItemStruct feedItem, *items) {
         for (row = 0; row < m_feedItems.count(); ++row) {
-            if (feedItem.uuid == m_feedItems.at(row)->uuid) {
+            McaFeedItemStruct *oldItem = m_feedItems.at(row);
+            if (oldItem->serviceUpid == feedItem.serviceUpid && oldItem->uuid == feedItem.uuid) {
                 McaFeedItemStruct *oldItem = m_feedItems.at(row);
                 *oldItem = feedItem;
+                m_feedActions.at(row)->setCustomActions(feedItem.customActions, feedItem.customDisplayActions);
                 QModelIndex qmi = createIndex(row, 0, 0);
                 emit dataChanged(qmi, qmi);
                 break;
@@ -191,18 +203,21 @@ void McaAggregatedModelProxy::onItemsChangedInternal(ArrayOfMcaFeedItemStruct *i
     }
 }
 
-void McaAggregatedModelProxy::onItemsRemovedInternal(QStringList *items)
+void McaAggregatedModelProxy::onItemsRemovedInternal(ArrayOfMcaFeedItemId *items)
 {
     qDebug() << "McaAggregatedModelProxy::onItemsRemoved " << items->count();
     int i;
-    foreach (QString itemId, *items) {
+    foreach (McaFeedItemId itemId, *items) {
         for (i = 0; i < m_feedItems.count(); i++) {
             struct McaFeedItemStruct *item = m_feedItems.at(i);
-            if (itemId == item->uuid) {
+            if (itemId.itemId == item->uuid && itemId.serviceId == item->serviceUpid) {
                 beginRemoveRows(QModelIndex(), i, i);
                 m_feedItems.removeAt(i);
+                McaActionsProxy *actions = m_feedActions.at(i);
+                m_feedActions.removeAt(i);
                 endRemoveRows();
                 delete item;
+                delete actions;
                 break;
             }
         }
@@ -225,7 +240,33 @@ void McaAggregatedModelProxy::doOfflineChanged()
                 this, SLOT(onItemsAdded(ArrayOfMcaFeedItemStruct)));
         connect(m_dbusModel, SIGNAL(ItemsChanged(ArrayOfMcaFeedItemStruct)),
                 this, SLOT(onItemsChanged(ArrayOfMcaFeedItemStruct)));
-        connect(m_dbusModel, SIGNAL(ItemsRemoved(QStringList)),
-                this, SLOT(onItemsRemoved(QStringList)));
+        connect(m_dbusModel, SIGNAL(ItemsRemoved(ArrayOfMcaFeedItemId)),
+                this, SLOT(onItemsRemoved(ArrayOfMcaFeedItemId)));
+    }
+}
+
+void McaAggregatedModelProxy::doStandardAction(const QString& action, const QString& uniqueId)
+{
+    McaActionsProxy *actions = qobject_cast<McaActionsProxy*>(sender());
+    if(actions) {
+        if(isOffline()) {
+            qDebug() << "TODO: OFFLINE McaAggregatedModelProxy::doStandardAction "
+                     << action << uniqueId << actions->getServiceUpid();
+        } else {
+            m_dbusModel->asyncCall("doStandardAction", QVariant(action), QVariant(uniqueId), QVariant(actions->getServiceUpid()));
+        }
+    }
+}
+
+void McaAggregatedModelProxy::doCustomAction(const QString& action, const QString& uniqueId)
+{
+    McaActionsProxy *actions = qobject_cast<McaActionsProxy*>(sender());
+    if(actions) {
+        if(isOffline()) {
+            qDebug() << "TODO: OFFLINE McaAggregatedModelProxy::doCustomAction "
+                     << action << uniqueId << actions->getServiceUpid();
+        } else {
+            m_dbusModel->asyncCall("doCustomAction", QVariant(action), QVariant(uniqueId), QVariant(actions->getServiceUpid()));
+        }
     }
 }

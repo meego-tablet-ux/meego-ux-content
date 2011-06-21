@@ -67,6 +67,7 @@ QVariant ServiceModelDbusProxy::data(const QModelIndex& index, int role) const
     case ServiceModelDbusProxy::SystemEnabledRole:
         result = QVariant::fromValue<bool>(feedItem->enabled);
         break;
+    //TODO: remove this, it's here just for debug purposes
     case Qt::DisplayRole:
         result = QVariant::fromValue<QString>(feedItem->displayName + " - " + (feedItem->enabled ? "enabled" : "disabled"));
         break;

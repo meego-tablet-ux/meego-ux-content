@@ -53,15 +53,19 @@ protected:
 signals: // for dbus
     void ItemsAdded(ArrayOfMcaFeedItemStruct items);
     void ItemsChanged(ArrayOfMcaFeedItemStruct items);
-    void ItemsRemoved(QStringList items);
+    void ItemsRemoved(ArrayOfMcaFeedItemId items);
 
 public slots: // for dbus
     void dataChanged ( const QModelIndex & topLeft, const QModelIndex & bottomRight );
     void rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end );
     void rowsInserted ( const QModelIndex & parent, int start, int end );
 
+    void doStandardAction(const QString &action, const QString &itemId, const QString &serviceId);
+    void doCustomAction(const QString &action, const QString &itemId, const QString &serviceId);
+
 private:
     QList<QPersistentModelIndex> m_indexList;
+    QHash<QString, QPersistentModelIndex> m_itemIdToIndex;
 };
 
 #endif  // __mcaaggregatedmodel_h

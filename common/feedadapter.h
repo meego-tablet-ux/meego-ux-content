@@ -37,6 +37,10 @@ public:
         SystemServiceCategoryRole = McaContentRoles::SystemServiceCategoryRole,  // QString
     };
 
+    void setSystemUpid(const QString &upid) {
+        m_systemUpid = upid;
+    }
+
     virtual int limit();
     Q_INVOKABLE virtual void setLimit(int limit);
 
@@ -76,6 +80,7 @@ private:
     QString m_serviceName;
     QString m_serviceIcon;
     QString m_serviceCategory;
+    QString m_systemUpid;
     int m_limit;
     int m_queuedLimit;
     int m_rowCount;

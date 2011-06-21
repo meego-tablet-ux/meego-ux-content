@@ -16,18 +16,15 @@
 class McaActions: public QObject
 {
     Q_OBJECT
-    // identifiers for custom actions (FUTURE)
-    Q_PROPERTY(QStringList customActions READ customActions)
-    // localized strings to show the user in a context menu (FUTURE)
-    Q_PROPERTY(QStringList customDisplayActions READ customDisplayActions)
 
 public:
     McaActions(QObject *parent = NULL);
     virtual ~McaActions();
 
-    Q_INVOKABLE virtual QStringList customActions();
-    Q_INVOKABLE virtual QStringList customDisplayActions();
-    Q_INVOKABLE virtual bool actionType(const QString &action); // true = positive, false = negative
+    virtual QStringList customActions();
+    virtual QStringList customDisplayActions();
+    bool actionType(const QString &action); // true = positive, false = negative
+
 signals:
     // standard actions are defined by the model
     void standardAction(QString action, QString uniqueid);

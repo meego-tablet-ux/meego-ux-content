@@ -7,6 +7,7 @@
 #include "modeldbusinterface.h"
 
 class QDBusInterface;
+class McaActionsProxy;
 
 class McaAggregatedModelProxy : public ModelDBusInterface
 {
@@ -29,7 +30,10 @@ signals:
 private slots:
     void onItemsAdded(ArrayOfMcaFeedItemStruct items);
     void onItemsChanged(ArrayOfMcaFeedItemStruct items);
-    void onItemsRemoved(QStringList items);
+    void onItemsRemoved(ArrayOfMcaFeedItemId items);
+
+    void doStandardAction(const QString& action, const QString& uniqueId);
+    void doCustomAction(const QString& action, const QString& uniqueId);
 
 protected:
     void doOfflineChanged();
@@ -37,7 +41,7 @@ protected:
 private:
     void onItemsAddedInternal(ArrayOfMcaFeedItemStruct *items);
     void onItemsChangedInternal(ArrayOfMcaFeedItemStruct *items);
-    void onItemsRemovedInternal(QStringList *items);
+    void onItemsRemovedInternal(ArrayOfMcaFeedItemId *items);
 
     enum feeditem_event_enum_e {
         FEEDITEM_ADD,
@@ -49,7 +53,7 @@ private:
         enum feeditem_event_enum_e type;
         union payload_u {
             ArrayOfMcaFeedItemStruct *addchange_items;
-            QStringList *remove_list;
+            ArrayOfMcaFeedItemId *remove_list;
         } u;
     };
 
@@ -57,6 +61,7 @@ private:
 //    QDBusInterface *m_dbusModel;
     QQueue<struct feeditem_event_s *> m_frozenQueue;
     QList<McaFeedItemStruct*> m_feedItems;
+    QList<McaActionsProxy*> m_feedActions;
 };
 
 #endif // AGGREGATEDMODELPROXY_H
