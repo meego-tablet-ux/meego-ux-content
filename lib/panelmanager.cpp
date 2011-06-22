@@ -128,3 +128,21 @@ void McaPanelManager::serviceStateChanged(bool offline)
 
     // TODO: send any local changes while offline to server
 }
+
+void McaPanelManager::clearAllHistory(const QDateTime& datetime)
+{
+    if(isOffline()) {
+        qDebug() << "TODO: McaPanelManager::clearAllHistory while daemon is down";
+    } else {
+        m_dbusManagerInterface->asyncCall("clearAllHistory", QVariant(datetime));
+    }
+}
+
+void McaPanelManager::clearHistory(const QString& upid, const QDateTime& datetime)
+{
+    if(isOffline()) {
+        qDebug() << "TODO: McaPanelManager::clearHistory while daemon is down";
+    } else {
+        m_dbusManagerInterface->asyncCall("clearHistory", QVariant(upid), QVariant(datetime));
+    }
+}

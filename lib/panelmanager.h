@@ -2,6 +2,7 @@
 #define PANELMANAGERPROXY_H
 
 #include <QStringList>
+#include <QDateTime>
 #include "abstractmanager.h"
 
 class ServiceModelDbusProxy;
@@ -27,6 +28,10 @@ public:
 
     Q_INVOKABLE bool isServiceEnabled(const QString& upid);
     Q_INVOKABLE void setServiceEnabled(const QString& upid, bool enabled);
+
+    Q_INVOKABLE void clearAllHistory(const QDateTime& datetime = QDateTime::currentDateTime());
+    Q_INVOKABLE void clearHistory(const QString& upid,
+                                  const QDateTime& datetime = QDateTime::currentDateTime());
 
 signals:
     void isEmptyChanged(bool isEmpty);
