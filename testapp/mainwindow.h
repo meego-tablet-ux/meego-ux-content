@@ -8,19 +8,35 @@
 
 #include <QWidget>
 #include <QLocalSocket>
+#include <QTimer>
 
 class QLabel;
 class QPushButton;
 class QComboBox;
 class QLineEdit;
 
+#define ADDACTIONSRATIO 5
+#define REMOVEACTIONSRATIO 2
+
 class MainWindow: public QWidget
 {
     Q_OBJECT
 
+
 public:
     MainWindow();
     ~MainWindow();
+
+    enum Action {
+        AddService,
+        RemoveService,
+        AddContentItem,
+        AddRequestItem = AddContentItem + ADDACTIONSRATIO,
+        RemoveRandomItem = AddRequestItem + ADDACTIONSRATIO,
+        //Make sure this is the last item
+        ActionsCount = RemoveRandomItem + REMOVEACTIONSRATIO
+//        ActionsCount = RemoveService + 1
+    };
 
 protected slots:
     void socketConnected();
@@ -35,6 +51,9 @@ protected slots:
     void addRequestItem();
     void removeItem();
 
+    void randomTimerHandler();
+    void toggleRandomStuff();
+
 private:
     QLabel *m_label;
     QLocalSocket *m_socket;
@@ -43,4 +62,6 @@ private:
     QComboBox *m_serviceCombo;
     int m_serviceCount;
     int m_lastService;
+
+    QTimer m_randomStuffTimer;
 };

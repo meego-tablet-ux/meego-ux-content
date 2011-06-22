@@ -98,6 +98,15 @@ MainWindow::MainWindow()
             this, SLOT(socketError(QLocalSocket::LocalSocketError)));
     connect(m_socket, SIGNAL(stateChanged(QLocalSocket::LocalSocketState)),
             this, SLOT(socketStateChanged(QLocalSocket::LocalSocketState)));
+
+    // do random stuff
+    button = new QPushButton("Do random stuff");
+    connect(button, SIGNAL(clicked()), this, SLOT(toggleRandomStuff()));
+    layout->addWidget(button);
+
+    m_randomStuffTimer.setSingleShot(true);
+    m_randomStuffTimer.setInterval(100);
+    connect(&m_randomStuffTimer, SIGNAL(timeout()), this, SLOT(randomTimerHandler()));
 }
 
 MainWindow::~MainWindow()
@@ -216,4 +225,80 @@ void MainWindow::removeItem()
 {
     qDebug() << "REMOVE SERVICE";
     sendMessage(m_socket, Plugin::TestCommandRemoveItem, m_serviceCombo->currentText());
+}
+
+void MainWindow::randomTimerHandler()
+{
+    MainWindow::Action action = (MainWindow::Action) (random() % MainWindow::ActionsCount);
+    qDebug() << "MainWindow::randomTimerHandler " << action;
+    static int serviceCount = 0;
+
+    bool actionFailed = true;
+
+    switch (action) {
+        case AddService:
+            qDebug() << "ACTION ADD RANDOM SERVICE";
+            if(m_serviceCombo->count() >= 10) break; //LIMIT THE NUMBER OF SERVICES
+            m_serviceNameEdit->setText(QString("service") + QString::number(serviceCount++));
+            addService();
+            actionFailed = false;
+            break;
+        case RemoveService:
+        {
+            qDebug() << "ACTION REMOVE RANDOM SERVICE";
+            if(m_serviceCombo->count() == 0) break;
+            int index = rand() % m_serviceCombo->count();
+            m_serviceCombo->setCurrentIndex(index);
+            removeService();
+            actionFailed = false;
+            break;
+        }
+        default:
+        {
+            if(action >= AddContentItem && action < AddRequestItem) {
+                qDebug() << "ACTION ADD CONTENT ITEM";
+                if(m_serviceCombo->count() == 0) break;
+                int index = rand() % m_serviceCombo->count();
+                m_serviceCombo->setCurrentIndex(index);
+                addContentItem();
+                actionFailed = false;
+            } else if(action >= AddRequestItem && action < RemoveRandomItem) {
+                qDebug() << "ACTION ADD REQUEST ITEM";
+                if(m_serviceCombo->count() == 0) break;
+                int index = rand() % m_serviceCombo->count();
+                m_serviceCombo->setCurrentIndex(index);
+                addRequestItem();
+                actionFailed = false;
+            } else if(action >= RemoveRandomItem && action < ActionsCount) {
+                qDebug() << "ACTION REMOVE RANDOM ITEM";
+                if(m_serviceCombo->count() == 0) break;
+                int index = rand() % m_serviceCombo->count();
+                m_serviceCombo->setCurrentIndex(index);
+                removeItem();
+                actionFailed = false;
+            } else {
+                qDebug() << "ERROR: ACTION NUMBER TOO BIG " << action;
+//                actionFailed = false;
+            }
+            break;
+        }
+    }
+    if(actionFailed) {
+        qDebug() << "        ACTION FAILED";
+        randomTimerHandler();
+    } else {
+        m_randomStuffTimer.start();
+    }
+}
+
+void MainWindow::toggleRandomStuff()
+{
+    QPushButton *button = qobject_cast<QPushButton*>(sender());
+    if(m_randomStuffTimer.isActive()) {
+        m_randomStuffTimer.stop();
+        button->setText("Do random stuff");
+    } else {
+        m_randomStuffTimer.start();
+        button->setText("Stop random stuff");
+    }
 }

@@ -6,7 +6,7 @@ TEMPLATE = app
 
 QT += gui network
 
-INCLUDEPATH += ../testplugin ../lib ../common
+INCLUDEPATH += ../testplugin ../daemon-lib ../common
 
 OBJECTS_DIR = .obj
 MOC_DIR = .moc
