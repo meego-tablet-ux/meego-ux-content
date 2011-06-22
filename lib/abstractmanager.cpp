@@ -10,6 +10,8 @@
 #include "dbustypes.h"
 #include "dbusdefines.h"
 
+#define PING_DAEMON_TIME 5
+
 McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject *parent) :
     QObject(parent),
     m_dbusManagerInterface(0),
@@ -40,6 +42,9 @@ McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject 
     m_feedProxy->setSortRole(McaFeedModel::RequiredTimestampRole);
     m_feedProxy->sort(0, Qt::DescendingOrder);
     m_feedProxy->setDynamicSortFilter(true);
+
+    m_stillAliveTimer.setInterval(PING_DAEMON_TIME);
+    connect(&m_stillAliveTimer, SIGNAL(timeout()), this, SLOT(pingDaemon()));
 }
 
 McaAbstractManager::~McaAbstractManager()
@@ -208,6 +213,8 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
             qDebug() << "AgreagatedModel dbus path: " << reply.value() << reply.error().message();
             m_dbusModelProxy->setObjectPath(reply.value());
             m_dbusModelProxy->setOffline(offline);
+
+            m_stillAliveTimer.start();
         }
     } else {
         if(0 != m_dbusDaemonInterface) {
@@ -217,6 +224,8 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
             delete m_dbusManagerInterface;
             m_dbusManagerInterface = 0;
         }
+
+        m_stillAliveTimer.stop();
     }
 
     serviceStateChanged(offline);
@@ -224,5 +233,12 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
     if(offline) {
         // restart meego-ux-daemon
         QDBusConnection::sessionBus().interface()->startService(CONTENT_DBUS_SERVICE);
+    }
+}
+
+void McaAbstractManager::pingDaemon()
+{
+    if(!isOffline()) { // should not get here if offline, but check anyway
+        m_dbusManagerInterface->asyncCall("ping");
     }
 }

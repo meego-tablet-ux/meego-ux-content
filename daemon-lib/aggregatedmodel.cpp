@@ -290,7 +290,6 @@ void McaAggregatedModel::rowsInserted(const QAbstractItemModel *sourceModel,
 
         QString itemId = sourceIndex.data(McaFeedModel::RequiredUniqueIdRole).toString() +
                 sourceIndex.data(McaContentRoles::SystemUpidRole).toString();
-        qDebug() << "INSERTED: " << itemId;
         m_itemIdToIndex[itemId] = sourceIndex;
     }
     endInsertRows();
@@ -313,7 +312,6 @@ void McaAggregatedModel::rowsRemoved(const QAbstractItemModel *sourceModel,
             QPersistentModelIndex sourceIndex = m_indexList.at(block.first);
             QString itemId = sourceIndex.data(McaFeedModel::RequiredUniqueIdRole).toString() +
                     sourceIndex.data(McaContentRoles::SystemUpidRole).toString();
-            qDebug() << "REMOVED: " << itemId;
             m_itemIdToIndex.remove(itemId);
             m_indexList.removeAt(block.first);            
         }
@@ -404,7 +402,7 @@ void McaAggregatedModel::doStandardAction(const QString &action, const QString &
     if(m_itemIdToIndex.contains(id)) {
         McaActions *actions = m_itemIdToIndex[id].data(McaFeedModel::CommonActionsRole).value<McaActions*>();
         if(actions) {
-            actions->performStandardAction(action, itemId);
+           QMetaObject::invokeMethod(actions, "performStandardAction", Q_ARG(QString, action), Q_ARG(QString, itemId));
         }
     }
 }
@@ -415,7 +413,7 @@ void McaAggregatedModel::doCustomAction(const QString &action, const QString &it
     if(m_itemIdToIndex.contains(id)) {
         McaActions *actions = m_itemIdToIndex[id].data(McaFeedModel::CommonActionsRole).value<McaActions*>();
         if(actions) {
-            actions->performCustomAction(action, itemId);
+            QMetaObject::invokeMethod(actions, "performCustomAction", Q_ARG(QString, action), Q_ARG(QString, itemId));
         }
     }
 }

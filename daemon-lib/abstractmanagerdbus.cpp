@@ -36,6 +36,8 @@ McaAbstractManagerDBus::McaAbstractManagerDBus(QObject *parent) :
 
     connect(m_feedmgr, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)), this, SLOT(createFeedDone(QObject*,McaFeedAdapter*,int)), Qt::DirectConnection);
     connect(m_feedmgr, SIGNAL(createFeedError(QString,int)), this, SLOT(createFeedError(QString,int)));
+
+    ping();
 }
 
 McaAbstractManagerDBus::~McaAbstractManagerDBus()
@@ -192,4 +194,15 @@ void McaAbstractManagerDBus::createFeedError(QString serviceName, int uniqueRequ
         m_requestIds.remove(uniqueRequestId);
         //TODO: any aditional cleanup on feed creation error
     }
+}
+
+
+void McaAbstractManagerDBus::ping()
+{
+    m_lastTime = QDateTime::currentMSecsSinceEpoch();
+}
+
+qint64 McaAbstractManagerDBus::lastTime()
+{
+    return m_lastTime;
 }

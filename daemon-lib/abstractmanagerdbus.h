@@ -34,9 +34,11 @@ public:
     Q_INVOKABLE virtual void initialize(const QString& managerData = QString()) = 0;
 
     QString dbusObjectId();
+    qint64 lastTime();
 
 public slots:
     QString feedModelPath();
+    void ping();
 
 protected:
     virtual void addFeed(const QModelIndex &index);
@@ -75,6 +77,7 @@ protected:
     QHash<QString, FeedInfo *> m_upidToFeedInfo;
     QMap<int, int> m_requestIds;
     QString m_dbusObjectId;
+    qint64 m_lastTime;
 };
 
 #endif // ABSTRACTMANAGER_H

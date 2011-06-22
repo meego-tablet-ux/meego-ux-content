@@ -24,11 +24,14 @@ public slots:
     QString newSearchManager();
     bool release(const QString &objectPath);
 
+private slots:
+    void checkManagers();
 private:
     QString addObjectToList(McaAbstractManagerDBus *dbusObject);
 
 private:
     QMap<QString, McaAbstractManagerDBus*> m_managerList;
+    QTimer m_checkManagersTimer;
 };
 
 #endif // CONTENTDAEMON_H

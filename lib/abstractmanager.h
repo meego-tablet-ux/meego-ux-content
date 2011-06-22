@@ -5,6 +5,7 @@
 #include <QModelIndex>
 #include <QSortFilterProxyModel>
 #include <QDBusServiceWatcher>
+#include <QTimer>
 
 //class McaFeedCache;
 class McaAggregatedModelProxy;
@@ -45,8 +46,9 @@ protected slots:
 
     void serviceRegistered(const QString & serviceName);
     void serviceUnregistered(const QString & serviceName);
-
     virtual void serviceStateChangedBase(bool offline);
+
+    void pingDaemon();
 
 protected:
     int serviceModelRowCount();
@@ -73,6 +75,8 @@ protected:
     QDBusServiceWatcher m_dbusServiceWatcher;
 
     bool m_firstTimeinitialized;
+
+    QTimer m_stillAliveTimer;
 };
 
 #endif // ABSTRACTMANAGERPROXY_H
