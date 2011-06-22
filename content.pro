@@ -8,7 +8,7 @@ SUBDIRS += daemon-lib lib libqml daemon
 SUBDIRS += sampleplugin sampleqml
 
 # Uncomment to build test app and plugin
-SUBDIRS += testapp testplugin
+#SUBDIRS += testapp testplugin
 
 PROJECT_NAME = meego-ux-content
 
