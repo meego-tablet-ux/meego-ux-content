@@ -45,6 +45,7 @@ public:
 
 signals:
     void serviceEnabledChanged(const QString& upid, bool enabled);
+    void servicesConfiguredChanged(bool configured);
 
 public slots:
     void setCategories(const QStringList& categories);
@@ -57,9 +58,9 @@ private:
     virtual QModelIndex serviceModelIndex(int row);
     virtual int serviceModelRowCount();
     virtual QVariant serviceModelData(const QModelIndex &index, int role);
-    virtual QVariant serviceModelData(int row, int role);
+//    virtual QVariant serviceModelData(int row, int role);
     virtual bool dataChangedCondition(const QModelIndex &index);
-    virtual bool dataChangedCondition(int row);
+//    virtual bool dataChangedCondition(int row);
 
     virtual int createFeed(const QAbstractItemModel *serviceModel, const QString& name);
     virtual void removeFeedCleanup(const QString& upid);

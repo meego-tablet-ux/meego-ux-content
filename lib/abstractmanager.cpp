@@ -100,7 +100,7 @@ void McaAbstractManager::setFrozen(bool frozen)
     m_dbusModelProxy->setFrozen(frozen);
 }
 
-QSortFilterProxyModel * McaAbstractManager::feedModel()
+QSortFilterProxyModel *McaAbstractManager::feedModel()
 {
     return m_feedProxy;
 }
@@ -108,13 +108,14 @@ QSortFilterProxyModel * McaAbstractManager::feedModel()
 void McaAbstractManager::updateCounts() {
     int count = serviceModelRowCount();
 
+    qDebug() << "McaAbstractManager::updateCounts()";
     int configured = 0;
     int enabled = 0;
     for (int i=0; i<count; i++) {
-//        QModelIndex qmi = serviceModelIndex(i);
-        if (!serviceModelData(i, McaServiceModel::CommonConfigErrorRole).toBool()) {
+        QModelIndex qmi = serviceModelIndex(i);
+        if (!serviceModelData(qmi, McaServiceModel::CommonConfigErrorRole).toBool()) {
             configured++;
-            if (dataChangedCondition(i))
+            if (dataChangedCondition(qmi))
                 enabled++;
         }
     }
@@ -128,27 +129,8 @@ void McaAbstractManager::updateCounts() {
         m_servicesEnabled = enabled;
         emit servicesEnabledChanged(enabled);
     }
-}
 
-int McaAbstractManager::serviceModelRowCount()
-{
-    if(0 == m_dbusManagerInterface) return 0;
-    QDBusReply<int> reply = m_dbusManagerInterface->call("serviceModelRowCount");
-    return reply.value();
-}
-
-QVariant McaAbstractManager::serviceModelData(int row, int role)
-{
-    if(0 == m_dbusManagerInterface) return QVariant();
-    QDBusReply<QVariant> reply = m_dbusManagerInterface->call("serviceModelData", QVariant(row), QVariant(role));
-    return reply.value();
-}
-
-bool McaAbstractManager::dataChangedCondition(int row)
-{
-    if(0 == m_dbusManagerInterface) return false;
-    QDBusReply<bool> reply = m_dbusManagerInterface->call("dataChangedCondition", QVariant(row));
-    return reply.value();
+    qDebug() << "McaAbstractManager::updateCounts() " << enabled << configured;
 }
 
 void McaAbstractManager::serviceRegistered(const QString & serviceName)

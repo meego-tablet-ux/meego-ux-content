@@ -51,11 +51,13 @@ protected slots:
     void pingDaemon();
 
 protected:
-    int serviceModelRowCount();
-    QVariant serviceModelData(int row, int role);
-    bool dataChangedCondition(int row);
     bool isOffline();
     virtual void serviceStateChanged(bool offline) = 0;
+
+    virtual QModelIndex serviceModelIndex(int row) = 0;
+    virtual int serviceModelRowCount() = 0;
+    virtual QVariant serviceModelData(const QModelIndex &index, int role) = 0;
+    virtual bool dataChangedCondition(const QModelIndex &index) = 0;
 
 private:
     void setOffline(bool offline);

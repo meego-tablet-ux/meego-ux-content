@@ -30,12 +30,16 @@ ServiceModelDbusProxy::ServiceModelDbusProxy(const QString &service)
 
 int ServiceModelDbusProxy::rowCount(const QModelIndex& parent) const
 {
+qDebug() << "ServiceModelDbusProxy::rowCount" << m_feedItems.count();
     Q_UNUSED(parent);
     return m_feedItems.count();
 }
 
 QVariant ServiceModelDbusProxy::data(const QModelIndex& index, int role) const
 {
+    qDebug() << "ServiceModelDbusProxy::data" << index.row() << role;
+    if(!index.isValid()) return QVariant();
+
     int row = index.row();
     if(row >= m_feedItems.count()) {
         qDebug() << "ServiceModelDbusProxy::data: Invalid row requested" << row;

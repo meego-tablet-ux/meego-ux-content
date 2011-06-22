@@ -43,6 +43,27 @@ void McaSearchManager::serviceStateChanged(bool offline)
     }
 }
 
-QString McaSearchManager::searchText() {
+QString McaSearchManager::searchText()
+{
     return isOffline() ? m_localSearchText : m_searchText;
+}
+
+int McaSearchManager::serviceModelRowCount()
+{
+
+}
+
+QVariant McaSearchManager::serviceModelData(const QModelIndex &index, int role)
+{
+
+}
+
+bool McaSearchManager::dataChangedCondition(const QModelIndex &index)
+{
+
+}
+
+QModelIndex McaSearchManager::serviceModelIndex(int row)
+{
+
 }

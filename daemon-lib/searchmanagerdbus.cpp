@@ -102,10 +102,10 @@ QVariant McaSearchManagerDBus::serviceModelData(const QModelIndex &index, int ro
     return m_serviceModel->data(index, role);
 }
 
-QVariant McaSearchManagerDBus::serviceModelData(int row, int role)
-{
-    return serviceModelData(serviceModelIndex(row), role);
-}
+//QVariant McaSearchManagerDBus::serviceModelData(int row, int role)
+//{
+//    return serviceModelData(serviceModelIndex(row), role);
+//}
 
 bool McaSearchManagerDBus::dataChangedCondition(const QModelIndex &index)
 {
@@ -113,10 +113,10 @@ bool McaSearchManagerDBus::dataChangedCondition(const QModelIndex &index)
     return true;
 }
 
-bool McaSearchManagerDBus::dataChangedCondition(int row)
-{
-    return dataChangedCondition( serviceModelIndex(row));
-}
+//bool McaSearchManagerDBus::dataChangedCondition(int row)
+//{
+//    return dataChangedCondition( serviceModelIndex(row));
+//}
 
 int McaSearchManagerDBus::createFeed(const QAbstractItemModel *serviceModel, const QString& name)
 {

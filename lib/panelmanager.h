@@ -10,7 +10,7 @@ class ServiceModelDbusProxy;
 class McaPanelManager : public McaAbstractManager
 {
     Q_OBJECT
-    Q_PROPERTY(QAbstractListModel *serviceModel READ serviceModel)
+    Q_PROPERTY(ServiceModelDbusProxy *serviceModel READ serviceModel)
     Q_PROPERTY(bool isEmpty READ isEmpty NOTIFY isEmptyChanged)
     Q_PROPERTY(QStringList categories READ categories WRITE setCategories NOTIFY categoriesChanged)
     Q_PROPERTY(bool servicesEnabledByDefault READ servicesEnabledByDefault WRITE setServicesEnabledByDefault)
@@ -24,7 +24,7 @@ public:
     virtual QStringList categories();
     bool servicesEnabledByDefault();
     void setServicesEnabledByDefault(bool enabled);
-    virtual QAbstractListModel *serviceModel();
+    virtual ServiceModelDbusProxy *serviceModel();
 
     Q_INVOKABLE bool isServiceEnabled(const QString& upid);
     Q_INVOKABLE void setServiceEnabled(const QString& upid, bool enabled);
@@ -44,15 +44,20 @@ public slots:
 protected:
     void serviceStateChanged(bool offline);
 
+    virtual QModelIndex serviceModelIndex(int row);
+    virtual int serviceModelRowCount();
+    virtual QVariant serviceModelData(const QModelIndex &index, int role);
+    virtual bool dataChangedCondition(const QModelIndex &index);
+
 private slots:
     void feedRowsChanged();
 
 private:
     QString m_panelName;
     QStringList m_categories;
-    QStringList m_localCategories;
     bool m_isEmpty;
     bool m_servicesEnabledByDefault;
+    bool m_categoriesChanged;
 
     ServiceModelDbusProxy *m_dbusServiceModel;
 };

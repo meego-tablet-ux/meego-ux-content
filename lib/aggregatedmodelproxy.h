@@ -5,6 +5,7 @@
 #include <QAbstractListModel>
 #include "dbustypes.h"
 #include "modeldbusinterface.h"
+#include "dbusdefines.h"
 
 class QDBusInterface;
 class McaActionsProxy;
@@ -15,7 +16,7 @@ class McaAggregatedModelProxy : public ModelDBusInterface
     Q_PROPERTY(bool frozen READ frozen WRITE setFrozen NOTIFY frozenChanged);
 
 public:
-    McaAggregatedModelProxy(const QString &service);
+    McaAggregatedModelProxy(const QString &service = CONTENT_DBUS_SERVICE);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const;
     QVariant data(const QModelIndex& index, int role) const;

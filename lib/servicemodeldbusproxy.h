@@ -6,6 +6,7 @@
 #include "dbustypes.h"
 #include "modeldbusinterface.h"
 #include "contentroles.h"
+#include "dbusdefines.h"
 
 class QDBusInterface;
 
@@ -18,7 +19,7 @@ public:
         SystemEnabledRole = McaContentRoles::SystemEnabledRole,  // bool
     };
 
-    ServiceModelDbusProxy(const QString &service);
+    ServiceModelDbusProxy(const QString &service = CONTENT_DBUS_SERVICE);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const;
     QVariant data(const QModelIndex& index, int role) const;

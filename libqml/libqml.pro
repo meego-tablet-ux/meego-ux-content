@@ -5,7 +5,7 @@ TEMPLATE = lib
 CONFIG += plugin
 QT += declarative dbus
 
-INCLUDEPATH += ../lib
+INCLUDEPATH += ../lib ../common
 LIBS += -L../lib -lmeegouxcontent
 
 OBJECTS_DIR = .obj

@@ -69,6 +69,7 @@ McaPanelManagerDBus::~McaPanelManagerDBus()
 
 void McaPanelManagerDBus::initialize(const QString& managerData)
 {
+    qDebug() << "McaPanelManagerDBus::initialize" << managerData;
     m_panelName = managerData;
     m_allocator->setPanelName(m_panelName);
 
@@ -85,21 +86,25 @@ void McaPanelManagerDBus::initialize(const QString& managerData)
 
 void McaPanelManagerDBus::setServicesEnabledByDefault(bool enabled)
 {
+    qDebug() << "McaPanelManagerDBus::setServicesEnabledByDefault();" << enabled;
     m_servicesEnabledByDefault = enabled;
 }
 
 QSortFilterProxyModel *McaPanelManagerDBus::serviceModel()
 {
+    qDebug() << "McaPanelManagerDBus::serviceModel";
     return m_serviceProxy;
 }
 
 QString McaPanelManagerDBus::serviceModelPath()
 {
+    qDebug() << "McaPanelManagerDBus::serviceModelPath";
     return m_dbusObjectId + SERVICEMODELPROXY_DBUS_NAME;
 }
 
 bool McaPanelManagerDBus::isServiceEnabled(const QString& upid)
 {
+    qDebug() << "McaPanelManagerDBus::isServiceEnabled()" << upid;
     bool enabled = m_servicesEnabledByDefault;
 
     if (!m_upidToEnabled.contains(upid)) {
@@ -118,6 +123,7 @@ bool McaPanelManagerDBus::isServiceEnabled(const QString& upid)
 
 void McaPanelManagerDBus::setServiceEnabled(const QString& upid, bool enabled)
 {
+    qDebug() << "McaPanelManagerDBus::setServicesEnabledByDefault();" << upid << enabled;
     if (m_upidToEnabled.contains(upid) && m_upidToEnabled.value(upid) == enabled)
         return;
 
@@ -165,6 +171,7 @@ void McaPanelManagerDBus::removeDirectFeed(QAbstractItemModel *feed)
 
 void McaPanelManagerDBus::setCategories(const QStringList &categories)
 {
+    qDebug() << "McaPanelManagerDBus::setCategories " << categories;
     m_serviceProxy->setCategories(categories);
 }
 
@@ -183,10 +190,10 @@ QVariant McaPanelManagerDBus::serviceModelData(const QModelIndex &index, int rol
     return m_serviceProxy->data(index, role);
 }
 
-QVariant McaPanelManagerDBus::serviceModelData(int row, int role)
-{
-    return serviceModelData(serviceModelIndex(row), role);
-}
+//QVariant McaPanelManagerDBus::serviceModelData(int row, int role)
+//{
+//    return serviceModelData(serviceModelIndex(row), role);
+//}
 
 bool McaPanelManagerDBus::dataChangedCondition(const QModelIndex &index)
 {
@@ -194,10 +201,10 @@ bool McaPanelManagerDBus::dataChangedCondition(const QModelIndex &index)
     return isServiceEnabled(upid);
 }
 
-bool McaPanelManagerDBus::dataChangedCondition(int row)
-{
-    return dataChangedCondition(serviceModelIndex(row));
-}
+//bool McaPanelManagerDBus::dataChangedCondition(int row)
+//{
+//    return dataChangedCondition(serviceModelIndex(row));
+//}
 
 int McaPanelManagerDBus::createFeed(const QAbstractItemModel *serviceModel, const QString& name)
 {
@@ -209,9 +216,9 @@ int McaPanelManagerDBus::createFeed(const QAbstractItemModel *serviceModel, cons
 //
 
 void McaPanelManagerDBus::removeFeedCleanup(const QString& upid) {
-    qDebug() << "TODO: McaPanelManagerDBus::removeFeedCleanup move this to McaPanelManager";
-//    if (m_upidToFeedInfo.count() == 0)
-//        emit servicesConfiguredChanged(false);
+    qDebug() << "TODO: McaPanelManagerDBus::createFeedFinalize next 2 lines this to McaPanelManager";
+    if (m_upidToFeedInfo.count() == 0)
+        emit servicesConfiguredChanged(false);
     m_allocator->removeFeed(upid);
 }
 
@@ -230,10 +237,10 @@ void McaPanelManagerDBus::createFeedFinalize(QObject *containerObj, McaFeedAdapt
     feedInfo->filter = qobject_cast<McaFeedFilter*>(feedAdapter->getSource());
     feedInfo->filter->setPanelName(m_panelName);
 
-    qDebug() << "TODO: McaPanelManagerDBus::createFeedFinalize move this to McaPanelManager";
-//    if (m_upidToFeedInfo.count() == 1) {
-//        emit servicesConfiguredChanged(true);
-//    }
+    qDebug() << "TODO: McaPanelManagerDBus::createFeedFinalize next 3 lines this to McaPanelManager";
+    if (m_upidToFeedInfo.count() == 1) {
+        emit servicesConfiguredChanged(true);
+    }
 
     m_allocator->addFeed(feedInfo->upid, feedAdapter);
 }

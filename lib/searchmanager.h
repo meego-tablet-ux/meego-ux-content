@@ -23,6 +23,11 @@ public slots:
 protected:
     void serviceStateChanged(bool offline);
 
+    virtual QModelIndex serviceModelIndex(int row);
+    virtual int serviceModelRowCount();
+    virtual QVariant serviceModelData(const QModelIndex &index, int role);
+    virtual bool dataChangedCondition(const QModelIndex &index);
+
 private:
     QString m_searchText;
     QString m_localSearchText;

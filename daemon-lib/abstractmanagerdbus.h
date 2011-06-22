@@ -64,9 +64,9 @@ private:
     virtual QModelIndex serviceModelIndex(int row) = 0;
     virtual int serviceModelRowCount() = 0;
     virtual QVariant serviceModelData(const QModelIndex &index, int role) = 0;
-    virtual QVariant serviceModelData(int row, int role) = 0;
+//    virtual QVariant serviceModelData(int row, int role) = 0;
     virtual bool dataChangedCondition(const QModelIndex &index) = 0;
-    virtual bool dataChangedCondition(int row) = 0;
+//    virtual bool dataChangedCondition(int row) = 0;
 
     virtual int createFeed(const QAbstractItemModel *serviceModel, const QString& name) = 0;
     virtual void createFeedFinalize(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo) = 0;
