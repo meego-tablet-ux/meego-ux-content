@@ -16,6 +16,7 @@
 
 #include "abstractmanagerdbus.h"
 
+class McaServiceProxyBase;
 class McaSearchableContainer;
 
 
@@ -39,6 +40,7 @@ public slots:
 protected slots:
 //    void createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
     void searchDone();
+    QString serviceModelPath();
 
 private:
     virtual QModelIndex serviceModelIndex(int row);
@@ -56,6 +58,7 @@ private:
 
 private:
     QAbstractItemModel *m_serviceModel;
+    McaServiceProxyBase *m_serviceProxy;
     QString m_searchText;
 
     QMap<QThread*, t_SearchRequestQueue*> m_searchRequests;

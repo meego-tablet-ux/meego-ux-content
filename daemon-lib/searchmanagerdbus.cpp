@@ -23,6 +23,7 @@
 #include "feedmodel.h"
 #include "settings.h"
 #include "searchablecontainer.h"
+#include "serviceproxybase.h"
 
 #include "memoryleak-defines.h"
 
@@ -37,6 +38,9 @@ McaSearchManagerDBus::McaSearchManagerDBus(QObject *parent):
         McaAbstractManagerDBus(parent)
 {
     m_serviceModel = m_feedmgr->serviceModel();
+    m_serviceProxy = new McaServiceProxyBase(m_serviceModel, this);
+
+    QDBusConnection::sessionBus().registerObject(serviceModelPath() , m_serviceProxy, QDBusConnection::ExportAllContents);
 }
 
 McaSearchManagerDBus::~McaSearchManagerDBus()
@@ -67,6 +71,12 @@ void McaSearchManagerDBus::initialize(const QString& managerData)
 QString McaSearchManagerDBus::searchText()
 {
     return m_searchText;
+}
+
+QString McaSearchManagerDBus::serviceModelPath()
+{
+    qDebug() << "McaPanelManagerDBus::serviceModelPath";
+    return m_dbusObjectId + SERVICEMODELPROXY_DBUS_NAME;
 }
 
 //

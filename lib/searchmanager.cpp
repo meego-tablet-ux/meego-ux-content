@@ -1,11 +1,20 @@
 #include <QDBusPendingCall>
 #include <QDebug>
 #include "searchmanager.h"
+#include "servicemodeldbusproxy.h"
 
 McaSearchManager::McaSearchManager(QObject *parent) :
     McaAbstractManager("newSearchManager", parent)
 {
     m_searchText = "";
+    m_dbusServiceModel = new ServiceModelDbusProxy(CONTENT_DBUS_SERVICE);
+}
+
+McaSearchManager::~McaSearchManager()
+{
+    if(0 != m_dbusServiceModel) {
+        delete m_dbusServiceModel;
+    }
 }
 
 void McaSearchManager::setSearchText(const QString &searchText)
@@ -22,6 +31,12 @@ void McaSearchManager::setSearchText(const QString &searchText)
     }
 }
 
+ServiceModelDbusProxy *McaSearchManager::serviceModel()
+{
+    qDebug() << "McaPanelManager::serviceModel";
+    return m_dbusServiceModel;
+}
+
 void McaSearchManager::initialize(const QString& managerData)
 {
     if(isOffline()) {
@@ -36,7 +51,16 @@ void McaSearchManager::serviceStateChanged(bool offline)
     qDebug() << "McaSearchManager::serviceStateChanged " << offline;
     if(offline) {
         m_localSearchText = m_searchText;
-    } else {        
+    } else {
+        if(!m_dbusManagerInterface) {
+            return; // Error state, handle me
+        }
+
+        QDBusReply<QString> reply = m_dbusManagerInterface->call("serviceModelPath");
+
+        m_dbusServiceModel->setObjectPath(reply.value());
+        m_dbusServiceModel->setOffline(offline);
+
         QString text = m_localSearchText;
         m_localSearchText = "";
         initialize(text);
@@ -50,20 +74,24 @@ QString McaSearchManager::searchText()
 
 int McaSearchManager::serviceModelRowCount()
 {
-
+    qDebug() << "McaSearchManager::serviceModelRowCount";
+    return m_dbusServiceModel->rowCount();
 }
 
 QVariant McaSearchManager::serviceModelData(const QModelIndex &index, int role)
 {
-
+    qDebug() << "McaSearchManager::serviceModelData";
+    return m_dbusServiceModel->data(index, role);
 }
 
 bool McaSearchManager::dataChangedCondition(const QModelIndex &index)
 {
-
+    qDebug() << "McaSearchManager::dataChangedCondition";
+    return true;
 }
 
 QModelIndex McaSearchManager::serviceModelIndex(int row)
 {
-
+    qDebug() << "McaSearchManager::serviceModelIndex";
+    return m_dbusServiceModel->index(row);
 }

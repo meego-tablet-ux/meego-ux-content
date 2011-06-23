@@ -108,7 +108,7 @@ QSortFilterProxyModel *McaAbstractManager::feedModel()
 void McaAbstractManager::updateCounts() {
     int count = serviceModelRowCount();
 
-    qDebug() << "McaAbstractManager::updateCounts()";
+    qDebug() << "McaAbstractManager::updateCounts() Pre-count:" << count;
     int configured = 0;
     int enabled = 0;
     for (int i=0; i<count; i++) {

@@ -29,7 +29,7 @@
 
 McaServiceProxy::McaServiceProxy(McaPanelManagerDBus *panelmgr, QAbstractItemModel *source,
                                  QObject *parent):
-        QSortFilterProxyModel(parent)
+        McaServiceProxyBase(source, parent)
 {
     m_panelmgr = panelmgr;
 
@@ -38,19 +38,10 @@ McaServiceProxy::McaServiceProxy(McaPanelManagerDBus *panelmgr, QAbstractItemMod
 //    // TODO: probably could eliminate aggregatedservicemodel now, move roles here?
 //    setRoleNames(roles);
 
-    setSourceModel(source);
-    m_source = source;
     m_filter = FilterCategories;  // categories empty, so model initially empty - good!
 
     connect(m_panelmgr, SIGNAL(serviceEnabledChanged(QString,bool)),
             this, SLOT(setServiceEnabled(QString,bool)));
-
-    connect(this, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-            this, SLOT(dataChangedProxy(QModelIndex,QModelIndex)));
-    connect(this, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)),
-            this, SLOT(rowsAboutToBeRemovedProxy(QModelIndex,int,int)));
-    connect(this, SIGNAL(rowsInserted(QModelIndex,int,int)),
-            this, SLOT(rowsInsertedProxy(QModelIndex,int,int)));
 }
 
 McaServiceProxy::~McaServiceProxy()
@@ -132,66 +123,4 @@ void McaServiceProxy::setServiceEnabled(const QString &upid, bool enabled)
                                  upid, 1, Qt::MatchExactly);
     if (list.count() > 0)
         emit dataChanged(list[0], list[0]);
-}
-
-void McaServiceProxy::dataChangedProxy ( const QModelIndex & topLeft, const QModelIndex & bottomRight )
-{
-    qDebug() << "McaServiceProxy::dataChangedProxy ";
-    ArrayOfMcaServiceItemStruct itemsArray;
-    int topRow = topLeft.row();
-    int bottomRow = bottomRight.row();
-
-    McaServiceItemStruct item;
-    for(int row = topRow; row <= bottomRow; row++) {
-        item.name = data(index(row, 0), McaServiceModel::RequiredNameRole).toString();
-        item.category = data(index(row, 0), McaServiceModel::RequiredCategoryRole).toString();
-        item.displayName = data(index(row, 0), McaServiceModel::CommonDisplayNameRole).toString();
-        item.iconUrl = data(index(row, 0), McaServiceModel::CommonIconUrlRole).toString();
-        item.configError = data(index(row, 0), McaServiceModel::CommonConfigErrorRole).toBool();
-        item.upid = data(index(row, 0), McaServiceAdapter::SystemUpidRole).toString();
-        item.enabled = m_panelmgr->isServiceEnabled(item.upid);
-        itemsArray.append(item);
-    }
-
-    emit ItemsChanged(itemsArray);
-}
-
-void McaServiceProxy::rowsAboutToBeRemovedProxy ( const QModelIndex & parent, int start, int end )
-{
-    qDebug() << "McaServiceProxy::rowsAboutToBeRemovedProxy ";
-    Q_UNUSED(parent);
-    QStringList itemIds;
-    int topRow = start;
-    int bottomRow = end;
-
-    QString id;
-    for(int row = topRow; row <= bottomRow; row++) {
-        id = data(index(row, 0), McaServiceAdapter::SystemUpidRole).toString();
-        itemIds.append(id);
-    }
-
-    emit ItemsRemoved(itemIds);
-}
-
-void McaServiceProxy::rowsInsertedProxy ( const QModelIndex & parent, int start, int end )
-{
-    qDebug() << "McaServiceProxy::rowsInsertedProxy ";
-    Q_UNUSED(parent);
-    ArrayOfMcaServiceItemStruct itemsArray;
-    int topRow = start;
-    int bottomRow = end;
-
-    McaServiceItemStruct item;
-    for(int row = topRow; row <= bottomRow; row++) {
-        item.name = data(index(row, 0), McaServiceModel::RequiredNameRole).toString();
-        item.category = data(index(row, 0), McaServiceModel::RequiredCategoryRole).toString();
-        item.displayName = data(index(row, 0), McaServiceModel::CommonDisplayNameRole).toString();
-        item.iconUrl = data(index(row, 0), McaServiceModel::CommonIconUrlRole).toString();
-        item.configError = data(index(row, 0), McaServiceModel::CommonConfigErrorRole).toBool();
-        item.upid = data(index(row, 0), McaServiceAdapter::SystemUpidRole).toString();
-        item.enabled = m_panelmgr->isServiceEnabled(item.upid);
-        itemsArray.append(item);
-    }
-
-    emit ItemsAdded(itemsArray);
 }

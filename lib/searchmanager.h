@@ -3,15 +3,20 @@
 
 #include "abstractmanager.h"
 
+class ServiceModelDbusProxy;
+
 class McaSearchManager : public McaAbstractManager
 {
     Q_OBJECT
     Q_PROPERTY(QString searchText READ searchText WRITE setSearchText NOTIFY searchTextChanged)
+    Q_PROPERTY(ServiceModelDbusProxy *serviceModel READ serviceModel)
 
 public:
     McaSearchManager(QObject *parent = 0);
+    ~McaSearchManager();
 
     QString searchText();
+    virtual ServiceModelDbusProxy *serviceModel();
 
 signals:
     void searchTextChanged(const QString& searchText);
@@ -31,6 +36,8 @@ protected:
 private:
     QString m_searchText;
     QString m_localSearchText;
+
+    ServiceModelDbusProxy *m_dbusServiceModel;
 };
 
 #endif // SEARCHMANAGERPROXY_H

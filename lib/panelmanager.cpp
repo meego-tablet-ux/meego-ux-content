@@ -20,7 +20,6 @@ McaPanelManager::~McaPanelManager()
 {
     if(0 != m_dbusServiceModel) {
         delete m_dbusServiceModel;
-        m_dbusServiceModel = 0;
     }
 }
 

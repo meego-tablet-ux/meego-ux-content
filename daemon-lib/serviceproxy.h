@@ -12,11 +12,12 @@
 #include <QSortFilterProxyModel>
 #include <QStringList>
 
+#include "serviceproxybase.h"
 #include "dbustypes.h"
 
 class McaPanelManagerDBus;
 
-class McaServiceProxy: public QSortFilterProxyModel
+class McaServiceProxy: public McaServiceProxyBase
 {
     Q_OBJECT
 //    Q_PROPERTY(int filter READ filter WRITE setFilter NOTIFY filterChanged)
@@ -49,20 +50,8 @@ signals:
 protected slots:
     void setServiceEnabled(const QString& upid, bool enabled);
 
-
-signals: // for dbus
-    void ItemsAdded(ArrayOfMcaServiceItemStruct items);
-    void ItemsChanged(ArrayOfMcaServiceItemStruct items);
-    void ItemsRemoved(QStringList items);
-
-public slots: // for dbus
-    void dataChangedProxy ( const QModelIndex & topLeft, const QModelIndex & bottomRight );
-    void rowsAboutToBeRemovedProxy ( const QModelIndex & parent, int start, int end );
-    void rowsInsertedProxy ( const QModelIndex & parent, int start, int end );
-
 private:
     McaPanelManagerDBus *m_panelmgr;
-    QAbstractItemModel *m_source;
     int m_filter;
     QStringList m_categories;
 };

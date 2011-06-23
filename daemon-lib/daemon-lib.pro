@@ -38,6 +38,7 @@ SOURCES += \
     searchablecontainer.cpp \
     serviceadapter.cpp \
     serviceproxy.cpp \
+    serviceproxybase.cpp \
     settings.cpp \
     ../common/dbustypes.cpp
 
@@ -63,6 +64,7 @@ HEADERS += \
     memoryleak-defines.h \
     searchablecontainer.h \
     serviceproxy.h \
+    serviceproxybase.h \
     settings.h \
     ../common/threadtest.h \
     ../common/dbustypes.h \
