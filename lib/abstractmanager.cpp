@@ -10,7 +10,7 @@
 #include "dbustypes.h"
 #include "dbusdefines.h"
 
-#define PING_DAEMON_TIME 5
+#define PING_DAEMON_TIME 10000
 
 McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject *parent) :
     QObject(parent),
