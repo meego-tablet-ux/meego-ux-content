@@ -137,6 +137,7 @@ void McaPanelManager::serviceStateChanged(bool offline)
         setServicesEnabledByDefault(m_servicesEnabledByDefault);
     } else {
         m_dbusServiceModel->setOffline(offline);
+        m_categoriesChanged = true;
     }
 
     // TODO: send any local changes while offline to server
