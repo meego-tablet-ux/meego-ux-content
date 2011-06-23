@@ -51,6 +51,11 @@ bool McaServiceProxyBase::filterAcceptsRow(int source_row, const QModelIndex &so
     Q_UNUSED(source_row)
     return true;
 }
+void McaServiceProxyBase::synchronizeClients()
+{
+    dataChangedProxy(index(0,0), index(0,rowCount()-1));
+}
+
 void McaServiceProxyBase::dataChangedProxy ( const QModelIndex & topLeft, const QModelIndex & bottomRight )
 {
     qDebug() << "McaServiceProxyBase::dataChangedProxy ";

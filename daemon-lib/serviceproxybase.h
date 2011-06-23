@@ -25,6 +25,8 @@ public:
     virtual ~McaServiceProxyBase();
 
     virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+    void synchronizeClients();
+
 signals: // for dbus
     void ItemsAdded(ArrayOfMcaServiceItemStruct items);
     void ItemsChanged(ArrayOfMcaServiceItemStruct items);
