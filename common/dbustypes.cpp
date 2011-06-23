@@ -48,5 +48,7 @@ const QDBusArgument &operator>>(const QDBusArgument &arg, McaServiceItemStruct &
     arg.beginStructure();
     arg >> item.name >> item.category >> item.displayName >> item.iconUrl >> item.configError >> item.upid >> item.enabled;
     arg.endStructure();
+    qDebug() << "*********" << item.name << item.enabled;
+
     return arg;
 }

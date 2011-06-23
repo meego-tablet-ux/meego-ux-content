@@ -73,7 +73,7 @@ void McaServiceProxyBase::dataChangedProxy ( const QModelIndex & topLeft, const 
         item.iconUrl = data(index(row, 0), McaServiceModel::CommonIconUrlRole).toString();
         item.configError = data(index(row, 0), McaServiceModel::CommonConfigErrorRole).toBool();
         item.upid = data(index(row, 0), McaServiceAdapter::SystemUpidRole).toString();
-        item.enabled = true;
+        item.enabled = isEnabled(item.upid);
         itemsArray.append(item);
     }
 
@@ -113,9 +113,14 @@ void McaServiceProxyBase::rowsInsertedProxy ( const QModelIndex & parent, int st
         item.iconUrl = data(index(row, 0), McaServiceModel::CommonIconUrlRole).toString();
         item.configError = data(index(row, 0), McaServiceModel::CommonConfigErrorRole).toBool();
         item.upid = data(index(row, 0), McaServiceAdapter::SystemUpidRole).toString();
-        item.enabled = true;
+        item.enabled = isEnabled(item.upid);
         itemsArray.append(item);
     }
 
     emit ItemsAdded(itemsArray);
+}
+
+bool McaServiceProxyBase::isEnabled(const QString &upid)
+{
+    return true;
 }

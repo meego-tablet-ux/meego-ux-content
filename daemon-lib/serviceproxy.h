@@ -50,6 +50,9 @@ signals:
 protected slots:
     void setServiceEnabled(const QString& upid, bool enabled);
 
+protected:
+    bool isEnabled(const QString &upid);
+
 private:
     McaPanelManagerDBus *m_panelmgr;
     int m_filter;

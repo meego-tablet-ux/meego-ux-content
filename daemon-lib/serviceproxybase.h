@@ -39,6 +39,9 @@ private slots: // for dbus
     void rowsInsertedProxy ( const QModelIndex & parent, int start, int end );
 
 protected:
+    virtual bool isEnabled(const QString &upid);
+
+protected:
     QAbstractItemModel *m_source;
 };
 

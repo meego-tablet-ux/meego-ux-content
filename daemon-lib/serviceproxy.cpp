@@ -124,3 +124,8 @@ void McaServiceProxy::setServiceEnabled(const QString &upid, bool enabled)
     if (list.count() > 0)
         emit dataChanged(list[0], list[0]);
 }
+
+bool McaServiceProxy::isEnabled(const QString &upid)
+{
+    return m_panelmgr->isServiceEnabled(upid);
+}

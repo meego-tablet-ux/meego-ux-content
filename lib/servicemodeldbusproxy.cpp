@@ -152,6 +152,7 @@ bool ServiceModelDbusProxy::isServiceEnabled(const QString& upid)
 {
     for (int i = 0; i < m_feedItems.count(); i++) {
         struct McaServiceItemStruct *item = m_feedItems.at(i);
+        qDebug() << "+++++++++++++++++++" << item->upid << item->enabled;
         if(upid == item->upid) return item->enabled;
     }
     return false;
