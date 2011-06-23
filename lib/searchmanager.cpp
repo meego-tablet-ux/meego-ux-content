@@ -51,15 +51,16 @@ void McaSearchManager::serviceStateChanged(bool offline)
     qDebug() << "McaSearchManager::serviceStateChanged " << offline;
     if(offline) {
         m_localSearchText = m_searchText;
+        m_dbusServiceModel->setOffline(offline);
     } else {
         if(!m_dbusManagerInterface) {
             return; // Error state, handle me
         }
 
-        QDBusReply<QString> reply = m_dbusManagerInterface->call("serviceModelPath");
-
-        m_dbusServiceModel->setObjectPath(reply.value());
+        m_dbusServiceModel->setObjectPath(CONTENT_DBUS_RAWSERVICE_OBJECT);
         m_dbusServiceModel->setOffline(offline);
+
+        m_dbusServiceModel->triggerSyncClients();
 
         QString text = m_localSearchText;
         m_localSearchText = "";

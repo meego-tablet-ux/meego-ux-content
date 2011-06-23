@@ -30,7 +30,6 @@ ServiceModelDbusProxy::ServiceModelDbusProxy(const QString &service)
 
 int ServiceModelDbusProxy::rowCount(const QModelIndex& parent) const
 {
-qDebug() << "ServiceModelDbusProxy::rowCount" << m_feedItems.count();
     Q_UNUSED(parent);
     return m_feedItems.count();
 }
@@ -99,18 +98,36 @@ void ServiceModelDbusProxy::onItemsAdded(ArrayOfMcaServiceItemStruct items)
 void ServiceModelDbusProxy::onItemsChanged(ArrayOfMcaServiceItemStruct items)
 {
     qDebug() << "ServiceModelDbusProxy::onItemsChanged " << items.count();
+    bool matched;
+
+    QList<McaServiceItemStruct *> notOld;
+
     int row;
     foreach (McaServiceItemStruct feedItem, items) {
+        matched = false;
         for (row = 0; row < m_feedItems.count(); ++row) {
             if (feedItem.upid == m_feedItems.at(row)->upid) {
                 McaServiceItemStruct *oldItem = m_feedItems.at(row);
                 *oldItem = feedItem;
                 QModelIndex qmi = createIndex(row, 0, 0);
+                matched = true;
                 emit dataChanged(qmi, qmi);
                 break;
             }
         }
+        if(!matched) {
+            McaServiceItemStruct *newItem = new McaServiceItemStruct(feedItem);
+            notOld.append(newItem);
+        }
     }
+
+    // This will mostly be used by the synchronization
+    // The performance be relatively poor for due to the earlier matcher.
+    beginInsertRows(QModelIndex(), m_feedItems.count(), m_feedItems.count() + notOld.count() - 1);
+    for(int row = 0; row < notOld.count(); row++) {
+        m_feedItems.append(notOld.at(row));
+    }
+    endInsertRows();
 }
 
 void ServiceModelDbusProxy::onItemsRemoved(QStringList items)
@@ -140,6 +157,11 @@ bool ServiceModelDbusProxy::isServiceEnabled(const QString& upid)
     return false;
 }
 
+void ServiceModelDbusProxy::triggerSyncClients()
+{
+    emit syncClients();
+}
+
 void ServiceModelDbusProxy::doOfflineChanged()
 {
     if(!isOffline()) {
@@ -157,5 +179,7 @@ void ServiceModelDbusProxy::doOfflineChanged()
                 this, SLOT(onItemsChanged(ArrayOfMcaServiceItemStruct)));
         connect(m_dbusModel, SIGNAL(ItemsRemoved(QStringList)),
                 this, SLOT(onItemsRemoved(QStringList)));
+        connect(this, SIGNAL(syncClients()),
+                m_dbusModel, SLOT(syncClients()));
     }
 }

@@ -16,7 +16,6 @@
 
 #include "abstractmanagerdbus.h"
 
-class McaServiceProxyBase;
 class McaSearchableContainer;
 
 
@@ -58,7 +57,6 @@ private:
 
 private:
     QAbstractItemModel *m_serviceModel;
-    McaServiceProxyBase *m_serviceProxy;
     QString m_searchText;
 
     QMap<QThread*, t_SearchRequestQueue*> m_searchRequests;

@@ -26,9 +26,13 @@ public:
 
     bool isServiceEnabled(const QString& upid);
     void setServiceEnabled(const QString& upid, bool enabled);
+    void triggerSyncClients();
 
 protected:
     void doOfflineChanged();
+
+signals:
+    void syncClients();
 
 private slots:
     void onItemsAdded(ArrayOfMcaServiceItemStruct items);

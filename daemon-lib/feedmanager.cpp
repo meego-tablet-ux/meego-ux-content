@@ -26,6 +26,8 @@
 #include "settings.h"
 #include "serviceadapter.h"
 #include "searchablecontainer.h"
+#include "serviceproxybase.h"
+#include "dbusdefines.h"
 
 #include "memoryleak-defines.h"
 
@@ -85,7 +87,9 @@ McaFeedManager::McaFeedManager()
 
     m_watcher = new QFileSystemWatcher;
     m_services = new McaAggregatedModel;
+    m_serviceProxy = new McaServiceProxyBase(m_services, this);
 
+    QDBusConnection::sessionBus().registerObject(CONTENT_DBUS_RAWSERVICE_OBJECT, m_serviceProxy, QDBusConnection::ExportAllContents);
     loadPlugins();
 
     // watch for new plugins getting installed and load them
@@ -97,6 +101,7 @@ McaFeedManager::McaFeedManager()
             this, SLOT(loadPlugins()));
 
     // TODO: watch for plugin updates, removals too?
+
 }
 
 McaFeedManager::~McaFeedManager()
@@ -104,6 +109,9 @@ McaFeedManager::~McaFeedManager()
     m_destroying = true;
     delete m_watcher;
     delete m_services;
+
+    QDBusConnection::sessionBus().unregisterObject("serviceFeed");
+    delete m_serviceProxy;
 
     foreach (McaFeedPluginContainer *plugin, m_pluginToPaths.keys())
     {

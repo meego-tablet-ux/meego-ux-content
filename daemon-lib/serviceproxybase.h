@@ -25,14 +25,15 @@ public:
     virtual ~McaServiceProxyBase();
 
     virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
-    void synchronizeClients();
+public slots: // expose to dbus
+    void syncClients();
 
 signals: // for dbus
     void ItemsAdded(ArrayOfMcaServiceItemStruct items);
     void ItemsChanged(ArrayOfMcaServiceItemStruct items);
     void ItemsRemoved(QStringList items);
 
-public slots: // for dbus
+private slots: // for dbus
     void dataChangedProxy ( const QModelIndex & topLeft, const QModelIndex & bottomRight );
     void rowsAboutToBeRemovedProxy ( const QModelIndex & parent, int start, int end );
     void rowsInsertedProxy ( const QModelIndex & parent, int start, int end );

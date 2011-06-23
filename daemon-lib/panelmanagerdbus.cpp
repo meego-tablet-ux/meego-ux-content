@@ -98,7 +98,7 @@ QSortFilterProxyModel *McaPanelManagerDBus::serviceModel()
 
 QString McaPanelManagerDBus::serviceModelPath()
 {
-    qDebug() << "McaPanelManagerDBus::serviceModelPath";
+    qDebug() << "McaPanelManagerDBus::serviceModelPath" << m_dbusObjectId;
     return m_dbusObjectId + SERVICEMODELPROXY_DBUS_NAME;
 }
 

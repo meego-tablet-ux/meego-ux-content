@@ -20,6 +20,7 @@ class McaAggregatedModel;
 class McaSearchableContainer;
 class McaSearchableFeed;
 class McaFeedAdapter;
+class McaServiceProxyBase;
 
 class McaFeedManager: public QObject
 {
@@ -62,6 +63,7 @@ protected:
 private:
     QHash<McaFeedPluginContainer *, QString> m_pluginToPaths;
     McaAggregatedModel *m_services;
+    McaServiceProxyBase *m_serviceProxy;
     QFileSystemWatcher* m_watcher;
     QHash<const QAbstractItemModel*, McaFeedPluginContainer*> m_modelToPlugin;
 

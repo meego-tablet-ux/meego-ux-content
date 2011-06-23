@@ -51,9 +51,10 @@ bool McaServiceProxyBase::filterAcceptsRow(int source_row, const QModelIndex &so
     Q_UNUSED(source_row)
     return true;
 }
-void McaServiceProxyBase::synchronizeClients()
+void McaServiceProxyBase::syncClients()
 {
-    dataChangedProxy(index(0,0), index(0,rowCount()-1));
+    if(0 != rowCount())
+        dataChangedProxy(index(0,0), index(rowCount()-1, 0));
 }
 
 void McaServiceProxyBase::dataChangedProxy ( const QModelIndex & topLeft, const QModelIndex & bottomRight )
@@ -65,6 +66,7 @@ void McaServiceProxyBase::dataChangedProxy ( const QModelIndex & topLeft, const 
 
     McaServiceItemStruct item;
     for(int row = topRow; row <= bottomRow; row++) {
+        qDebug() << "sending row:" << row;
         item.name = data(index(row, 0), McaServiceModel::RequiredNameRole).toString();
         item.category = data(index(row, 0), McaServiceModel::RequiredCategoryRole).toString();
         item.displayName = data(index(row, 0), McaServiceModel::CommonDisplayNameRole).toString();

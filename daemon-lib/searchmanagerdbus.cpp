@@ -38,9 +38,6 @@ McaSearchManagerDBus::McaSearchManagerDBus(QObject *parent):
         McaAbstractManagerDBus(parent)
 {
     m_serviceModel = m_feedmgr->serviceModel();
-    m_serviceProxy = new McaServiceProxyBase(m_serviceModel, this);
-
-    QDBusConnection::sessionBus().registerObject(serviceModelPath() , m_serviceProxy, QDBusConnection::ExportAllContents);
 }
 
 McaSearchManagerDBus::~McaSearchManagerDBus()
