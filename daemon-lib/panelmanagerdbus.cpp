@@ -142,7 +142,7 @@ void McaPanelManagerDBus::clearAllHistory(const QDateTime &datetime)
 {
     foreach (FeedInfo *info, m_upidToFeedInfo.values()) {
         if (info)
-            info->filter->clearHistory(datetime);
+            QMetaObject::invokeMethod(info->filter, "clearHistory", Q_ARG(QDateTime, datetime));
     }
 }
 
@@ -150,7 +150,7 @@ void McaPanelManagerDBus::clearHistory(const QString &upid, const QDateTime &dat
 {
     FeedInfo *info = m_upidToFeedInfo.value(upid, NULL);
     if (info)
-        info->filter->clearHistory(datetime);
+        QMetaObject::invokeMethod(info->filter, "clearHistory", Q_ARG(QDateTime, datetime));
     else
         qWarning() << "no matching feed while attempting to clear history";
 }
@@ -235,7 +235,7 @@ void McaPanelManagerDBus::createFeedFinalize(QObject *containerObj, McaFeedAdapt
 {
     Q_UNUSED(containerObj);
     feedInfo->filter = qobject_cast<McaFeedFilter*>(feedAdapter->getSource());
-    feedInfo->filter->setPanelName(m_panelName);
+    QMetaObject::invokeMethod(feedInfo->filter, "setPanelName", Q_ARG(QString, m_panelName));
 
     qDebug() << "TODO: McaPanelManagerDBus::createFeedFinalize next 3 lines this to McaPanelManager";
     if (m_upidToFeedInfo.count() == 1) {

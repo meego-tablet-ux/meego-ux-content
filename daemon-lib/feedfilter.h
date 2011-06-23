@@ -30,12 +30,12 @@ public:
     void hide(QString uniqueid);
     bool isHidden(QString uniqueid) const;
 
-    void clearHistory(QDateTime datetime = QDateTime::currentDateTime());
+    Q_INVOKABLE void clearHistory(QDateTime datetime = QDateTime::currentDateTime());
 
     virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
     virtual QVariant data(const QModelIndex &index, int role) const;
 
-    void setPanelName(const QString &panelName);
+    Q_INVOKABLE void setPanelName(const QString &panelName);
 
 protected:
     void clear();
