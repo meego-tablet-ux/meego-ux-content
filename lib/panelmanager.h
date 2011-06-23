@@ -4,8 +4,9 @@
 #include <QStringList>
 #include <QDateTime>
 #include "abstractmanager.h"
+#include "servicemodeldbusproxy.h"
 
-class ServiceModelDbusProxy;
+//class ServiceModelDbusProxy;
 
 class McaPanelManager : public McaAbstractManager
 {

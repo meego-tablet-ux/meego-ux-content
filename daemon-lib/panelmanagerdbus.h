@@ -45,7 +45,7 @@ public:
 
 signals:
     void serviceEnabledChanged(const QString& upid, bool enabled);
-    void servicesConfiguredChanged(bool configured);
+    void servicesConfiguredChanged(int configured);
 
 public slots:
     void setCategories(const QStringList& categories);

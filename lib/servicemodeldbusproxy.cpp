@@ -37,7 +37,6 @@ qDebug() << "ServiceModelDbusProxy::rowCount" << m_feedItems.count();
 
 QVariant ServiceModelDbusProxy::data(const QModelIndex& index, int role) const
 {
-    qDebug() << "ServiceModelDbusProxy::data" << index.row() << role;
     if(!index.isValid()) return QVariant();
 
     int row = index.row();
