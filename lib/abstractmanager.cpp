@@ -10,7 +10,7 @@
 #include "dbustypes.h"
 #include "dbusdefines.h"
 
-#define PING_DAEMON_TIME 10000
+#define RESPAWN_DEAMON_DELAY 1000
 
 McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject *parent) :
     QObject(parent),
@@ -43,8 +43,9 @@ McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject 
     m_feedProxy->sort(0, Qt::DescendingOrder);
     m_feedProxy->setDynamicSortFilter(true);
 
-    m_stillAliveTimer.setInterval(PING_DAEMON_TIME);
-    connect(&m_stillAliveTimer, SIGNAL(timeout()), this, SLOT(pingDaemon()));
+    m_respawnDaemonTimer.setInterval(RESPAWN_DEAMON_DELAY);
+    m_respawnDaemonTimer.setSingleShot(true);
+    connect(&m_respawnDaemonTimer, SIGNAL(timeout()), this, SLOT(respawnDaemon()));
 }
 
 McaAbstractManager::~McaAbstractManager()
@@ -173,7 +174,8 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
             } else {
                 qDebug() << "DBUS: Daemon interface created";
             }
-            QDBusReply<QString> reply = m_dbusDaemonInterface->call(m_createMethodName);
+            QVariant applicationPid = QVariant(QCoreApplication::applicationPid());
+            QDBusReply<QString> reply = m_dbusDaemonInterface->call(m_createMethodName, applicationPid);
             // TODO: Error check
 
             qDebug() << "DBUS: Creating manager interface";
@@ -196,7 +198,7 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
             m_dbusModelProxy->setObjectPath(reply.value());
             m_dbusModelProxy->setOffline(offline);
 
-            m_stillAliveTimer.start();
+            m_respawnDaemonTimer.stop();
         }
     } else {
         if(0 != m_dbusDaemonInterface) {
@@ -207,20 +209,16 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
             m_dbusManagerInterface = 0;
         }
 
-        m_stillAliveTimer.stop();
+        m_respawnDaemonTimer.start();
     }
 
     serviceStateChanged(offline);
-
-    if(offline) {
-        // restart meego-ux-daemon
-        QDBusConnection::sessionBus().interface()->startService(CONTENT_DBUS_SERVICE);
-    }
 }
 
-void McaAbstractManager::pingDaemon()
+void McaAbstractManager::respawnDaemon()
 {
-    if(!isOffline()) { // should not get here if offline, but check anyway
-        m_dbusManagerInterface->asyncCall("ping");
+    if(isOffline()) {
+        // restart meego-ux-daemon
+        QDBusConnection::sessionBus().interface()->startService(CONTENT_DBUS_SERVICE);
     }
 }

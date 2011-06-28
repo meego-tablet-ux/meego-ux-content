@@ -10,34 +10,33 @@ ContentDaemon::ContentDaemon(QCoreApplication *application)
     : QDBusAbstractAdaptor(application)
 {
     registerDataTypes();
-    m_checkManagersTimer.setInterval(CHECK_MANAGERS_INTERVAL);
-    connect(&m_checkManagersTimer, SIGNAL(timeout()), this, SLOT(checkManagers()));
 }
 
-QString ContentDaemon::newSearchManager()
+QString ContentDaemon::newSearchManager(qint64 processPid)
 {
     qDebug() << "ContentDaemon::newSearchManager called";
     McaSearchManagerDBus *searchManager = new McaSearchManagerDBus(this);
 
-    return addObjectToList(searchManager);
+    return addObjectToList(searchManager, processPid);
 }
 
-QString ContentDaemon::newPanelManager()
+QString ContentDaemon::newPanelManager(qint64 processPid)
 {
     qDebug() << "ContentDaemon::newPanelManager called";
     McaPanelManagerDBus *panelManager = new McaPanelManagerDBus(this);
 
-    return addObjectToList(panelManager);
+    return addObjectToList(panelManager, processPid);
 }
 
-QString ContentDaemon::addObjectToList(McaAbstractManagerDBus *dbusObject)
+QString ContentDaemon::addObjectToList(McaAbstractManagerDBus *dbusObject, qint64 processPid)
 {
+    if(m_managerList.count() != 0) {
+        checkManagers();
+    }
+
     QString objectPath = dbusObject->dbusObjectId();
     m_managerList[objectPath] = dbusObject;
-
-    if(!m_checkManagersTimer.isActive()) {
-        m_checkManagersTimer.start();
-    }
+    m_managerPids[objectPath] = processPid;
 
     return objectPath;
 }
@@ -48,14 +47,12 @@ bool ContentDaemon::release(const QString &objectPath)
     if(m_managerList.contains(objectPath)) {
         McaAbstractManagerDBus *pManager = m_managerList.value(objectPath);
         m_managerList.remove(objectPath);
+        m_managerPids.remove(objectPath);
+
         delete pManager;
         return true;
     }
     qDebug() << "ERROR: ContentDaemon::release called with invalid manager object path " << objectPath;
-
-    if(m_managerList.count() == 0) {
-        m_checkManagersTimer.stop();
-    }
 
     return false;
 }
@@ -63,10 +60,11 @@ bool ContentDaemon::release(const QString &objectPath)
 void ContentDaemon::checkManagers()
 {
     QStringList objectsToRelease;
-    qint64 time = QDateTime::currentMSecsSinceEpoch();
+    QString procPath;
     foreach(QString objectId, m_managerList.keys()) {
-        McaAbstractManagerDBus *manager = m_managerList.value(objectId);
-        if(time - manager->lastTime() > CHECK_MANAGERS_INTERVAL) {
+        procPath = QString("/proc/%1").arg(m_managerPids.value(objectId));
+        if(!QDir(procPath).exists()) {
+            qDebug() << "procPath does not exist " << procPath;
             objectsToRelease.append(objectId);
         }
     }

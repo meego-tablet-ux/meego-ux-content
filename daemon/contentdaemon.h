@@ -20,18 +20,18 @@ public:
     ContentDaemon(QCoreApplication *application);
 
 public slots:
-    QString newPanelManager();
-    QString newSearchManager();
+    QString newPanelManager(qint64 processPid);
+    QString newSearchManager(qint64 processPid);
     bool release(const QString &objectPath);
 
 private slots:
     void checkManagers();
 private:
-    QString addObjectToList(McaAbstractManagerDBus *dbusObject);
+    QString addObjectToList(McaAbstractManagerDBus *dbusObject, qint64 processPid);
 
 private:
     QMap<QString, McaAbstractManagerDBus*> m_managerList;
-    QTimer m_checkManagersTimer;
+    QMap<QString,qint64> m_managerPids;
 };
 
 #endif // CONTENTDAEMON_H

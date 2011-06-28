@@ -48,7 +48,7 @@ protected slots:
     void serviceUnregistered(const QString & serviceName);
     virtual void serviceStateChangedBase(bool offline);
 
-    void pingDaemon();
+    void respawnDaemon();
 
 protected:
     bool isOffline();
@@ -78,7 +78,7 @@ protected:
 
     bool m_firstTimeinitialized;
 
-    QTimer m_stillAliveTimer;
+    QTimer m_respawnDaemonTimer;
 };
 
 #endif // ABSTRACTMANAGERPROXY_H
