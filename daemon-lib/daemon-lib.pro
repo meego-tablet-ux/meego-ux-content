@@ -44,9 +44,9 @@ SOURCES += \
 
 INSTALL_HEADERS += \
     actions.h \
+    feedplugin.h \
     ../common/servicemodel.h \
     ../common/feedmodel.h \
-    ../common/feedplugin.h \
     ../common/contentroles.h
 
 HEADERS += \
