@@ -4,10 +4,18 @@
 
 #include "contentdaemon.h"
 #include "dbusdefines.h"
+#include "lockfile.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
+    qint64 pid = app.applicationPid();
+
+    McaLockFile lockfile("/var/run/meego-ux-content.pid", pid);
+    if(!lockfile.canContinue()) {
+        qDebug() << "Daemon already running as " << pid;
+        return 0;
+    }
 
     ContentDaemon contentDaemon(&app);
 
