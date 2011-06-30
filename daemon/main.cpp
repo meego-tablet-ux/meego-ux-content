@@ -1,19 +1,27 @@
 #include <QtCore/QCoreApplication>
 #include <QDebug>
 #include <QtDBus>
+#include <QSharedMemory>
 
 #include "contentdaemon.h"
 #include "dbusdefines.h"
-#include "lockfile.h"
+//#include "lockfile.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-    qint64 pid = app.applicationPid();
 
-    McaLockFile lockfile("/var/run/meego-ux-content.pid", pid);
-    if(!lockfile.canContinue()) {
-        qDebug() << "Daemon already running as " << pid;
+    QSharedMemory sharedMemory("meego-ux-content-daemon");
+    if(sharedMemory.attach()) {
+        //detach and attach again; in case of crash shared memory is not cleared
+        sharedMemory.detach();
+        if(sharedMemory.attach()) {
+            qDebug() << "Daemon is already running";
+            return 0;
+        }
+    }    
+    if(!sharedMemory.create(1)) {
+        qDebug() << "Daemon is already running";
         return 0;
     }
 
