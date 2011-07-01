@@ -10,7 +10,8 @@
 #include "dbustypes.h"
 #include "dbusdefines.h"
 
-#define RESPAWN_DEAMON_DELAY 1000
+#define RESPAWN_DEAMON_DELAY_START 1000
+#define RESPAWN_DEAMON_DELAY_MAX 300000 //5 minutes
 
 McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject *parent) :
     QObject(parent),
@@ -43,7 +44,7 @@ McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject 
     m_feedProxy->sort(0, Qt::DescendingOrder);
     m_feedProxy->setDynamicSortFilter(true);
 
-    m_respawnDaemonTimer.setInterval(RESPAWN_DEAMON_DELAY);
+    m_respawnDaemonTimer.setInterval(RESPAWN_DEAMON_DELAY_START);
     m_respawnDaemonTimer.setSingleShot(true);
     connect(&m_respawnDaemonTimer, SIGNAL(timeout()), this, SLOT(respawnDaemon()));
 }
@@ -163,6 +164,7 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
 
     if(!offline) {
         if(0 == m_dbusDaemonInterface) {
+            m_respawnDaemonTimer.stop();
             qDebug() << "DBUS: Creating daemon interface";
             m_dbusDaemonInterface = new QDBusInterface(CONTENT_DBUS_SERVICE, CONTENT_DBUS_OBJECT);
             if(!m_dbusDaemonInterface->isValid()) {
@@ -197,8 +199,6 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
             qDebug() << "AgreagatedModel dbus path: " << reply.value() << reply.error().message();
             m_dbusModelProxy->setObjectPath(reply.value());
             m_dbusModelProxy->setOffline(offline);
-
-            m_respawnDaemonTimer.stop();
         }
     } else {
         if(0 != m_dbusDaemonInterface) {
@@ -209,6 +209,10 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
             m_dbusManagerInterface = 0;
         }
 
+        int currentInterval = m_respawnDaemonTimer.interval();
+        if(currentInterval < RESPAWN_DEAMON_DELAY_MAX) {
+            m_respawnDaemonTimer.setInterval(currentInterval * 5);
+        }
         m_respawnDaemonTimer.start();
     }
 
