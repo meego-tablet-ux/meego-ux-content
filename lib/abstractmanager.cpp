@@ -10,8 +10,8 @@
 #include "dbustypes.h"
 #include "dbusdefines.h"
 
-#define RESPAWN_DEAMON_DELAY_START 1000
-#define RESPAWN_DEAMON_DELAY_MAX 300000 //5 minutes
+#define RESPAWN_DAEMON_DELAY_START 1000
+#define RESPAWN_DAEMON_DELAY_MAX 625000  // a little over 10 minutes
 
 McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject *parent) :
     QObject(parent),
@@ -44,7 +44,7 @@ McaAbstractManager::McaAbstractManager(const QString &createMethodName, QObject 
     m_feedProxy->sort(0, Qt::DescendingOrder);
     m_feedProxy->setDynamicSortFilter(true);
 
-    m_respawnDaemonTimer.setInterval(RESPAWN_DEAMON_DELAY_START);
+    m_respawnDaemonTimer.setInterval(RESPAWN_DAEMON_DELAY_START);
     m_respawnDaemonTimer.setSingleShot(true);
     connect(&m_respawnDaemonTimer, SIGNAL(timeout()), this, SLOT(respawnDaemon()));
 }
@@ -209,9 +209,9 @@ void McaAbstractManager::serviceStateChangedBase(bool offline)
             m_dbusManagerInterface = 0;
         }
 
-        int currentInterval = m_respawnDaemonTimer.interval();
-        if(currentInterval < RESPAWN_DEAMON_DELAY_MAX) {
-            m_respawnDaemonTimer.setInterval(currentInterval * 5);
+        int interval = m_respawnDaemonTimer.interval() * 5;
+        if (interval > 0 && interval <= RESPAWN_DAEMON_DELAY_MAX) {
+            m_respawnDaemonTimer.setInterval(interval);
         }
         m_respawnDaemonTimer.start();
     }
