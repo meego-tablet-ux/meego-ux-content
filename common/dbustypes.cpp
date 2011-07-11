@@ -5,7 +5,7 @@ QDBusArgument &operator<<(QDBusArgument &arg, const McaFeedItemStruct &item)
 {
     arg.beginStructure();
     arg << item.type << item.uniqueId << item.timestamp << item.uuid << item.title << item.content
-        << item.serviceUpid << item.serviceName << item.serviceIcon << item.customActions << item.customDisplayActions;
+        << item.serviceUpid << item.serviceName << item.serviceIcon << item.customActions << item.customDisplayActions << item.avatar;
     arg.endStructure();
     return arg;
 }
@@ -14,7 +14,7 @@ const QDBusArgument &operator>>(const QDBusArgument &arg, McaFeedItemStruct &ite
 {
     arg.beginStructure();
     arg >> item.type >> item.uniqueId >> item.timestamp >> item.uuid >> item.title >> item.content
-           >> item.serviceUpid >> item.serviceName >> item.serviceIcon >> item.customActions >> item.customDisplayActions;
+           >> item.serviceUpid >> item.serviceName >> item.serviceIcon >> item.customActions >> item.customDisplayActions >> item.avatar;
     arg.endStructure();
     return arg;
 }

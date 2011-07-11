@@ -335,6 +335,12 @@ void McaAggregatedModel::dataChanged ( const QModelIndex & topLeft, const QModel
         item.uuid = data(index(row), McaFeedModel::CommonUuidRole).toString();
         item.title = data(index(row), McaFeedModel::GenericTitleRole).toString();
         item.content = data(index(row), McaFeedModel::GenericContentRole).toString();
+        QVariant url = data(index(row), McaFeedModel::GenericAvatarUrlRole);
+        if(!url.isNull()) {
+            item.avatar = url.toString();
+        } else {
+            item.avatar = "";
+        }
 
         McaActions *actions = data(index(row), McaFeedModel::CommonActionsRole).value<McaActions*>();
         if(0 != actions) {
@@ -383,6 +389,12 @@ void McaAggregatedModel::rowsInserted ( const QModelIndex & parent, int start, i
         item.serviceName = data(index(row), McaContentRoles::SystemServiceNameRole).toString();
         item.serviceIcon = data(index(row), McaContentRoles::SystemServiceIconRole).toString();
         item.serviceUpid = data(index(row), McaContentRoles::SystemUpidRole).toString();
+        QVariant url = data(index(row), McaFeedModel::GenericAvatarUrlRole);
+        if(!url.isNull()) {
+            item.avatar = url.toString();
+        } else {
+            item.avatar = "";
+        }
 
         McaActions *actions = data(index(row), McaFeedModel::CommonActionsRole).value<McaActions*>();
         if(0 != actions) {

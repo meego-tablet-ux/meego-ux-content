@@ -19,6 +19,7 @@ struct McaFeedItemStruct {
     QString serviceIcon;
     QStringList customActions;
     QStringList customDisplayActions;
+    QString avatar;         // McaFeedModel::GenericAvatarUrlRole
 };
 typedef QList<McaFeedItemStruct> ArrayOfMcaFeedItemStruct;
 
