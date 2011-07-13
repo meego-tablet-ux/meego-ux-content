@@ -38,6 +38,13 @@ McaSearchManagerDBus::McaSearchManagerDBus(QObject *parent):
         McaAbstractManagerDBus(parent)
 {
     m_serviceModel = m_feedmgr->serviceModel();
+
+#ifndef THREADING
+    m_searchTimer.setInterval(1);
+    m_searchTimer.setSingleShot(true);
+    connect(&m_searchTimer, SIGNAL(timeout()), this, SLOT(doNextSearch()));
+    m_currentRequest = 0;
+#endif
 }
 
 McaSearchManagerDBus::~McaSearchManagerDBus()
@@ -82,6 +89,7 @@ QString McaSearchManagerDBus::serviceModelPath()
 
 void McaSearchManagerDBus::setSearchText(const QString& searchText)
 {
+    qDebug() << "McaSearchManagerDBus::setSearchText " << searchText << ", old= " << m_searchText;
     if (searchText == m_searchText)
         return;
     m_searchText = searchText;
@@ -89,7 +97,9 @@ void McaSearchManagerDBus::setSearchText(const QString& searchText)
 //    emit searchTextChanged(searchText);
 
     foreach(McaSearchableContainer* container, m_searchableContainers) {
+#ifdef THREADING
         container->searchable()->haltSearch();
+#endif
         addSearchRequest(container, searchText);
     }
 }
@@ -166,7 +176,9 @@ void McaSearchManagerDBus::searchDone()
         return;
     }
     t_SearchRequestQueue *threadQueue = m_searchRequests[containerThread];
+#ifdef THREADING
     m_processingRequests.removeOne(containerThread);
+#endif
     if (!threadQueue->isEmpty()) {
         t_SearchRequestEntry *searchRequest = threadQueue->front();
         threadQueue->pop_front();
@@ -213,8 +225,13 @@ void McaSearchManagerDBus::removeFeedCleanup(const QString& upid) {
 
 void McaSearchManagerDBus::addSearchRequest(McaSearchableContainer *container, const QString &searchText)
 {
+    qDebug() << "McaSearchManagerDBus::addSearchRequest " << container << searchText << m_currentRequest;
     QThread *containerThread = container->thread();
+#ifdef THREADING
     if (m_processingRequests.contains(containerThread)) {
+#else
+    if(0 != m_currentRequest) {
+#endif
         t_SearchRequestQueue *threadQueue = m_searchRequests.value(containerThread);
         t_SearchRequestEntry *requestEntry = 0;
         for(int index =0; index < threadQueue->count(); index++) {
@@ -229,9 +246,33 @@ void McaSearchManagerDBus::addSearchRequest(McaSearchableContainer *container, c
         searchRequest->second = searchText;
         threadQueue->push_back(searchRequest);
     }
-    else {
+    else {        
+#ifdef THREADING
+        QMetaObject::invokeMethod(container, "setSearchText", Q_ARG(QString, searchText));
         m_processingRequests.push_back(containerThread);
         container->searchable()->resetSearchHalt();
-        QMetaObject::invokeMethod(container, "setSearchText", Q_ARG(QString, searchText));
+#else
+        m_currentRequest = new t_SearchRequestEntry;
+        m_currentRequest->first = container;
+        m_currentRequest->second = searchText;
+        m_searchTimer.start();
+#endif
     }
 }
+
+#ifndef THREADING
+void McaSearchManagerDBus::doNextSearch()
+{
+    if(0 == m_currentRequest) {
+        qDebug() << "McaSearchManagerDBus::doNextSearch: ERROR m_currentRequest is 0";
+        return;
+    }
+
+    McaSearchableContainer *container = m_currentRequest->first;
+    QString searchText = m_currentRequest->second;
+    qDebug() << "McaSearchManagerDBus::doNextSearch: " << container << searchText;
+    delete m_currentRequest;
+    m_currentRequest = 0;
+    container->setSearchText(searchText);
+}
+#endif
