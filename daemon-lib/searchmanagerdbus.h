@@ -13,6 +13,7 @@
 #include <QStringList>
 #include <QQueue>
 #include <QPair>
+#include <QTimer>
 
 #include "abstractmanagerdbus.h"
 
@@ -37,17 +38,19 @@ public slots:
     void setSearchText(const QString& searchText);
 
 protected slots:
-//    void createFeedDone(QObject *containerObj, McaFeedAdapter *feedAdapter, int uniqueRequestId);
     void searchDone();
     QString serviceModelPath();
+
+#ifndef THREADING
+    void doNextSearch();
+#endif
+
 
 private:
     virtual QModelIndex serviceModelIndex(int row);
     virtual int serviceModelRowCount();
     virtual QVariant serviceModelData(const QModelIndex &index, int role);
-//    virtual QVariant serviceModelData(int row, int role);
     virtual bool dataChangedCondition(const QModelIndex &index);
-//    virtual bool dataChangedCondition(int row);
 
     virtual int createFeed(const QAbstractItemModel *serviceModel, const QString& name);
     virtual void createFeedFinalize(QObject *containerObj, McaFeedAdapter *feedAdapter, FeedInfo *feedInfo);
@@ -55,13 +58,21 @@ private:
     void addSearchRequest(McaSearchableContainer *container, const QString &searchText);
     virtual void removeFeedCleanup(const QString& upid);
 
+
 private:
     QAbstractItemModel *m_serviceModel;
     QString m_searchText;
 
     QMap<QThread*, t_SearchRequestQueue*> m_searchRequests;
+#ifdef THREADING
     QList<QThread*> m_processingRequests;
+#else
+    t_SearchRequestEntry *m_currentRequest;
+#endif
     QList<McaSearchableContainer*> m_searchableContainers;
+#ifndef THREADING
+    QTimer m_searchTimer;
+#endif
 };
 
 #endif  // __mcasearchmanager_h
