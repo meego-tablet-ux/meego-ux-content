@@ -133,8 +133,10 @@ void McaFeedManager::removePlugin(McaFeedPluginContainer *plugin)
     // allow remaining signals from threads to be dispatched to the feedmanager
     QCoreApplication::sendPostedEvents(qobject_cast<QObject*>(this), 0);
 
+#ifdef THREADING
     qDebug() << "Terminating plugin " << m_pluginToPaths.value(plugin);
     QThread *plugin_thread = plugin->thread();
+#endif
 
     // remove service
     foreach (const QAbstractItemModel *serviceModel, m_modelToPlugin.keys()) {
@@ -153,10 +155,13 @@ void McaFeedManager::removePlugin(McaFeedPluginContainer *plugin)
     }
 
     plugin->deleteLater();
+
+#ifdef THREADING
     plugin_thread->quit();
     if (!plugin_thread->wait(3000)) {
         qWarning() << "Plugin thread is not responding";
     }
+#endif
 
     qDebug() << "Done terminating plugin " << m_pluginToPaths.value(plugin);
     m_pluginToPaths.remove(plugin);
@@ -272,22 +277,29 @@ void McaFeedManager::loadPlugins()
             connect(pluginContainer, SIGNAL(loadError(McaFeedPluginContainer*, QString)),
                     this, SLOT(onLoadError(McaFeedPluginContainer*,QString)));
             // Service data is accessed when the feed is created, which is why it blocks the thread. 
+#ifdef THREADING
             connect(pluginContainer, SIGNAL(feedModelCreated(QObject*,McaFeedAdapter*,int)), 
                     this, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)), Qt::BlockingQueuedConnection );
+#else
+            connect(pluginContainer, SIGNAL(feedModelCreated(QObject*,McaFeedAdapter*,int)), 
+                    this, SIGNAL(feedCreated(QObject*,McaFeedAdapter*,int)));
+#endif
             connect(pluginContainer, SIGNAL(createFeedError(QString,int)), 
                     this, SIGNAL(createFeedError(QString,int)));
 
+#ifdef THREADING
 #ifdef THREADING_DEBUG
             McaThreadTest *pluginThread = new McaThreadTest(this);
-#else
+#else // THREADING_DEBUG
             QThread *pluginThread = new QThread(this);
-#endif
+#endif // THREADING_DEBUG
             connect(pluginThread, SIGNAL(started()), pluginContainer, SLOT(load()));
 
-#ifdef THREADING
             pluginContainer->moveToThread(pluginThread);
-#endif
             pluginThread->start();
+#else // THREADING
+            pluginContainer->load();
+#endif // THREADING
         }
     }
 }
