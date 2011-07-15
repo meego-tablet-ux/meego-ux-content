@@ -74,6 +74,9 @@ QVariant McaAggregatedModelProxy::data(const QModelIndex& index, int role) const
     case McaFeedModel::CommonActionsRole:
         result = QVariant::fromValue<McaActionsProxy*>(m_feedActions.at(row));
         break;
+    case McaFeedModel::GenericAvatarUrlRole:
+        result = QVariant::fromValue<QString>(feedItem->avatar);
+        break;
     default:
 //        qDebug() << "McaAggregatedModelProxy::data: Unhandled data role requested " << role << " for row " << row;
         result = QVariant();
@@ -191,7 +194,7 @@ void McaAggregatedModelProxy::onItemsChangedInternal(ArrayOfMcaFeedItemStruct *i
     foreach (McaFeedItemStruct feedItem, *items) {
         for (row = 0; row < m_feedItems.count(); ++row) {
             McaFeedItemStruct *oldItem = m_feedItems.at(row);
-            if (oldItem->serviceUpid == feedItem.serviceUpid && oldItem->uuid == feedItem.uuid) {
+            if (oldItem->serviceUpid == feedItem.serviceUpid && oldItem->uniqueId == feedItem.uniqueId) {
                 McaFeedItemStruct *oldItem = m_feedItems.at(row);
                 *oldItem = feedItem;
                 m_feedActions.at(row)->setCustomActions(feedItem.customActions, feedItem.customDisplayActions);
@@ -210,7 +213,7 @@ void McaAggregatedModelProxy::onItemsRemovedInternal(ArrayOfMcaFeedItemId *items
     foreach (McaFeedItemId itemId, *items) {
         for (i = 0; i < m_feedItems.count(); i++) {
             struct McaFeedItemStruct *item = m_feedItems.at(i);
-            if (itemId.itemId == item->uuid && itemId.serviceId == item->serviceUpid) {
+            if (itemId.itemId == item->uniqueId && itemId.serviceId == item->serviceUpid) {
                 beginRemoveRows(QModelIndex(), i, i);
                 m_feedItems.removeAt(i);
                 McaActionsProxy *actions = m_feedActions.at(i);
