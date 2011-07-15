@@ -335,6 +335,9 @@ void McaAggregatedModel::dataChanged ( const QModelIndex & topLeft, const QModel
         item.uuid = data(index(row), McaFeedModel::CommonUuidRole).toString();
         item.title = data(index(row), McaFeedModel::GenericTitleRole).toString();
         item.content = data(index(row), McaFeedModel::GenericContentRole).toString();
+        item.serviceName = data(index(row), McaContentRoles::SystemServiceNameRole).toString();
+        item.serviceIcon = data(index(row), McaContentRoles::SystemServiceIconRole).toString();
+        item.serviceUpid = data(index(row), McaContentRoles::SystemUpidRole).toString();
         QVariant url = data(index(row), McaFeedModel::GenericAvatarUrlRole);
         if(!url.isNull()) {
             item.avatar = url.toString();
@@ -363,7 +366,7 @@ void McaAggregatedModel::rowsAboutToBeRemoved ( const QModelIndex & parent, int 
 
     McaFeedItemId id;
     for(int row = topRow; row <= bottomRow; row++) {
-        id.itemId = data(index(row), McaFeedModel::CommonUuidRole).toString();
+        id.itemId = data(index(row), McaFeedModel::RequiredUniqueIdRole).toString();
         id.serviceId = data(index(row), McaContentRoles::SystemUpidRole).toString();
         itemIds.append(id);
     }
